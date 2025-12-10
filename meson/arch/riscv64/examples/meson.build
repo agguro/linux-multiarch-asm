@@ -1,2 +1,1 @@
 subdir('basics')
-subdir('avx')

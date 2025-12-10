@@ -1,7 +1,6 @@
-# 1. Define the include directory for THIS architecture.
-#    This points to 'arch/x86_64/include'
-arch_inc = include_directories('include')
+# project/arch/x86_64/meson.build
 
-# 2. Enter the examples directory.
-#    All subdirectories below will now have access to 'arch_inc'.
+#arch_inc = include_directories('include')
+
 subdir('examples')
+

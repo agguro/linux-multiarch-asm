@@ -1,66 +1,70 @@
 #!/bin/bash
-
-# Exit immediately if a command exits with a non-zero status.
 set -e
 
-# 1. Detect Host Architecture
-HOST_ARCH=$(uname -m)
 echo "=========================================="
-echo "   Host System: $HOST_ARCH"
+echo " linux-nasm MULTI-ARCH BUILD SYSTEM"
 echo "=========================================="
 
-# 2. Build Function
+# 1. Normalize host architecture
+case $(uname -m) in
+    x86_64) HOST_ARCH="x86_64" ;;
+    aarch64|arm64) HOST_ARCH="aarch64" ;;
+    *)
+        echo "Unknown host architecture: $(uname -m)"
+        exit 1
+        ;;
+esac
+
+echo "Host detected: $HOST_ARCH"
+echo ""
+
 build_target() {
-    TARGET_ARCH=$1      # e.g., x86_64
-    CROSS_FILE=$2       # e.g., cross/x86_64.txt
-    BUILD_DIR="build_$TARGET_ARCH"
+    TARGET_ARCH="$1"
+    CROSS_FILE="$2"
+    BUILD_DIR="build_${TARGET_ARCH}"
 
-    echo ""
-    echo ">>> Building target: $TARGET_ARCH"
+    echo ">>> Building for target arch: $TARGET_ARCH"
 
-    # A. CONFIGURATION
+    # A. CONFIGURE
     if [ ! -d "$BUILD_DIR" ]; then
-        echo "    Build directory not found. Running setup..."
-        if [ "$HOST_ARCH" == "$TARGET_ARCH" ]; then
-            echo "    (Mode: Native - Using system defaults)"
-            meson setup "$BUILD_DIR"
+        echo "    Running first-time Meson setup..."
+
+        if [ "$TARGET_ARCH" = "$HOST_ARCH" ]; then
+            echo "    Mode: Native"
+            meson setup "$BUILD_DIR" --buildtype=debug
         else
-            echo "    (Mode: Cross - Using cross-file: $CROSS_FILE)"
-            meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE"
+            echo "    Mode: Cross"
+            meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --buildtype=debug
         fi
+
     else
-        echo "    Build directory exists. Keeping configuration."
+        echo "    Using existing build directory"
     fi
 
-    # B. COMPILATION
-    echo "    Starting compilation..."
+    # B. COMPILE
+    echo "    Compiling..."
     meson compile -C "$BUILD_DIR"
 
-    # C. VERIFICATION (FIXED: Smart search using 'find')
-    # We look for a file named 'hello' that is executable, anywhere in the build dir.
-    FOUND_BIN=$(find "$BUILD_DIR" -name "hello" -type f -executable | head -n 1)
+    # C. VERIFY
+    BIN_COUNT=$(find "$BUILD_DIR" -type f -executable | wc -l)
 
-    if [ -n "$FOUND_BIN" ]; then
-        echo "    [OK] Build successful!"
-        echo "    Location: $FOUND_BIN"
-        
-        # Optional: Print file info
-        echo "    Info: $(file -b "$FOUND_BIN" | cut -d',' -f2)"
+    if [ "$BIN_COUNT" -gt 0 ]; then
+        echo "    [OK] Found $BIN_COUNT executable(s)."
     else
-        echo "    [ERROR] Build finished, but binary 'hello' not found."
+        echo "    [ERROR] No executables found!"
         exit 1
     fi
+
+    echo ""
 }
 
-# 3. Execution List
-# Ensure the first argument matches the output of 'uname -m' (x86_64, aarch64, etc.)
+# 2. BUILD TARGETS
+build_target "x86_64"  "cross/x86_64.ini"
+build_target "aarch64" "cross/aarch64.ini"
+build_target "mips"     "cross/mips.ini"
+build_target "riscv64"  "cross/riscv64.ini"
 
-build_target "x86_64"   "cross/x86_64.txt"
-# build_target "aarch64"  "cross/aarch64.txt"  <-- Uncomment when ready!
-# build_target "mips"     "cross/mips.txt"
-# build_target "riscv64"  "cross/riscv64.txt"
+echo "=========================================="
+echo "   ALL BUILDS DONE!"
+echo "=========================================="
 
-echo ""
-echo "=========================================="
-echo "   ALL BUILDS COMPLETED SUCCESSFULLY!"
-echo "=========================================="

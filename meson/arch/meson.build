@@ -2,4 +2,5 @@
 # If target_arch is 'x86_64', it enters the 'x86_64' directory.
 
 message('Entering architecture directory: ' + target_arch)
+
 subdir(target_arch)

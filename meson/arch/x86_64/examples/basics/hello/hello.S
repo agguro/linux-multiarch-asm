@@ -1,19 +1,22 @@
-/* * hello.S - Prints "Hello world!" and exits.
- * This file is processed by the C-Preprocessor first!
- */
-
-/* Include our OWN header file with constants */
-#include "unistd.h"
+#include <asm/unistd.h>
 
 .intel_syntax noprefix
+
+.section .data
+    msg:    .ascii  "Hello from x86\n"
+    len =   . - msg
+
+.section .text
 .global _start
 
-.text
 _start:
-    /* Prachtig schoon! */
-    do_syscall write, stdout, offset msg, 15
-
-    do_syscall exit, 0
-
-.data
-msg: .asciz "Hello Clean World!\n"
+    mov     rax, __NR_write
+    mov     rdi, 1
+    lea     rsi, msg
+    mov     rdx, len   
+    syscall
+   
+    mov     rax, __NR_exit
+    mov     rdi, 0
+    
+    syscall

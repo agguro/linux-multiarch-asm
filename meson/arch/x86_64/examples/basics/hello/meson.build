@@ -1,16 +1,15 @@
-executable('hello',
-    'hello.S',
-    include_directories : arch_inc,
-    link_args : [
-        # --- Essential Flags ---
-        '-nostdlib',                       # Do not link standard C library
-        '-no-pie',                         # Disable Position Independent Executable (static)
+# arch/x86_64/examples/basics/hello/meson.build
 
-        # --- Diet Flags (Size Optimization) ---
-        '-fno-asynchronous-unwind-tables', # Remove .eh_frame section (unwind info)
-        '-Wl,--build-id=none',             # Remove the unique Build-ID hash (saves ~100+ bytes)
-        '-Wl,--strip-all',                 # Strip all symbols and debug information
-        '-Wl,--gc-sections'                # Garbage collect unused sections
-    ],
-    install : false
+hello_exe = executable(
+  'hello',
+  ['hello.S'],
+  link_args: ['-nostdlib', '-static', '-no-pie'],
+  install: false
 )
+
+if build_machine.cpu_family() != 'x86_64'
+    emulator = find_program('qemu-x86_64', required: true)
+    test('hello', emulator, args: [hello_exe], verbose: true)
+else
+    test('hello', hello_exe, verbose: true)
+endif
