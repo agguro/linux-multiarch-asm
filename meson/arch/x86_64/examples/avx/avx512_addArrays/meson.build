@@ -14,15 +14,13 @@ cpp_args = [
 
 linker_flags = [
   '-no-pie',          # Geen Position Independent Executable (makkelijker debuggen)
-  # '-static'         # <--- LET OP: Zet dit alleen aan als je 'glibc-static' geïnstalleerd hebt.
-                      # Voor nu is dynamisch linken (standaard) veiliger voor C++.
 ]
 
 # 2. Source Files
 # Hier combineren we je C++ driver met je Assembly routine
 sources = [
   'main.cpp',
-  'avx512_addArrays.S'
+  'avx512_addArrays.s'
 ]
 
 # 3. Executable Bouwen
@@ -31,6 +29,7 @@ exe_avx512 = executable(
   'avx512_addArrays',
   sources,
   cpp_args : cpp_args,
+  c_args: avx512_flags,
   link_args : linker_flags,
   install : false
 )

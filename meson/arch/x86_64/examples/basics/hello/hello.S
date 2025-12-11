@@ -1,22 +1,24 @@
 #include <asm/unistd.h>
 
-.intel_syntax noprefix
+    .section .data
+msg:
+    .ascii  "Hello from x86\n"
+len = . - msg
 
-.section .data
-    msg:    .ascii  "Hello from x86\n"
-    len =   . - msg
-
-.section .text
-.global _start
+    .section .text
+    .globl _start
 
 _start:
-    mov     rax, __NR_write
-    mov     rdi, 1
-    lea     rsi, msg
-    mov     rdx, len   
+
+    /* write(1, msg, len) */
+    mov $__NR_write, %rax     # syscall number
+    mov $1, %rdi               # fd = stdout
+    lea msg(%rip), %rsi        # pointer to message, lea for position independent code
+    mov $len, %rdx             # length
     syscall
-   
-    mov     rax, __NR_exit
-    mov     rdi, 0
-    
+
+    /* exit(0) */
+    mov $__NR_exit, %rax
+    xor %rdi, %rdi             # exit code = 0
     syscall
+
