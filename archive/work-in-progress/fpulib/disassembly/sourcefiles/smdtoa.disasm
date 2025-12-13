@@ -1,0 +1,45 @@
+
+../objectfiles/smdtoa.o:     file format pe-i386
+
+
+Disassembly of section .text:
+
+00000000 <_smdtoa@8>:
+   0:	55                   	push   ebp
+   1:	8b ec                	mov    ebp,esp
+   3:	53                   	push   ebx
+   4:	57                   	push   edi
+   5:	8b 7d 0c             	mov    edi,DWORD PTR [ebp+0xc]
+   8:	8b 45 08             	mov    eax,DWORD PTR [ebp+0x8]
+   b:	83 c7 0b             	add    edi,0xb
+   e:	57                   	push   edi
+   f:	b9 cd cc cc cc       	mov    ecx,0xcccccccd
+  14:	bb 0a 00 00 00       	mov    ebx,0xa
+  19:	c6 07 00             	mov    BYTE PTR [edi],0x0
+  1c:	85 c0                	test   eax,eax
+  1e:	79 02                	jns    22 <_smdtoa@8+0x22>
+  20:	f7 d8                	neg    eax
+  22:	f7 e1                	mul    ecx
+  24:	0f ac d0 03          	shrd   eax,edx,0x3
+  28:	c1 ea 03             	shr    edx,0x3
+  2b:	40                   	inc    eax
+  2c:	52                   	push   edx
+  2d:	f7 e3                	mul    ebx
+  2f:	4f                   	dec    edi
+  30:	80 c2 30             	add    dl,0x30
+  33:	88 17                	mov    BYTE PTR [edi],dl
+  35:	58                   	pop    eax
+  36:	85 c0                	test   eax,eax
+  38:	75 e8                	jne    22 <_smdtoa@8+0x22>
+  3a:	8b 45 08             	mov    eax,DWORD PTR [ebp+0x8]
+  3d:	85 c0                	test   eax,eax
+  3f:	79 04                	jns    45 <_smdtoa@8+0x45>
+  41:	4f                   	dec    edi
+  42:	c6 07 2d             	mov    BYTE PTR [edi],0x2d
+  45:	59                   	pop    ecx
+  46:	8b c7                	mov    eax,edi
+  48:	2b cf                	sub    ecx,edi
+  4a:	5f                   	pop    edi
+  4b:	5b                   	pop    ebx
+  4c:	c9                   	leave  
+  4d:	c2 08 00             	ret    0x8

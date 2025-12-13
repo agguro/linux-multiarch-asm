@@ -1,0 +1,223 @@
+
+little-crackme:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000004000b0 <.text>:
+;initialize rbp,rax,rdi,rsi,rdx,rbx to zero
+  4000b0:	48 31 ed             	xor    rbp,rbp
+  4000b3:	48 31 c0             	xor    rax,rax
+  4000b6:	48 31 ff             	xor    rdi,rdi
+  4000b9:	48 31 f6             	xor    rsi,rsi
+  4000bc:	48 31 d2             	xor    rdx,rdx
+  4000bf:	48 31 db             	xor    rbx,rbx
+  4000c2:	c3                   	ret    
+
+;syscall write,stdout,string,string.len
+;string and stringlength from stack
+  4000c3:	48 83 c4 08          	add    rsp,0x8
+  4000c7:	b8 01 00 00 00       	mov    eax,0x1
+  4000cc:	48 89 c7             	mov    rdi,rax
+  4000cf:	5e                   	pop    rsi          ;string
+  4000d0:	5a                   	pop    rdx          ;string.len
+  4000d1:	0f 05                	syscall 
+  4000d3:	48 83 ec 18          	sub    rsp,0x18
+  4000d7:	c3                   	ret    
+
+;syscall read,stdin,buffer,buffer.len
+;buffer and buffer.len from stack
+;the last byte in the buffer may not be 0xazero, so we need to
+;read buffer.len characters excluding the 0x0a.
+;input is at 16 bytes.
+  4000d8:	48 83 c4 08          	add    rsp,0x8
+  4000dc:	48 29 c0             	sub    rax,rax
+  4000df:	48 89 c7             	mov    rdi,rax
+  4000e2:	5e                   	pop    rsi          ;buffer
+  4000e3:	5a                   	pop    rdx          ;buffer.len
+  4000e4:	0f 05                	syscall 
+  4000e6:	48 83 e8 01          	sub    rax,0x1
+  4000ea:	80 3c 06 0a          	cmp    BYTE PTR [rsi+rax*1],0xa   ;last byte may not be 0xa
+  4000ee:	74 02                	je     0x4000f2                   ;if equal, error
+  4000f0:	eb 07                	jmp    0x4000f9                   ;if not, pass
+  4000f2:	48 c7 c0 ff ff ff ff 	mov    rax,0xffffffffffffffff
+  4000f9:	48 83 ec 18          	sub    rsp,0x18
+  4000fd:	c3                   	ret    
+
+;check input and convert to decimals
+;this routine reads the bytes from the source buffer (rsi), checks if the values are legal hexadecimal
+;ascii characters ('0'...'9','A'...'F','a'...'f') and convert each hexdigit to its equivalent decimal value.
+;'0'...'9' --> 0...9, 'A'...'F' --> 10...15, 'a'...'f' --> 10...15
+;the result is stored in the destination buffer (rdi).
+;rax returns 0 if all went ok, or 1 on error
+  4000fe:	48 83 c4 08          	add    rsp,0x8
+  400102:	5f                   	pop    rdi
+  400103:	5e                   	pop    rsi
+  400104:	5a                   	pop    rdx
+  400105:	48 29 c9             	sub    rcx,rcx
+  400108:	38 d1                	cmp    cl,dl                        ;all bytes processed?
+  40010a:	77 33                	ja     0x40013f                     ;yes, end loop
+  40010c:	66 0f b6 04 0e       	movzx  ax,BYTE PTR [rsi+rcx*1]      ;read byte from source buffer in ax, zero extends upper bits
+  400111:	3c 30                	cmp    al,0x30
+  400113:	72 2a                	jb     0x40013f                     ;byte < 0x30 '0' -> stop
+  400115:	3c 39                	cmp    al,0x39
+  400117:	77 0a                	ja     0x400123                     ;byte > 0x39 '9'
+  400119:	2c 30                	sub    al,0x30                      ;to decimal by subtracting 0x30
+  40011b:	88 04 0f             	mov    BYTE PTR [rdi+rcx*1],al      ;store in destination buffer
+  40011e:	80 c1 01             	add    cl,0x1                       ;next byte
+  400121:	eb e5                	jmp    0x400108
+  400123:	3c 41                	cmp    al,0x41
+  400125:	72 18                	jb     0x40013f                     ;0x39 '9' < byte < 0x41 'A' -> stop
+  400127:	3c 46                	cmp    al,0x46
+  400129:	77 06                	ja     0x400131                     ;byte > 0x46 'F'
+  40012b:	2c 41                	sub    al,0x41                      ;to decimal by subtracting 0x41 ...                    
+  40012d:	04 0a                	add    al,0xa                       ;... and adding 0xa (10)
+  40012f:	eb ea                	jmp    0x40011b                     ;store in destination buffer
+  400131:	3c 61                	cmp    al,0x61
+  400133:	72 0a                	jb     0x40013f                     ;0x46 'F' < byte < 0x61 'a" -> stop
+  400135:	3c 66                	cmp    al,0x66
+  400137:	77 06                	ja     0x40013f                     ;byte > 0x66 'f' -> stop
+  400139:	2c 61                	sub    al,0x61                      ;to decimal by subtracting 0x61 ...
+  40013b:	04 0a                	add    al,0xa                       ;... and adding 0xa (10)
+  40013d:	eb dc                	jmp    0x40011b                     ;store in destination buffer
+  40013f:	48 83 ec 20          	sub    rsp,0x20
+  400143:	80 e9 01             	sub    cl,0x1                       ;if all bytes are processed cl is one too much
+  400146:	66 41 b8 01 00       	mov    r8w,0x1                      ;return code error (1) in r8w
+  40014b:	48 31 c0             	xor    rax,rax                      ;return code ok (0) in rax
+  40014e:	66 39 d1             	cmp    cx,dx                        ;if cx <> dx
+  400151:	66 41 0f 45 c0       	cmovne ax,r8w                       ;then error code in ax (1)
+  400156:	c3                   	ret                                 ;back to caller with error code in ax
+
+  ;appearantly any combination of 2 and F is legal 
+  400157:	48 83 c4 08          	add    rsp,0x8
+  40015b:	5e                   	pop    rsi
+  40015c:	5a                   	pop    rdx
+  40015d:	48 31 db             	xor    rbx,rbx
+  400160:	38 d3                	cmp    bl,dl
+  400162:	77 3c                	ja     0x4001a0
+  400164:	66 0f b6 04 1e       	movzx  ax,BYTE PTR [rsi+rbx*1]      ;read byte
+  400169:	a8 01                	test   al,0x1                       ;last bit = 0?
+  40016b:	75 1f                	jne    0x40018c                     ;no
+  40016d:	41 88 c1             	mov    r9b,al                       ;mov byte in r9b
+  400170:	35 ad de 00 00       	xor    eax,0xdead                   ;xor byte with 0xdead
+  400175:	05 be ba 00 00       	add    eax,0xbabe
+  40017a:	c1 e8 04             	shr    eax,0x4
+  40017d:	44 01 c8             	add    eax,r9d
+  400180:	3d 98 19 00 00       	cmp    eax,0x1998   
+  ;gives, since last bit is 0 for
+  ;    byte       xor DEAD   add BABE   shr 4    add byte
+  ;  00000000(0)    DEAD      1996B      1996     1996
+  ;  00000010(2)    DEAF      1996D      1996     1998          ;valid
+  ;  00000100(4)    DEA9      195A7      195A     199A
+  ;  00000110(6)    DEAB      1BD58      1BD5     1BDB
+  ;  00001000(8)    DEA5      19963      1996     199E
+  ;  00001010(A)    DEA7      195A5      195A     1964
+  ;  00001100(C)    DEA1      1959F      1959     1965
+  ;  00001110(E)    DEA3      19961      1996     19A4
+  ; only 00000010 0x2 gives the desired result
+
+  400185:	75 19                	jne    0x4001a0
+  400187:	80 c3 01             	add    bl,0x1
+  40018a:	eb d4                	jmp    0x400160
+  40018c:	83 f0 1a             	xor    eax,0x1a
+  40018f:	83 c8 0a             	or     eax,0xa
+  400192:	35 87 19 00 00       	xor    eax,0x1987
+  400197:	3d 98 19 00 00       	cmp    eax,0x1998
+  ;gives, since last bit is 1 for
+  ;    byte       xor 0x1A   or 0xA     xor 1987
+  ;  00000001(1)    1B         1B         199C
+  ;  00000011(3)    19         1B         199C
+  ;  00000101(5)    1F         1F         1998                  ;valid                          
+  ;  00000111(7)    1D         1F         1998                  ;valid
+  ;  00001001(9)    13         1B         199C
+  ;  00001011(B)    11         1B         199C
+  ;  00001101(D)    17         1F         1998                  ;valid
+  ;  00001111(F)    15         1F         1998                  ;valid
+  ; only 0x5,0x7,0xD and 0xF are valid
+
+  ;conclusion: any combination of 2,5,7,d,f,D and F is a valid combination
+
+  40019c:	75 02                	jne    0x4001a0
+  40019e:	eb e7                	jmp    0x400187
+  4001a0:	48 83 ec 18          	sub    rsp,0x18
+  4001a4:	80 eb 01             	sub    bl,0x1
+  4001a7:	66 41 b8 01 00       	mov    r8w,0x1
+  4001ac:	48 31 c0             	xor    rax,rax
+  4001af:	66 39 d3             	cmp    bx,dx
+  4001b2:	66 41 0f 45 c0       	cmovne ax,r8w
+  4001b7:	c3                   	ret    
+
+;syscall exit, rdi
+  4001b8:	48 83 c4 08          	add    rsp,0x8
+  4001bc:	b8 3c 00 00 00       	mov    eax,0x3c
+  4001c1:	5f                   	pop    rdi
+  4001c2:	0f 05                	syscall 
+
+_start:
+  ;initialize registers rbp,rax,rdi,rsi,rdx,rbx zero
+  4001c4:	e8 e7 fe ff ff       	call   0x4000b0
+
+  4001c9:	6a 26                	push   0x26
+  4001cb:	68 5c 02 60 00       	push   0x60025c
+  4001d0:	e8 ee fe ff ff       	call   0x4000c3
+  
+  4001d5:	6a 20                	push   0x20
+  4001d7:	68 82 02 60 00       	push   0x600282
+  4001dc:	e8 e2 fe ff ff       	call   0x4000c3
+  
+  4001e1:	6a 11                	push   0x11
+  4001e3:	68 a2 02 60 00       	push   0x6002a2
+  4001e8:	e8 d6 fe ff ff       	call   0x4000c3
+  
+  4001ed:	6a 10                	push   0x10
+  4001ef:	68 d0 02 60 00       	push   0x6002d0
+  4001f4:	e8 df fe ff ff       	call   0x4000d8
+  
+  4001f9:	84 c0                	test   al,al
+  4001fb:	78 38                	js     0x400235
+  4001fd:	66 29 ff             	sub    di,di
+  400200:	66 83 f8 0f          	cmp    ax,0xf
+  400204:	66 0f 45 c7          	cmovne ax,di
+  400208:	84 c0                	test   al,al
+  40020a:	74 29                	je     0x400235
+  
+  40020c:	50                   	push   rax
+  40020d:	68 d0 02 60 00       	push   0x6002d0
+  400212:	68 e0 02 60 00       	push   0x6002e0
+  400217:	e8 e2 fe ff ff       	call   0x4000fe
+  
+  40021c:	a8 01                	test   al,0x1
+  40021e:	75 15                	jne    0x400235
+  
+  400220:	52                   	push   rdx
+  400221:	68 e0 02 60 00       	push   0x6002e0
+  400226:	e8 2c ff ff ff       	call   0x400157
+  
+  40022b:	a8 01                	test   al,0x1
+  40022d:	75 06                	jne    0x400235
+  40022f:	68 48 02 40 00       	push   0x400248
+  400234:	c3                   	ret    
+
+  400235:	6a 0f                	push   0xf
+  400237:	68 b3 02 60 00       	push   0x6002b3
+  40023c:	e8 82 fe ff ff       	call   0x4000c3
+  400241:	6a 01                	push   0x1
+  400243:	e8 70 ff ff ff       	call   0x4001b8
+  400248:	6a 0b                	push   0xb
+  40024a:	68 c2 02 60 00       	push   0x6002c2
+  40024f:	e8 6f fe ff ff       	call   0x4000c3
+
+  400254:	6a 00                	push   0x0                        ;return code
+  400256:	e8 5d ff ff ff       	call   0x4001b8                   ;exit program
+
+little-crackme:     file format elf64-x86-64
+
+Contents of section .data:
+ 60025c 57656c63 6f6d6520 746f2074 68697320  Welcome to this 
+ 60026c 6c697474 6c652063 68616c6c 656e6765  little challenge
+ 60027c 20212121 0a004465 76656c6f 70656420   !!!..Developed 
+ 60028c 62792042 696e6172 79204e65 77626965  by Binary Newbie
+ 60029c 20212121 0a00456e 74657220 61207365   !!!..Enter a se
+ 6002ac 7269616c 3a20004e 6f742076 616c6964  rial: .Not valid
+ 6002bc 20212121 0a005661 6c696420 2121210a   !!!..Valid !!!.
+ 6002cc 00                                   .               

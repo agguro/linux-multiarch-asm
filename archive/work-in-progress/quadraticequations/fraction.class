@@ -1,0 +1,188 @@
+%ifndef _FRACTION_CLASS_
+%define _FRACTION_CLASS_
+
+%include "math.inc"
+
+struc FRACTION_STRUC
+    .numerator:     resq    1
+    .denominator:   resq    1
+    .sign:          resb    1
+    .Load:          resq    1
+    .Simplify:      resq    1
+    .Write:         resq    1
+endstruc
+
+%macro FRACTION 1
+
+    %ifndef FRACTIONMACROS
+    %define FRACTIONMACROS
+    
+        %macro FRACTIONLOAD 1
+            mov     rax, %1+FRACTION_STRUC.Load
+            call    qword[rax]
+        %endmacro
+        
+        %macro FRACTIONSIMPLIFY 1
+            mov     rax, %1+FRACTION_STRUC.Simplify
+            call    qword[rax]
+        %endmacro
+        
+        %macro FRACTIONWRITE 1
+            mov     rax, %1+FRACTION_STRUC.Write
+            call    qword[rax]
+        %endmacro
+        
+        [section .data]
+        @fractionerror:     db  "error: denominator cannot be zero",10
+        .length:            equ  $-@fractionerror
+        @fractionbuffer:    times 20 db 0
+        
+    %endif
+    
+    %define %1.numerator    %1+FRACTION_STRUC.numerator
+    %define %1.denominator  %1+FRACTION_STRUC.denominator
+    %define %1.sign         %1+FRACTION_STRUC.sign
+    %define %1.Load         FRACTIONLOAD %1
+    %define %1.Simplify     FRACTIONSIMPLIFY %1
+    %define %1.Write        FRACTIONWRITE %1
+    
+    [section .data]
+        %1: istruc FRACTION_STRUC
+            at  FRACTION_STRUC.numerator,    dq  0
+            at  FRACTION_STRUC.denominator,  dq  0
+            at  FRACTION_STRUC.sign,         db  0
+            at  FRACTION_STRUC.Load,         dq  FractionLOAD
+            at  FRACTION_STRUC.Simplify,     dq  FractionSIMPLIFY
+            at  FRACTION_STRUC.Write,        dq  FractionWRITE
+        iend   
+    
+%endmacro
+
+section .text
+
+FractionLOAD:
+    ;loads the numerator and denominator in a fraction pointed by rcx (this pointer).
+    ;when one or both values are negative, the absolute value will be stored in the
+    ;fraction and the sign byte is set accordingly.
+    ;
+    ;calling:
+    ;   section .data
+    ;       FRACTION objectname
+    ;   section .text
+    ;       mov     rdi,value
+    ;       mov     rsi,value
+    ;       objectname.Load
+    cmp     rsi,0
+    jne     .continue
+    ;here we have a problem, indicating that the denominator can't be zero
+    ;we will end with an exception
+    syscall write,stderr,@fractionerror,@fractionerror.length
+    syscall exit,0
+.continue:    
+    push    rax
+    push    rcx
+    push    rdi
+    push    rsi   
+    mov     rcx,rax
+    sub     rcx,FRACTION_STRUC.Load - FRACTION_STRUC    ;points to 'this' fraction
+    xor     al,al
+    inc     al                                          ;positive sign
+    cmp     rdi,0
+    jge     .np
+    neg     rdi                                         ;get absolute value
+    neg     al                                          ;invert sign
+.np:    
+    mov     qword[rcx+FRACTION_STRUC.numerator],rdi
+    cmp     rsi,0
+    jge     .dp
+    neg     rsi
+    neg     al                                          ;invert sign
+.dp:    
+    mov     qword[rcx+FRACTION_STRUC.denominator],rsi
+    mov     byte[rcx+FRACTION_STRUC.sign],al    
+    pop     rsi
+    pop     rdi
+    pop     rcx
+    pop     rax
+.done:    
+    ret
+
+FractionSIMPLIFY:
+    ;simplifies a fraction pointed by rcx (this).
+    ;makes use of he GreatestCommonDivisor subroutine.
+    ;note that the values for the numerator and denominator are treated as positive numbers.
+    ;
+    ;calling:
+    ;   section .data
+    ;       FRACTION objectname
+    ;   section .text
+    ;       objectname.Simplify   
+    push    rax
+    push    rbx                         
+    push    rcx
+    push    rdx
+    mov     rcx,rax
+    sub     rcx,FRACTION_STRUC.Simplify - FRACTION_STRUC   
+    mov     rdi,qword[rcx+FRACTION_STRUC.numerator]
+    mov     rsi,qword[rcx+FRACTION_STRUC.denominator]
+    call    GreatestCommonDivisor
+    and     rax,rax
+    jz      .done                       ;if gcd is zero, meaning rdi and rsi is zero then just exit
+    mov     rbx,rax                     ;gcd in rbx for divisions
+    mov     rax,rdi
+    xor     rdx,rdx
+    idiv    rbx                        ;divide numerator by gcd, gives new numerator
+    mov     qword[rcx+FRACTION_STRUC.numerator],rax
+    mov     rax,rsi
+    idiv    rbx                         ;divide denominator by gcd, gives new denominator
+    mov     qword[rcx+FRACTION_STRUC.denominator],rax
+.done:
+    pop     rdx
+    pop     rcx
+    pop     rbx                         ;restore rbx
+    pop     rax
+    ret    
+    
+FractionWRITE:
+    push    rax
+    push    rcx
+    push    rdi
+    push    rsi
+    push    r8
+    mov     rcx,rax
+    sub     rcx,FRACTION_STRUC.Write - FRACTION_STRUC
+    mov     byte[@fractionbuffer],"+"                       ;assume positive fraction
+    mov     al,byte[rcx+FRACTION_STRUC.sign]
+    cmp     al,1                                            ;fraction positive
+    je      .printplussign                                  ;yes, print plus sign if rdi<>0
+    mov     byte[@fractionbuffer],"-"
+    jmp     .printsign
+.printplussign:
+    and     rdi,rdi
+    jz      .numerator
+.printsign:
+    push    rcx                                             ;save 'this' pointer
+    syscall write,stdout,@fractionbuffer,1
+    pop     rcx
+.numerator:
+    mov     rdi,qword[rcx+FRACTION_STRUC.numerator]
+    mov     rsi,@fractionbuffer
+    call    HexToDecAscii
+    push    rcx
+    syscall write,stdout,rax,rdx
+    mov     byte[@fractionbuffer],"/"
+    syscall write,stdout,@fractionbuffer,1
+    pop     rcx
+    mov     rdi,qword[rcx+FRACTION_STRUC.denominator]
+    mov     rsi,@fractionbuffer
+    call    HexToDecAscii
+    syscall write,stdout,rax,rdx       
+.done:
+    pop     r8
+    pop     rsi
+    pop     rdi
+    pop     rcx
+    pop     rax
+    ret
+    
+%endif

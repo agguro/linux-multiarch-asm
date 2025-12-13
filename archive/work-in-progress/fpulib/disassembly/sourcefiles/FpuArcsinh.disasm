@@ -1,0 +1,101 @@
+
+../objectfiles/FpuArcsinh.o:     file format pe-i386
+
+
+Disassembly of section .text:
+
+00000000 <_FpuArcsinh@12>:
+   0:	55                   	push   ebp
+   1:	8b ec                	mov    ebp,esp
+   3:	83 c4 88             	add    esp,0xffffff88
+   6:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+   d:	74 0d                	je     1c <_FpuArcsinh@12+0x1c>
+   f:	d9 e5                	fxam   
+  11:	9b df e0             	fstsw  ax
+  14:	9b                   	fwait
+  15:	9e                   	sahf   
+  16:	73 04                	jae    1c <_FpuArcsinh@12+0x1c>
+  18:	7a 02                	jp     1c <_FpuArcsinh@12+0x1c>
+  1a:	74 65                	je     81 <_FpuArcsinh@12+0x81>
+  1c:	9b dd 75 94          	fsave  [ebp-0x6c]
+  20:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+  27:	74 08                	je     31 <_FpuArcsinh@12+0x31>
+  29:	8d 45 94             	lea    eax,[ebp-0x6c]
+  2c:	db 68 1c             	fld    TBYTE PTR [eax+0x1c]
+  2f:	eb 59                	jmp    8a <_FpuArcsinh@12+0x8a>
+  31:	8b 45 08             	mov    eax,DWORD PTR [ebp+0x8]
+  34:	f7 45 10 02 00 00 00 	test   DWORD PTR [ebp+0x10],0x2
+  3b:	74 04                	je     41 <_FpuArcsinh@12+0x41>
+  3d:	db 28                	fld    TBYTE PTR [eax]
+  3f:	eb 49                	jmp    8a <_FpuArcsinh@12+0x8a>
+  41:	f7 45 10 00 00 02 00 	test   DWORD PTR [ebp+0x10],0x20000
+  48:	74 04                	je     4e <_FpuArcsinh@12+0x4e>
+  4a:	dd 00                	fld    QWORD PTR [eax]
+  4c:	eb 3c                	jmp    8a <_FpuArcsinh@12+0x8a>
+  4e:	f7 45 10 00 00 01 00 	test   DWORD PTR [ebp+0x10],0x10000
+  55:	74 04                	je     5b <_FpuArcsinh@12+0x5b>
+  57:	d9 00                	fld    DWORD PTR [eax]
+  59:	eb 2f                	jmp    8a <_FpuArcsinh@12+0x8a>
+  5b:	f7 45 10 04 00 00 00 	test   DWORD PTR [ebp+0x10],0x4
+  62:	74 04                	je     68 <_FpuArcsinh@12+0x68>
+  64:	db 00                	fild   DWORD PTR [eax]
+  66:	eb 22                	jmp    8a <_FpuArcsinh@12+0x8a>
+  68:	f7 45 10 00 00 00 01 	test   DWORD PTR [ebp+0x10],0x1000000
+  6f:	74 04                	je     75 <_FpuArcsinh@12+0x75>
+  71:	df 28                	fild   QWORD PTR [eax]
+  73:	eb 15                	jmp    8a <_FpuArcsinh@12+0x8a>
+  75:	f7 45 10 08 00 00 00 	test   DWORD PTR [ebp+0x10],0x8
+  7c:	75 09                	jne    87 <_FpuArcsinh@12+0x87>
+  7e:	dd 65 94             	frstor [ebp-0x6c]
+  81:	33 c0                	xor    eax,eax
+  83:	c9                   	leave  
+  84:	c2 0c 00             	ret    0xc
+  87:	db 45 08             	fild   DWORD PTR [ebp+0x8]
+  8a:	d9 e4                	ftst   
+  8c:	9b df e0             	fstsw  ax
+  8f:	9b                   	fwait
+  90:	9e                   	sahf   
+  91:	7a eb                	jp     7e <_FpuArcsinh@12+0x7e>
+  93:	66 9c                	pushfw 
+  95:	d9 e1                	fabs   
+  97:	d9 c0                	fld    st(0)
+  99:	d8 c8                	fmul   st,st(0)
+  9b:	d9 e8                	fld1   
+  9d:	de c1                	faddp  st(1),st
+  9f:	d9 fa                	fsqrt  
+  a1:	de c1                	faddp  st(1),st
+  a3:	d9 ed                	fldln2 
+  a5:	d9 c9                	fxch   st(1)
+  a7:	d9 f1                	fyl2x  
+  a9:	66 9d                	popfw  
+  ab:	73 02                	jae    af <_FpuArcsinh@12+0xaf>
+  ad:	d9 e0                	fchs   
+  af:	9b df e0             	fstsw  ax
+  b2:	9b                   	fwait
+  b3:	d1 e8                	shr    eax,1
+  b5:	72 c7                	jb     7e <_FpuArcsinh@12+0x7e>
+  b7:	f7 45 10 80 00 00 00 	test   DWORD PTR [ebp+0x10],0x80
+  be:	74 05                	je     c5 <_FpuArcsinh@12+0xc5>
+  c0:	db 7d 8a             	fstp   TBYTE PTR [ebp-0x76]
+  c3:	eb 1f                	jmp    e4 <_FpuArcsinh@12+0xe4>
+  c5:	8b 45 0c             	mov    eax,DWORD PTR [ebp+0xc]
+  c8:	f7 45 10 00 00 10 00 	test   DWORD PTR [ebp+0x10],0x100000
+  cf:	74 04                	je     d5 <_FpuArcsinh@12+0xd5>
+  d1:	d9 18                	fstp   DWORD PTR [eax]
+  d3:	eb 0f                	jmp    e4 <_FpuArcsinh@12+0xe4>
+  d5:	f7 45 10 00 00 20 00 	test   DWORD PTR [ebp+0x10],0x200000
+  dc:	74 04                	je     e2 <_FpuArcsinh@12+0xe2>
+  de:	dd 18                	fstp   QWORD PTR [eax]
+  e0:	eb 02                	jmp    e4 <_FpuArcsinh@12+0xe4>
+  e2:	db 38                	fstp   TBYTE PTR [eax]
+  e4:	dd 65 94             	frstor [ebp-0x6c]
+  e7:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+  ee:	74 02                	je     f2 <_FpuArcsinh@12+0xf2>
+  f0:	dd d8                	fstp   st(0)
+  f2:	f7 45 10 80 00 00 00 	test   DWORD PTR [ebp+0x10],0x80
+  f9:	74 05                	je     100 <_FpuArcsinh@12+0x100>
+  fb:	dd c7                	ffree  st(7)
+  fd:	db 6d 8a             	fld    TBYTE PTR [ebp-0x76]
+ 100:	0c 01                	or     al,0x1
+ 102:	c9                   	leave  
+ 103:	c2 0c 00             	ret    0xc

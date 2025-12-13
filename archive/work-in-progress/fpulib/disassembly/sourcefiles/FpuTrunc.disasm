@@ -1,0 +1,96 @@
+
+../objectfiles/FpuTrunc.o:     file format pe-i386
+
+
+Disassembly of section .text:
+
+00000000 <_FpuTrunc@12>:
+   0:	55                   	push   ebp
+   1:	8b ec                	mov    ebp,esp
+   3:	83 c4 88             	add    esp,0xffffff88
+   6:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+   d:	74 0d                	je     1c <_FpuTrunc@12+0x1c>
+   f:	d9 e5                	fxam   
+  11:	9b df e0             	fstsw  ax
+  14:	9b                   	fwait
+  15:	9e                   	sahf   
+  16:	73 04                	jae    1c <_FpuTrunc@12+0x1c>
+  18:	7a 02                	jp     1c <_FpuTrunc@12+0x1c>
+  1a:	74 42                	je     5e <_FpuTrunc@12+0x5e>
+  1c:	9b dd 75 94          	fsave  [ebp-0x6c]
+  20:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+  27:	74 08                	je     31 <_FpuTrunc@12+0x31>
+  29:	8d 45 94             	lea    eax,[ebp-0x6c]
+  2c:	db 68 1c             	fld    TBYTE PTR [eax+0x1c]
+  2f:	eb 33                	jmp    64 <_FpuTrunc@12+0x64>
+  31:	8b 45 08             	mov    eax,DWORD PTR [ebp+0x8]
+  34:	f7 45 10 02 00 00 00 	test   DWORD PTR [ebp+0x10],0x2
+  3b:	74 04                	je     41 <_FpuTrunc@12+0x41>
+  3d:	db 28                	fld    TBYTE PTR [eax]
+  3f:	eb 23                	jmp    64 <_FpuTrunc@12+0x64>
+  41:	f7 45 10 00 00 02 00 	test   DWORD PTR [ebp+0x10],0x20000
+  48:	74 04                	je     4e <_FpuTrunc@12+0x4e>
+  4a:	dd 00                	fld    QWORD PTR [eax]
+  4c:	eb 16                	jmp    64 <_FpuTrunc@12+0x64>
+  4e:	f7 45 10 00 00 01 00 	test   DWORD PTR [ebp+0x10],0x10000
+  55:	74 04                	je     5b <_FpuTrunc@12+0x5b>
+  57:	d9 00                	fld    DWORD PTR [eax]
+  59:	eb 09                	jmp    64 <_FpuTrunc@12+0x64>
+  5b:	dd 65 94             	frstor [ebp-0x6c]
+  5e:	33 c0                	xor    eax,eax
+  60:	c9                   	leave  
+  61:	c2 0c 00             	ret    0xc
+  64:	50                   	push   eax
+  65:	9b d9 3c 24          	fstcw  WORD PTR [esp]
+  69:	9b                   	fwait
+  6a:	66 8b 04 24          	mov    ax,WORD PTR [esp]
+  6e:	66 0d 00 0c          	or     ax,0xc00
+  72:	50                   	push   eax
+  73:	d9 2c 24             	fldcw  WORD PTR [esp]
+  76:	d9 fc                	frndint 
+  78:	58                   	pop    eax
+  79:	d9 2c 24             	fldcw  WORD PTR [esp]
+  7c:	9b                   	fwait
+  7d:	58                   	pop    eax
+  7e:	9b df e0             	fstsw  ax
+  81:	9b                   	fwait
+  82:	d0 e8                	shr    al,1
+  84:	72 d5                	jb     5b <_FpuTrunc@12+0x5b>
+  86:	f7 45 10 80 00 00 00 	test   DWORD PTR [ebp+0x10],0x80
+  8d:	74 05                	je     94 <_FpuTrunc@12+0x94>
+  8f:	db 7d 8a             	fstp   TBYTE PTR [ebp-0x76]
+  92:	eb 39                	jmp    cd <_FpuTrunc@12+0xcd>
+  94:	8b 45 0c             	mov    eax,DWORD PTR [ebp+0xc]
+  97:	f7 45 10 40 00 00 00 	test   DWORD PTR [ebp+0x10],0x40
+  9e:	74 04                	je     a4 <_FpuTrunc@12+0xa4>
+  a0:	db 18                	fistp  DWORD PTR [eax]
+  a2:	eb 4b                	jmp    ef <_FpuTrunc@12+0xef>
+  a4:	f7 45 10 00 00 40 00 	test   DWORD PTR [ebp+0x10],0x400000
+  ab:	74 04                	je     b1 <_FpuTrunc@12+0xb1>
+  ad:	df 38                	fistp  QWORD PTR [eax]
+  af:	eb 3e                	jmp    ef <_FpuTrunc@12+0xef>
+  b1:	f7 45 10 00 00 10 00 	test   DWORD PTR [ebp+0x10],0x100000
+  b8:	74 04                	je     be <_FpuTrunc@12+0xbe>
+  ba:	d9 18                	fstp   DWORD PTR [eax]
+  bc:	eb 0f                	jmp    cd <_FpuTrunc@12+0xcd>
+  be:	f7 45 10 00 00 20 00 	test   DWORD PTR [ebp+0x10],0x200000
+  c5:	74 04                	je     cb <_FpuTrunc@12+0xcb>
+  c7:	dd 18                	fstp   QWORD PTR [eax]
+  c9:	eb 02                	jmp    cd <_FpuTrunc@12+0xcd>
+  cb:	db 38                	fstp   TBYTE PTR [eax]
+  cd:	dd 65 94             	frstor [ebp-0x6c]
+  d0:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+  d7:	74 02                	je     db <_FpuTrunc@12+0xdb>
+  d9:	dd d8                	fstp   st(0)
+  db:	f7 45 10 80 00 00 00 	test   DWORD PTR [ebp+0x10],0x80
+  e2:	74 05                	je     e9 <_FpuTrunc@12+0xe9>
+  e4:	dd c7                	ffree  st(7)
+  e6:	db 6d 8a             	fld    TBYTE PTR [ebp-0x76]
+  e9:	0c 01                	or     al,0x1
+  eb:	c9                   	leave  
+  ec:	c2 0c 00             	ret    0xc
+  ef:	9b df e0             	fstsw  ax
+  f2:	9b                   	fwait
+  f3:	d0 e8                	shr    al,1
+  f5:	0f 82 60 ff ff ff    	jb     5b <_FpuTrunc@12+0x5b>
+  fb:	eb d0                	jmp    cd <_FpuTrunc@12+0xcd>
