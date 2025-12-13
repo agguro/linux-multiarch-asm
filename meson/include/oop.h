@@ -16,7 +16,7 @@
 #include "oop/vtable.h"
 #include "oop/new.h"
 #include "oop/delete.h"
-#include "oop/call.h"
+#include "oop/vcall.h"
 #include "oop/rtti.h"
 #include "oop/object.h"
 
