@@ -1,4 +1,4 @@
-#include <asm/unistd.h>
+#include "syscalls.h"
 
 .intel_syntax noprefix
 
@@ -20,3 +20,5 @@ _start:
     mov     rdi, 0
     
     syscall
+
+.section .note.GNU-stack,"",@progbits
