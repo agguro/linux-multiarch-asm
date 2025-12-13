@@ -1,4 +1,4 @@
-# Prerequisites
+.# Prerequisites
 *.d
 
 # Object files
@@ -54,3 +54,6 @@ dkms.conf
 #meson generated files
 testlog.txt
 
+.venv/
+build/
+__pycache__/
