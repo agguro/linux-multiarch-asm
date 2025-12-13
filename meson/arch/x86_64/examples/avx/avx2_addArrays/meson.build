@@ -7,9 +7,9 @@ cpp_args = [
 ]
 
 exe_avx2 = executable(
-  'avx2_addArrays', ['main.cpp', 'avx2_addArrays.s'],
+  'avx2_addArrays',
+  ['main.cpp', 'avx2_addArrays.S'],
   cpp_args : cpp_args,
-  c_args: avx2_flags,
   link_args : ['-no-pie'],
   install : false
 )

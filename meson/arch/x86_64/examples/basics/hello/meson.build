@@ -3,7 +3,6 @@
 hello_exe = executable(
   'hello',
   ['hello.S'],
-  include_directories: arch_inc,
   link_args: ['-nostdlib', '-static', '-no-pie'],
   install: false
 )

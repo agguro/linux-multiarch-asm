@@ -7,9 +7,8 @@ cpp_args = [
 
 exe_avx = executable(
   'avx_addArrays',
-  ['main.cpp', 'avx_addArrays.s'],
+  ['main.cpp', 'avx_addArrays.S'],
   cpp_args : cpp_args,
-  c_args: avx_flags,
   link_args : ['-no-pie'], # Geen -nostdlib want we gebruiken C++ iostream
   install : false
 )
