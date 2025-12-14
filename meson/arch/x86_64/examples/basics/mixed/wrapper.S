@@ -1,4 +1,5 @@
-/* wrapper.S - Preprocessed Assembler */
+/* arch/x86_64/examples/basics/mixed/wrapper.S
+/* Preprocessed Assembler */
 
 #include "syscalls.h"
 
@@ -12,13 +13,13 @@ len_wrapper = . - msg_wrapper
 
 print_wrapper:
     /*
-     * Hier gebruiken we de volle kracht van je setup:
+     * Here we utilize the full power of your setup:
      * - #include (C preprocessor)
      * - _syscall macro
      * - PIE addressing
      */
     
     leaq msg_wrapper(%rip), %rsi
-    _syscall write, $STDOUT, %rsi, $len_wrapper
+    _syscall $__NR_write, $STDOUT, %rsi, $len_wrapper
     
     ret
