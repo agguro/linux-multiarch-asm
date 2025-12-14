@@ -1,5 +1,7 @@
-#ifndef UNISTD_UNIFIED_H
-#define UNISTD_UNIFIED_H 1
+/* includes/unistd.h
+
+#ifndef UNISTD_H
+#define UNISTD_H 1
 
 /* ============================================================
  * UNIVERSAL LINUX X86-64 SYSCALL HEADER
@@ -397,8 +399,8 @@
 
 #else /* ============ C / C++ VERSION =============== */
 
-#ifndef UNISTD_UNIFIED_C
-#define UNISTD_UNIFIED_C 1
+#ifndef UNISTD_C_H
+#define UNISTD_C_H 1
 
 /* --- File Descriptors & Constants (#define) --- */
 #define STDIN 0
@@ -772,8 +774,8 @@
 #define __NR_futex_waitv 449
 #define __NR_set_mempolicy_home_node 450
 
-#endif /* UNISTD_UNIFIED_C */
+#endif /* UNISTD_C_H */
 #endif /* __ASSEMBLER__ */
 
-#endif /* UNISTD_UNIFIED_H */
+#endif /* UNISTD_H */
 
