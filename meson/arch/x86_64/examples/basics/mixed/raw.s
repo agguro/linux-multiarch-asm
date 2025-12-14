@@ -1,7 +1,9 @@
-/* raw.s - Pure Assembler (geen CPP) */
+/* arch/x86_64/examples/basics/mixed/rw.s */
+/* Pure Assembler (no CPP) */
 
-/* .include is een assembler commando (geen #include) */
-/* Zorg dat unistd.h in je include pad staat */
+/* .include is an assembler directive (not #include) */
+/* Ensure unistd.h is in your include path */
+
 .include "unistd.h"
 
     .section .rodata
@@ -14,19 +16,19 @@ len_raw = . - msg_raw
 
 print_raw:
     /*
-     * Hier gebruiken we de .equ constanten uit unistd.h
-     * STDOUT en __NR_write zijn beschikbaar omdat
-     * de assembler de regels met '#' als commentaar zag,
-     * en de .equ regels heeft uitgevoerd.
+     * Here we use the .equ constants from unistd.h.
+     * STDOUT and __NR_write are available because
+     * the assembler treated lines starting with '#' as comments,
+     * and executed the .equ lines.
      */
     
-    /* 1. Adres laden */
+    /* 1. Load address */
     leaq msg_raw(%rip), %rsi
 
-    /* 2. Syscall (Handmatig, zonder macro) */
+    /* 2. Syscall (Manual, without macro) */
     mov $__NR_write, %rax
     mov $STDOUT, %rdi
-    /* %rsi is al gezet */
+    /* %rsi is already set */
     mov $len_raw, %rdx
     syscall
 
