@@ -1,24 +1,26 @@
 #include "syscalls.h"
 
-.intel_syntax noprefix
-
 .section .data
-    msg:    .ascii  "Hello from x86\n"
-    len =   . - msg
+msg:    .asciz "Hello World\n"
+.equ    len, . - msg
 
-.section .text
-.global _start
-
+.text
+.globl _start
 _start:
-    mov     rax, __NR_write
-    mov     rdi, 1
-    lea     rsi, msg
-    mov     rdx, len   
-    syscall
-   
-    mov     rax, __NR_exit
-    mov     rdi, 0
-    
-    syscall
 
-.section .note.GNU-stack,"",@progbits
+    _syscall $__NR_write, $STDOUT, msg, $len
+    
+/* EXPANDS AS:
+*  $0x1,%rdi
+*  lea    0xff2(%rip),%rsi        # 402000 <msg>
+*  mov    $0xd,%rdx
+*  mov    $0x1,%rax
+*  syscall
+*/  
+    _syscall $__NR_exit, $0
+
+/* EXPANDS AS:
+*  xor    %rdi,%rdi
+*  mov    $0x3c,%rax
+*  syscall
+*/
