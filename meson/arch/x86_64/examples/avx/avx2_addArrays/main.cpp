@@ -1,11 +1,7 @@
+/* arch/x86_64/examples/avx/avx2_addArrays/main.cpp */
+
 /*
 * avx2_addArrays - Use AVX2 instructions to add two arrays.
-*
-* main.cpp
-*
-* g++ -g -c -pipe -no-pie -O2 -std=gnu++1z -Wall -Wextra -fPIC -o main.o main.cpp
-* nasm -felf64 -g -Fdwarf -o avx2_addArrays.o avx2_addArrays.asm/
-* g++ -no-pie -o avx2_addArrays main.o avx2_addArrays.o
 *
 * Source: https://www.physicsforums.com/insights/an-intro-to-avx-512-assembly-programming/
 */
