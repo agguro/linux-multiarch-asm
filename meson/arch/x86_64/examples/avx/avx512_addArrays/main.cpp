@@ -1,5 +1,9 @@
+/* arch/x86_64/examples/avx/avx512_addArrays/main.cpp */
+
 /*
  * AVX-512 test – add two arrays using zmm registers
+ *
+ ** Source: https://www.physicsforums.com/insights/an-intro-to-avx-512-assembly-programming/
  */
 
 #include <iostream>
