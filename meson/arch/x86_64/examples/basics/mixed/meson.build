@@ -8,7 +8,7 @@ mixed_exe = executable(
     'raw.s'        # Pure ASM
   ],
   include_directories: arch_inc,
-  link_args: ['-no-pie'], 
+  link_args: [], 
   install: false
 )
 
