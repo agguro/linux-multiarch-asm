@@ -8,7 +8,7 @@ cpp_args = [
 
 exe_avx2 = executable(
   'avx2_addArrays',
-  ['main.S', 'avx2_addArrays.S'],
+  ['main.cpp', 'avx2_addArrays.S'],
   cpp_args : cpp_args,
   link_args : [],
   install : false
