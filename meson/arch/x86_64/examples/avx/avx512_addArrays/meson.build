@@ -1,32 +1,31 @@
 # arch/x86_64/examples/avx/avx512_addArrays/meson.build
 
 # 1. Compiler Flags
-# We gebruiken hier GEEN -nostdlib omdat je <iostream> gebruikt.
+# We do NOT use -nostdlib here because <iostream> is required.
 cpp_args = [
-  '-g',               # Debug info (nodig voor SDE/GDB)
+  '-g',                 # Debug info (required for SDE/GDB)
   '-O2',
-  '-std=c++17',       # C++17 standaard
+  '-std=c++17',         # C++17 standard
   '-Wall',
   '-Wextra',
-  '-no-pie',          # Zorgt voor eenvoudigere adressering
-  '-fno-asynchronous-unwind-tables' # Houdt de assembly output schoner
+  '-fno-asynchronous-unwind-tables' # Keeps the assembly output cleaner
 ]
 
 linker_flags = [
-  '-no-pie',          # Geen Position Independent Executable (makkelijker debuggen)
-  # '-static'         # <--- LET OP: Zet dit alleen aan als je 'glibc-static' geïnstalleerd hebt.
-                      # Voor nu is dynamisch linken (standaard) veiliger voor C++.
+  '-no-pie',            # Disable Position Independent Executable (easier debugging)
+  # '-static'           # <--- NOTE: Only enable if 'glibc-static' is installed.
+                        # Dynamic linking (default) is safer for C++ for now.
 ]
 
 # 2. Source Files
-# Hier combineren we je C++ driver met je Assembly routine
+# Here we combine the C++ driver with the Assembly routine
 sources = [
   'main.cpp',
   'avx512_addArrays.S'
 ]
 
-# 3. Executable Bouwen
-# We slaan het resultaat op in 'exe_avx512'
+# 3. Build Executable
+# We store the result object in 'exe_avx512'
 exe_avx512 = executable(
   'avx512_addArrays',
   sources,
@@ -35,18 +34,19 @@ exe_avx512 = executable(
   install : false
 )
 
-# 4. Test configuratie (Met Intel SDE)
-# We zoeken de SDE tool specifiek voor dit project
+# 4. Test Configuration (With Intel SDE)
+# We look for the SDE tool specifically for this project.
+# Since AVX-512 hardware is rare, SDE allows us to emulate it.
 sde = find_program('sde64', '/opt/sde/sde64', required: false)
 
 if sde.found()
-    # We vertellen SDE om de executable te draaien.
-    # De dubbele streep '--' is belangrijk: argumenten erna zijn voor jouw programma.
+    # Instruct SDE to run the executable using Skylake-X (-skx) emulation.
+    # The double dash '--' is crucial: arguments following it are passed to your program.
     test('avx512_addArrays', 
          sde, 
          args: ['-skx', '--', exe_avx512],
          verbose: true
     )
 else
-    message('⚠️  Intel SDE niet gevonden. AVX512 test wordt overgeslagen.')
+    message('Intel SDE not found. Skipping AVX-512 test.')
 endif
