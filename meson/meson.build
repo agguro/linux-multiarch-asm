@@ -1,7 +1,13 @@
 # meson.build (ROOT)
 
-project('linux-asm', ['c', 'cpp'], version: '0.1')
-message('>>> Building linux-asm in ' + get_option('buildtype') + ' mode')
+project('linux-multiarch-asm', ['c', 'cpp'], version: '0.1')
+message('>>> Building linux-multiarch-asm in ' + get_option('buildtype') + ' mode')
+
+# Vertel de compiler (gcc/clang) om de assembler (-Wa) de vlag --noexecstack mee te geven
+add_project_arguments('-Wa,--noexecstack', language : 'c')
+
+# Als je ook C++ bestanden hebt die asm bevatten of linken:
+add_project_arguments('-Wa,--noexecstack', language : 'cpp')
 
 # 1. Definieer de GENERIEKE include map (waar oop.h staat)
 # Dit is nieuw en essentieel!
