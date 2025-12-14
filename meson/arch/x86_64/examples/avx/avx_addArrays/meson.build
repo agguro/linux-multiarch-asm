@@ -2,7 +2,7 @@
 
 cpp_args = [
   '-g', '-O2', '-std=c++17', '-Wall', '-Wextra',
-  '-no-pie', '-fno-asynchronous-unwind-tables'
+   '-fno-asynchronous-unwind-tables'
 ]
 
 exe_avx = executable(
