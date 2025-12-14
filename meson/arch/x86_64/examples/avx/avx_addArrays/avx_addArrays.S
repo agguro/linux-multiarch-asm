@@ -1,45 +1,50 @@
-/* arch/x86_64/examples/avx/avx_addArrays/avx_addArrays.S */
+/* arch/x86_64/examples/avx/avx2_addArrays/avx2_addArrays.S */
+
 /*
- * name        : avx_addArrays.S
- * description : add 2 arrays with AVX instructions (8 floats at once!)
- * calling     : extern "C" void avx_addArrays(float dest[], float arr1[], float arr2[]);
+ * name        : avx2_addArrays.S
+ * description : Add 2 arrays with AVX2 instructions (Simd 256-bit)
+ * calling     : extern "C" void avx2_addArrays(float dest[], float arr1[], float arr2[]);
  * assembler   : GNU as (AT&T Syntax)
  */
 
     .text
-    .globl avx_addArrays
-    .type  avx_addArrays, @function
+    .globl avx2_addArrays
+    .type  avx2_addArrays, @function
+    
+    /* Align to 32 bytes boundary for optimal AVX performance */
+    .p2align 5
 
-avx_addArrays:
+avx2_addArrays:
     push    %rbp
     mov     %rsp, %rbp
 
     /*
      * Registers (System V ABI):
-     * %rdi : dest  (Adres van bestemming)
-     * %rsi : arr1  (Adres van array 1)
-     * %rdx : arr2  (Adres van array 2)
+     * %rdi : dest  (Address of destination array)
+     * %rsi : arr1  (Address of source array 1)
+     * %rdx : arr2  (Address of source array 2)
      */
 
-    /* * STAP 1: Laden (Load)
-     * Gebruik (%reg) voor geheugenadressering in AT&T syntax.
-     * Gebruik %ymm (256-bit) om 8 floats tegelijk te pakken.
+    /* * Load Data
+     * Note: In AT&T syntax, use parentheses () for memory, not brackets [].
      */
-    vmovaps (%rsi), %ymm0      // Load 8 floats from arr1 into ymm0
-    vmovaps (%rdx), %ymm1      // Load 8 floats from arr2 into ymm1
+    vmovaps (%rsi), %ymm0       // Load 8 floats (256 bits) from arr1
+    vmovaps (%rdx), %ymm1       // Load 8 floats (256 bits) from arr2
 
-    /* * STAP 2: Optellen (Add)
-     * Syntax: vaddps source1, source2, destination
+    /* * Perform Addition
+     * AT&T Syntax for 3-operand AVX instructions:
+     * vop   src2,   src1,   dest
      */
-    vaddps  %ymm1, %ymm0, %ymm0 // ymm0 = ymm0 + ymm1
+    vaddps  %ymm1, %ymm0, %ymm2 // %ymm2 = %ymm0 + %ymm1
 
-    /* * STAP 3: Opslaan (Store)
+    /* * Store Result
      * Syntax: vmovaps source, destination
      */
-    vmovaps %ymm0, (%rdi)      // Store ymm0 result into dest address
+    vmovaps %ymm2, (%rdi)       // Write result to memory at dest
 
     leave
     ret
 
-/* Security Fix */
+/* Security Fix: Mark stack as non-executable */
 .section .note.GNU-stack,"",@progbits
+

@@ -54,20 +54,21 @@
 /* ==========================================
  * ENDCLASS (Padding & Alignment)
  * ========================================== */
-/*
- * Finalizes the class definition.
- * Argument: name (The name of the class)
- *
- * It calculates if the total size is aligned to PTR_SIZE.
- * If not, it adds padding bytes. This ensures arrays of objects
- * remain aligned in memory.
- */
 .macro ENDCLASS name
-    .set _rem, \name\().size % PTR_SIZE
-    .if _rem > 0
-        .set _pad, PTR_SIZE - _rem
-        .set \name\().size, \name\().size + _pad
-    .endif
+    /* * Calculates padding bytes needed to align to PTR_SIZE.
+     * Formula: (PTR_SIZE - (CurrentSize % PTR_SIZE)) % PTR_SIZE 
+     * This avoids the "symbol definition loop" error by calculating
+     * the new size in a single, atomic step, rather than depending on
+     * the symbol's previous state in the definition line.
+     */
+    
+    .set _current_size, \name\().size
+    
+    /* Calculate the required padding amount */
+    .set _pad, (PTR_SIZE - (_current_size % PTR_SIZE)) % PTR_SIZE
+    
+    /* Apply the padding by setting the symbol to the calculated final size */
+    .set \name\().size, _current_size + _pad
 .endm
 
 /* ==========================================

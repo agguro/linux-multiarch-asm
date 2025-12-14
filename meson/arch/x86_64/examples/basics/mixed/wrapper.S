@@ -1,5 +1,6 @@
 /* arch/x86_64/examples/basics/mixed/wrapper.S
-/* Preprocessed Assembler */
+ * Preprocessed Assembler
+*/
 
 #include "syscalls.h"
 

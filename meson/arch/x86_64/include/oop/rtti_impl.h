@@ -1,20 +1,32 @@
-/* arch/x86_64/include/oop/rtti_impl.h */
+/* arch/x86_64/include/oop/rtti_impl.h (Final Corrected Code) */
 
 #ifndef OOP_RTTI_IMPL_H
 #define OOP_RTTI_IMPL_H 1
 
+/* ============================================================
+ * SET_TYPE_IMPL (RTTI Implementation)
+ * ------------------------------------------------------------
+ * WARNING: This implementation conflicts with VTable-based polymorphism.
+ * Use only if your object layout reserves offset 0 for RTTI, not the VTable.
+ * ============================================================ */
+
 /*
- * x86_64 implementation of RTTI (Run-Time Type Information) setting.
- * In x86, we can move an immediate address directly into memory.
+ * Macro: SET_TYPE_IMPL (RTTI-based Type Setting)
+ * Description: Stores a pointer to the type information structure 
+ * at the start of the object.
+ * Arguments: obj (register with object pointer), class (class name label)
  */
 .macro SET_TYPE_IMPL obj, class
-    leaq \class\()_typeinfo(%rip), %r11  # Load address into register (PIC safe)
-    mov %r11, (\obj)                     # Write to object memory
+    /* Load the address of the typeinfo structure (e.g., Dog_typeinfo).
+     * FIX: Use the simplified concatenation (removes problematic backslashes).
+     */
+    leaq \class_typeinfo(%rip), %r11
     
-    /* * WARNING: This writes to offset 0 of the object!
-     * If the object also has a VTable (vptr), this operation overwrites it.
-     * In standard C++, RTTI is usually stored inside the VTable (at index -1),
-     * not directly on the object. Ensure this fits your specific object layout.
+    /* Write the TypeInfo pointer to the first 8 bytes of the object. */
+    mov %r11, (\obj)
+    
+    /* NOTE: If VTable is also required, this macro MUST NOT be executed, 
+     * or the object layout must be redefined.
      */
 .endm
 
