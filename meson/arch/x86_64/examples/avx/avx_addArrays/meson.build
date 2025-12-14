@@ -9,7 +9,7 @@ exe_avx = executable(
   'avx_addArrays',
   ['main.cpp', 'avx_addArrays.S'],
   cpp_args : cpp_args,
-  link_args : ['-no-pie'], # Geen -nostdlib want we gebruiken C++ iostream
+  link_args : [],
   install : false
 )
 
