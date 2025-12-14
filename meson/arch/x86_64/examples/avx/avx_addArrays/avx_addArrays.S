@@ -1,8 +1,9 @@
+/* arch/x86_64/examples/avx/avx_addArrays/avx_addArrays.S */
 /*
  * name        : avx_addArrays.S
  * description : add 2 arrays with AVX instructions
  * calling     : extern "C" void avx_addArrays(float dest[], float arr1[], float arr2[]);
- * assembler   : GNU as (Intel syntax enabled)
+ * assembler   : GNU as
  */
 
 	.intel_syntax noprefix
