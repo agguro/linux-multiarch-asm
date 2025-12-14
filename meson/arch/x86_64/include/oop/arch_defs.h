@@ -3,7 +3,7 @@
 #ifndef ARCH_DEFS_H
 #define ARCH_DEFS_H 1
 
-# x86_64 is altijd 64-bit
+# x86_64 is always 64-bit
 .set PTR_SIZE, 8
 
 #endif
