@@ -1,4 +1,7 @@
-# arch/x86_64/include/oop/delete_impl.h
+/* arch/x86_64/include/oop/delete_impl.h */
+
+#ifndef OOP_DELETE_IMPL_H
+#define OOP_DELETE_IMPL_H 1
 
 .macro DELETE_IMPL obj
     # 1. Null check (Standard C++ 'delete nullptr' safety)
@@ -29,3 +32,5 @@
 2:
     # Done
 .endm
+
+#endif
