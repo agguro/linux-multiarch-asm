@@ -165,7 +165,7 @@
 
 /* The Main Syscall Macro */
 /* Arguments default to SKIP if not provided */
-.macro _syscall nr, a1=SKIP, a2=SKIP, a3=SKIP, a4=SKIP, a5=SKIP, a6=SKIP
+.macro _syscall name, a1=SKIP, a2=SKIP, a3=SKIP, a4=SKIP, a5=SKIP, a6=SKIP
     _set_arg %rdi, \a1
     _set_arg %rsi, \a2
     _set_arg %rdx, \a3
@@ -173,7 +173,7 @@
     _set_arg %r8,  \a5
     _set_arg %r9,  \a6
     
-    mov \nr, %rax
+    mov $__NR_\name, %rax
     syscall
 .endm
 
