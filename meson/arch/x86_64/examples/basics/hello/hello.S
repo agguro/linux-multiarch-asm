@@ -8,7 +8,7 @@ msg:    .asciz "Hello World\n"
 .globl _start
 _start:
 
-    _syscall $__NR_write, $STDOUT, msg, $len
+    _syscall write, $stdout, msg, $len
     
 /* EXPANDS AS:
 *  $0x1,%rdi
@@ -17,7 +17,7 @@ _start:
 *  mov    $0x1,%rax
 *  syscall
 */  
-    _syscall $__NR_exit, $0
+    _syscall exit, $0
 
 /* EXPANDS AS:
 *  xor    %rdi,%rdi
