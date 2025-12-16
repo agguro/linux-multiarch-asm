@@ -18,7 +18,7 @@
             xor \reg, \reg, \reg // Faster/smaller than li \reg, 0
         .else
             .ifnc \arg, \reg
-                move \reg, \arg // Pseudo-instructie: Verplaatst registerinhoud
+                move \reg, \arg // Pseudo-instructie: move register content
             .endif
         .endif
     .endif
