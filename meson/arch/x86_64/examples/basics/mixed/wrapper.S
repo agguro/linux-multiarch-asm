@@ -20,7 +20,7 @@ print_wrapper:
      * - PIE addressing
      */
     
-    leaq msg_wrapper(%rip), %rsi
-    _syscall $__NR_write, $STDOUT, %rsi, $len_wrapper
+    //leaq msg_wrapper(%rip), %rsi
+    _syscall write, $stdout, msg_wrapper, $len_wrapper
     
     ret
