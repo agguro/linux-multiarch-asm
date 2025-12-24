@@ -9,7 +9,6 @@
 REAL_HOST_ARCH=$(uname -m)
 [ "$REAL_HOST_ARCH" = "arm64" ] && REAL_HOST_ARCH="aarch64"
 
-# Mapping arch keys to cross-file names
 declare -A CROSS_FILES=( 
     ["x86_64"]="x86_64.ini" 
     ["aarch64"]="aarch64.ini" 
@@ -39,6 +38,7 @@ usage() {
     echo "  --arch <NAME>      Targets: x86_64, aarch64, mips64, riscv64, all"
     echo ""
     echo "Options:"
+    echo "  --prefix <PATH>    Installation prefix (Default: local dist/ folder)"
     echo "  --buildtype <T>    debug, release (Default: debug)"
     echo "  --clean            Clean target folder before building"
     echo "  --clean-all        Delete the entire 'build/' directory"
@@ -52,10 +52,13 @@ usage() {
 ARCH_SET=""
 TYPE_SET="debug"
 CLEAN_SET=false
+# Default prefix to a 'dist' folder in the current project directory
+PREFIX_PATH="$(pwd)/dist"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --arch) ARCH_SET="$2"; shift 2 ;;
+        --prefix) PREFIX_PATH="$2"; shift 2 ;;
         --buildtype) TYPE_SET="$2"; shift 2 ;;
         --clean) CLEAN_SET=true; shift ;;
         --clean-all) echo "Wiping build directory..."; rm -rf build/; shift ;;
@@ -69,78 +72,56 @@ if [ -z "$ARCH_SET" ]; then usage "No architecture specified."; fi
 # ------------------------------------------------------------
 # Pre-flight Tool Check
 # ------------------------------------------------------------
-# ------------------------------------------------------------
-# Pre-flight Tool Check
-# ------------------------------------------------------------
 EXIT_STATUS=0
 echo "===================================================="
 echo "Host Machine: $REAL_HOST_ARCH"
 echo "Target Arch:  $ARCH_SET"
+echo "Prefix:       $PREFIX_PATH"
 echo "===================================================="
 
-# 1. Core Build Tools (Always needed)
 check_cmd meson
 check_cmd ninja
 check_cmd gdb-multiarch
 
-# 2. Dynamic Tool Checks
 check_compiler_for() {
     local TARGET=$1
     local PREFIX=""
     
-    # Core build tools
+    # Common tools for all
     local TOOLS=("gcc" "as" "ld" "objdump")
-    # Emulators (only needed if NOT native)
-    local EMULATOR=""
-
+    
     if [ "$TARGET" = "$REAL_HOST_ARCH" ]; then
+        # Check standard tools
         for tool in "${TOOLS[@]}"; do check_cmd "$tool"; done
+        # Special check for NASM only on x86_64
+        if [ "$TARGET" = "x86_64" ]; then
+            check_cmd nasm
+        fi
     else
         case $TARGET in
-            x86_64)  
-                PREFIX="x86_64-linux-gnu-" 
-                EMULATOR="qemu-x86_64"
-                ;;
-            aarch64) 
-                PREFIX="aarch64-linux-gnu-" 
-                EMULATOR="qemu-aarch64"
-                ;;
-            mips64)  
-                PREFIX="mips64-linux-gnuabi64-" 
-                EMULATOR="qemu-mips64"
-                ;;
-            riscv64) 
-                PREFIX="riscv64-linux-gnu-" 
-                EMULATOR="qemu-riscv64"
-                ;;
+            x86_64)  PREFIX="x86_64-linux-gnu-"; EMULATOR="qemu-x86_64" ;;
+            aarch64) PREFIX="aarch64-linux-gnu-"; EMULATOR="qemu-aarch64" ;;
+            mips64)  PREFIX="mips64-linux-gnuabi64-"; EMULATOR="qemu-mips64" ;;
+            riscv64) PREFIX="riscv64-linux-gnu-"; EMULATOR="qemu-riscv64" ;;
         esac
 
-        # Check compiler tools
-        for tool in "${TOOLS[@]}"; do
-            check_cmd "${PREFIX}${tool}"
-        done
+        for tool in "${TOOLS[@]}"; do check_cmd "${PREFIX}${tool}"; done
+        [ -n "$EMULATOR" ] && check_cmd "$EMULATOR"
         
-        # Check the emulator
-        if [ -n "$EMULATOR" ]; then
-            check_cmd "$EMULATOR"
-        fi
+        # If we are cross-compiling FOR x86_64 from another arch
+        if [ "$TARGET" = "x86_64" ]; then check_cmd nasm; fi
     fi
 }
 
-# Run the checks based on what the student wants to build
 if [ "$ARCH_SET" = "all" ]; then
-    for a in "x86_64" "aarch64" "mips64" "riscv64"; do
-        check_compiler_for "$a"
-    done
+    for a in "x86_64" "aarch64" "mips64" "riscv64"; do check_compiler_for "$a"; done
 else
     check_compiler_for "$ARCH_SET"
 fi
 
 echo "----------------------------------------------------"
-
 if [ $EXIT_STATUS -ne 0 ]; then
     echo "Error: Configuration failed due to missing tools."
-    echo "Please install the tools marked with [NO] and run again."
     exit 1
 fi
 
@@ -157,9 +138,9 @@ build_one() {
     [ "$CLEAN_SET" = true ] && rm -rf "$BUILD_DIR"
 
     if [ ! -d "$BUILD_DIR" ]; then
-        local SETUP_CMD=("meson" "setup" "$BUILD_DIR" "--buildtype=$TYPE_SET")
+        # Added --prefix to the setup command
+        local SETUP_CMD=("meson" "setup" "$BUILD_DIR" "--prefix" "$PREFIX_PATH" "--buildtype=$TYPE_SET")
         
-        # Only use cross-file if target != host machine
         if [ "$ARCH" != "$REAL_HOST_ARCH" ]; then
             local CROSS_FILE="cross/${CROSS_FILES[$ARCH]}"
             if [ ! -f "$CROSS_FILE" ]; then
@@ -170,21 +151,18 @@ build_one() {
         fi
         "${SETUP_CMD[@]}"
     else
-        meson setup "$BUILD_DIR" --reconfigure
+        # Update prefix even on reconfigure
+        meson setup "$BUILD_DIR" --reconfigure --prefix "$PREFIX_PATH"
     fi
 
     meson compile -C "$BUILD_DIR"
+    # Optional: Automatically install to the prefix directory
+    # meson install -C "$BUILD_DIR"
 }
 
-# Run the builds
 if [ "$ARCH_SET" = "all" ]; then
-    for a in "x86_64" "aarch64" "mips64" "riscv64"; do 
-        build_one "$a"
-    done
+    for a in "x86_64" "aarch64" "mips64" "riscv64"; do build_one "$a"; done
 else
-    if [[ -z "${CROSS_FILES[$ARCH_SET]}" ]]; then
-        usage "Unsupported architecture: $ARCH_SET"
-    fi
     build_one "$ARCH_SET"
 fi
 
