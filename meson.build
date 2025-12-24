@@ -1,15 +1,16 @@
 # /meson.build
-project('linux-multiarch-asm', ['c', 'cpp'], version: '0.1')
+project('linux-multiarch-asm', 'c', 'cpp', version: '1.0')
 
-message('>>> Building linux-multiarch-asm in ' + get_option('buildtype') + ' mode')
+# Detect NASM for the Archive
+nasm = find_program('nasm', required: false)
+inc_dir = include_directories('includes')
 
-# Global security flags for all architectures
-add_project_arguments('-Wa,--noexecstack', language : ['c', 'cpp'])
-
-# Enter the subdirectories
+# 1. Handle New Multi-Arch (GAS)
 subdir('architectures')
 
-# Separate logic for the legacy archive (NASM)
-if host_machine.cpu_family() == 'x86_64'
+# 2. Handle Archive (NASM) - Only if on x86_64
+if host_machine.cpu_family() == 'x86_64' and nasm.found()
     subdir('archive')
+else
+    message('NASM or x86_64 host not found. Skipping Archive build.')
 endif
