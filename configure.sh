@@ -81,23 +81,49 @@ echo "===================================================="
 # 1. Core Build Tools (Always needed)
 check_cmd meson
 check_cmd ninja
+check_cmd gdb-multiarch
 
-# 2. Dynamic Compiler Checks
-# This function decides which compiler name to look for
+# 2. Dynamic Tool Checks
 check_compiler_for() {
     local TARGET=$1
+    local PREFIX=""
     
+    # Core build tools
+    local TOOLS=("gcc" "as" "ld" "objdump")
+    # Emulators (only needed if NOT native)
+    local EMULATOR=""
+
     if [ "$TARGET" = "$REAL_HOST_ARCH" ]; then
-        # If we are ON the target machine, we just need the local gcc
-        check_cmd gcc
+        for tool in "${TOOLS[@]}"; do check_cmd "$tool"; done
     else
-        # If we are NOT on the target, we need the specific cross-compiler
         case $TARGET in
-            x86_64)  check_cmd x86_64-linux-gnu-gcc ;;
-            aarch64) check_cmd aarch64-linux-gnu-gcc ;;
-            mips64)  check_cmd mips64-linux-gnuabi64-gcc ;;
-            riscv64) check_cmd riscv64-linux-gnu-gcc ;;
+            x86_64)  
+                PREFIX="x86_64-linux-gnu-" 
+                EMULATOR="qemu-x86_64"
+                ;;
+            aarch64) 
+                PREFIX="aarch64-linux-gnu-" 
+                EMULATOR="qemu-aarch64"
+                ;;
+            mips64)  
+                PREFIX="mips64-linux-gnuabi64-" 
+                EMULATOR="qemu-mips64"
+                ;;
+            riscv64) 
+                PREFIX="riscv64-linux-gnu-" 
+                EMULATOR="qemu-riscv64"
+                ;;
         esac
+
+        # Check compiler tools
+        for tool in "${TOOLS[@]}"; do
+            check_cmd "${PREFIX}${tool}"
+        done
+        
+        # Check the emulator
+        if [ -n "$EMULATOR" ]; then
+            check_cmd "$EMULATOR"
+        fi
     fi
 }
 
