@@ -1,3 +1,6 @@
+# THIS REPO ISN4T COMPLETE YET....
+when this line is removed it will be useable
+
 # linux-multiarch-asm
 
 Linux-focused, multi-architecture assembly programming examples and low-level experiments.
