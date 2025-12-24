@@ -1,11 +1,15 @@
 #!/bin/bash
+# ================================================================= #
+# Linux Multi-Arch ASM Configuration Script                         #
+# ================================================================= #
 
-# --- 1. CONFIGURATION ---
+# ------------------------------------------------------------
+# Configuration & Architecture Detection
+# ------------------------------------------------------------
 REAL_HOST_ARCH=$(uname -m)
-if [[ "$REAL_HOST_ARCH" == "arm64" || "$REAL_HOST_ARCH" == "aarch64" ]]; then
-    REAL_HOST_ARCH="aarch64"
-fi
+[ "$REAL_HOST_ARCH" = "arm64" ] && REAL_HOST_ARCH="aarch64"
 
+# Mapping arch keys to cross-file names
 declare -A CROSS_FILES=( 
     ["x86_64"]="x86_64.ini" 
     ["aarch64"]="aarch64.ini" 
@@ -13,13 +17,22 @@ declare -A CROSS_FILES=(
     ["riscv64"]="riscv64.ini" 
 )
 
-# --- 2. USAGE HELP ---
-usage() {
-    # If an argument is passed to usage, print it as an error
-    if [ -n "$1" ]; then
-        echo -e "[ERROR] $1"
+# ------------------------------------------------------------
+# Helper Functions
+# ------------------------------------------------------------
+check_cmd() {
+    printf "Checking for %-35s ... " "$1"
+    if command -v "$1" >/dev/null 2>&1; then
+        echo "[YES]"
+    else
+        echo "[NO]"
+        EXIT_STATUS=1
     fi
+}
 
+usage() {
+    [ -n "$1" ] && echo "ERROR: $1"
+    echo ""
     echo "Usage: $0 --arch <ARCH> [OPTIONS]"
     echo ""
     echo "Required:"
@@ -27,77 +40,19 @@ usage() {
     echo ""
     echo "Options:"
     echo "  --buildtype <T>    debug, release (Default: debug)"
-    echo "  --clean            Clean the specific target build folder before building"
+    echo "  --clean            Clean target folder before building"
     echo "  --clean-all        Delete the entire 'build/' directory"
     echo "  --help             Show this help screen"
     exit 1
 }
 
-# --- 3. DEPENDENCY CHECK ---
-check_dependencies() {
-    local TARGET=$1
-    local tools=("meson" "ninja")
-
-    if [ "$TARGET" == "all" ]; then
-        tools+=("gcc" "g++" "mips64-linux-gnu-gcc" "aarch64-linux-gnu-gcc" "riscv64-linux-gnu-gcc")
-    elif [ "$TARGET" == "$REAL_HOST_ARCH" ]; then
-        tools+=("gcc" "g++")
-    else
-        case $TARGET in
-            x86_64)  tools+=("x86_64-linux-gnu-gcc") ;;
-            mips64)  tools+=("mips64-linux-gnu-gcc") ;;
-            aarch64) tools+=("aarch64-linux-gnu-gcc") ;;
-            riscv64) tools+=("riscv64-linux-gnu-gcc") ;;
-        esac
-    fi
-
-    for tool in "${tools[@]}"; do
-        if ! command -v "$tool" &> /dev/null; then
-            echo "[ERROR] Required tool not found: $tool"
-            exit 1
-        fi
-    done
-}
-
-# --- 4. BUILD LOGIC ---
-build_one() {
-    local ARCH=$1
-    local TYPE=$2
-    local BUILD_DIR="build/${TYPE}-${ARCH}"
-    
-    echo ""
-    echo ">>> TARGET: ${ARCH} (${TYPE})"
-
-    if [ "$CLEAN_SET" = true ] && [ -d "$BUILD_DIR" ]; then
-        rm -rf "$BUILD_DIR"
-    fi
-
-    if [ ! -d "$BUILD_DIR" ]; then
-        local SETUP_CMD=("meson" "setup" "$BUILD_DIR" "--buildtype=$TYPE")
-        if [ "$ARCH" != "$REAL_HOST_ARCH" ]; then
-            local CROSS_FILE="cross/${CROSS_FILES[$ARCH]}"
-            if [ ! -f "$CROSS_FILE" ]; then
-                echo "[SKIP] Missing cross-file: $CROSS_FILE"
-                return 1
-            fi
-            SETUP_CMD+=("--cross-file" "$CROSS_FILE")
-        fi
-        "${SETUP_CMD[@]}"
-    else
-        meson setup "$BUILD_DIR" --reconfigure --buildtype="$TYPE"
-    fi
-
-    meson compile -C "$BUILD_DIR"
-    return $?
-}
-
-# --- 5. MAIN ---
-
+# ------------------------------------------------------------
+# Argument Parsing
+# ------------------------------------------------------------
 ARCH_SET=""
 TYPE_SET="debug"
 CLEAN_SET=false
 
-# Argument Parsing
 while [[ $# -gt 0 ]]; do
     case $1 in
         --arch) ARCH_SET="$2"; shift 2 ;;
@@ -109,27 +64,103 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Check if arch was provided
-if [ -z "$ARCH_SET" ]; then
-    usage "No architecture specified."
+if [ -z "$ARCH_SET" ]; then usage "No architecture specified."; fi
+
+# ------------------------------------------------------------
+# Pre-flight Tool Check
+# ------------------------------------------------------------
+# ------------------------------------------------------------
+# Pre-flight Tool Check
+# ------------------------------------------------------------
+EXIT_STATUS=0
+echo "===================================================="
+echo "Host Machine: $REAL_HOST_ARCH"
+echo "Target Arch:  $ARCH_SET"
+echo "===================================================="
+
+# 1. Core Build Tools (Always needed)
+check_cmd meson
+check_cmd ninja
+
+# 2. Dynamic Compiler Checks
+# This function decides which compiler name to look for
+check_compiler_for() {
+    local TARGET=$1
+    
+    if [ "$TARGET" = "$REAL_HOST_ARCH" ]; then
+        # If we are ON the target machine, we just need the local gcc
+        check_cmd gcc
+    else
+        # If we are NOT on the target, we need the specific cross-compiler
+        case $TARGET in
+            x86_64)  check_cmd x86_64-linux-gnu-gcc ;;
+            aarch64) check_cmd aarch64-linux-gnu-gcc ;;
+            mips64)  check_cmd mips64-linux-gnuabi64-gcc ;;
+            riscv64) check_cmd riscv64-linux-gnu-gcc ;;
+        esac
+    fi
+}
+
+# Run the checks based on what the student wants to build
+if [ "$ARCH_SET" = "all" ]; then
+    for a in "x86_64" "aarch64" "mips64" "riscv64"; do
+        check_compiler_for "$a"
+    done
+else
+    check_compiler_for "$ARCH_SET"
 fi
 
-check_dependencies "$ARCH_SET"
+echo "----------------------------------------------------"
 
+if [ $EXIT_STATUS -ne 0 ]; then
+    echo "Error: Configuration failed due to missing tools."
+    echo "Please install the tools marked with [NO] and run again."
+    exit 1
+fi
+
+# ------------------------------------------------------------
+# Build Logic
+# ------------------------------------------------------------
+build_one() {
+    local ARCH=$1
+    local BUILD_DIR="build/${TYPE_SET}-${ARCH}"
+    
+    echo ""
+    echo ">>> STARTING BUILD FOR: ${ARCH}"
+
+    [ "$CLEAN_SET" = true ] && rm -rf "$BUILD_DIR"
+
+    if [ ! -d "$BUILD_DIR" ]; then
+        local SETUP_CMD=("meson" "setup" "$BUILD_DIR" "--buildtype=$TYPE_SET")
+        
+        # Only use cross-file if target != host machine
+        if [ "$ARCH" != "$REAL_HOST_ARCH" ]; then
+            local CROSS_FILE="cross/${CROSS_FILES[$ARCH]}"
+            if [ ! -f "$CROSS_FILE" ]; then
+                echo "SKIP: Missing cross-file $CROSS_FILE"
+                return 1
+            fi
+            SETUP_CMD+=("--cross-file" "$CROSS_FILE")
+        fi
+        "${SETUP_CMD[@]}"
+    else
+        meson setup "$BUILD_DIR" --reconfigure
+    fi
+
+    meson compile -C "$BUILD_DIR"
+}
+
+# Run the builds
 if [ "$ARCH_SET" = "all" ]; then
-    SUCCESS=0
-    TOTAL=0
-    # Explicitly order the loop for the students
-    for a in "x86_64" "aarch64" "mips64" "riscv64"; do
-        build_one "$a" "$TYPE_SET"
-        [ $? -eq 0 ] && ((SUCCESS++))
-        ((TOTAL++))
+    for a in "x86_64" "aarch64" "mips64" "riscv64"; do 
+        build_one "$a"
     done
-    echo -e "\nSummary: $SUCCESS/$TOTAL architectures built successfully."
 else
-    # Validate specific arch name
     if [[ -z "${CROSS_FILES[$ARCH_SET]}" ]]; then
         usage "Unsupported architecture: $ARCH_SET"
     fi
-    build_one "$ARCH_SET" "$TYPE_SET"
+    build_one "$ARCH_SET"
 fi
+
+echo ""
+echo "Configuration and build finished."
