@@ -1,0 +1,140 @@
+;there is a riddle in the file (it's a hint from timotei)
+cat ./timo#4 
+
+ELF>@@`"@8@@@��@@ss  @ @BB�hi@À<$u\H�|$)�(��������Ƀ�uEH�t$��ŝ���1���1�H����u�=�y�ou�H� @��<H1�._:timotei crackme#4:_:
+._.:solved:._'Gold, with six bars, or with the visor raised (in full face) for royalty, Silver, with five bars, (in f
+ull face) for a duke or marquis, Silver, with four bars, with visor raised (in profile) for an earl, viscount or baro
+n, Steel, without bars, and with visor open (in full face) for a knight or a baronet, Steel, with visor closed (in pr
+ofile) for a squire or a gentleman.'hint: He is a legend so far for the cue, tell me to whom does this question leads
+ to? To prove your thoughts to be dead right, Fowler,Noll and Vo stays on your side..shstrtab.text.data@s @ BB"
+
+;the elf64 header
+    db 7f 45 4c 46 02 01 01 00    ;0x7F, "ELF", 2, 1, 1, 0             ;e_ident
+    times 8 db 0                  ;reserved (zeroes)
+    db 02 00                      ;e_type:       Executable file
+    db 00 3e                      ;e_machine:    AMD64
+    db 00 00 00 01                ;e_version:    current version
+    db 00 10 40 00 00 00 00 00    ;_start e_entry: program entry address 0x00401000
+
+A) FIRST PROBLEM
+
+objdump -D -Mintel ./timo#4
+
+0000000000401000 <.text>:
+  401000:	90                   	nop
+  401001:	68 69 10 40 00       	push   0x401069
+  401006:	c3                   	ret    
+  401007:	80 3c 24 02          	cmp    BYTE PTR [rsp],0x2
+
+;program starts at 0x00401000 with nop, a push of address 0x401069 on stack.
+;with a ret instruction, which gets the return address from stack, it jumps to that address.
+;which is an ordinary syscall exit with no errorcode set in rdi.
+
+-> patch byte 18 to 0x07 to set e_entry at 0x00401007, right behind the ret instruction
+cp timo#4 timo#4_patched
+printf '\x07' | dd of=timo#4_patched bs=1 seek=24 count=1 conv=notrunc 
+
+;a quick look at readelf -h ./timo#4_patched reveals now
+
+readelf -h ./timo#4_patched 
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x401007
+
+B) SECOND PROBLEM: The program
+
+The Disassembly of timo#4_patched (or timo#4 which is the same) is
+
+objdump -D -Mintel ./timo#4_patched 
+
+./timo#4_patched:     file format elf64-x86-64
+
+Disassembly of section .text:
+
+0000000000401000 <.text>:
+we skip
+  401000:	90                   	nop
+  401001:	68 69 10 40 00       	push   0x401069
+  401006:	c3                   	ret    
+
+_start:
+  
+  ;get argc, if not 2 then we exit
+  401007:	80 3c 24 02          	cmp    BYTE PTR [rsp],0x2               ;argc = 2?
+  40100b:	75 5c                	jne    0x401069                         ;if not exit
+  
+  ;--> we need to give our guess on the commandline
+
+  ;get the length of the commandline entry
+  40100d:	48 8b 7c 24 10       	mov    rdi,QWORD PTR [rsp+0x10]         ;pointer to argv[0]
+  401012:	29 c9                	sub    ecx,ecx                          ;initialize ecx=0
+  401014:	28 c0                	sub    al,al                            ;initialize al=0, search for 0x0 in string
+  401016:	f7 d1                	not    ecx                              ;ecx is max length
+  401018:	fc                   	cld                                     ;auto increment rdi, auto decrement ecx
+  401019:	f2 ae                	repnz scas al,BYTE PTR es:[rdi]         ;compare byte at rdi with al
+  40101b:	f7 d1                	not    ecx                              ;detrmine length of string with trailing zero
+  40101d:	ff c9                	dec    ecx                              ;minus 1 gives string length without trailing zero
+  40101f:	83 e9 04             	sub    ecx,0x4                          ;subtract 4 from string length 
+  401022:	75 45                	jne    0x401069                         ;if not zero then exit
+  401024:	48 8b 74 24 10       	mov    rsi,QWORD PTR [rsp+0x10]
+  401029:	b9 04 00 00 00       	mov    ecx,0x4
+
+;-->conclusion: the input on the commandline must be four characters
+
+  ;the decryption:
+  40102e:	b8 c5 9d 1c 81       	mov    eax,0x811c9dc5
+  401033:	bf 93 01 00 01       	mov    edi,0x1000193
+  401038:	31 db                	xor    ebx,ebx                          ;initialize ebx = 0
+  ;loop
+  40103a:	f7 e7                	mul    edi                              ;edx:eax = eax * edi
+  40103c:	8a 1e                	mov    bl,BYTE PTR [rsi]                ;read byte in bl
+  40103e:	31 d8                	xor    eax,ebx                          ;xor al and bl
+  401040:	48 ff c6             	inc    rsi                              ;point to next byte
+  401043:	ff c9                	dec    ecx                              ;next byte                      
+  401045:	75 f3                	jne    0x40103a                         ;do for all 4 bytes of our guess
+  401047:	3d a2 79 cd 6f       	cmp    eax,0x6fcd79a2                   ;is eax=0x6fcd79a2
+  
+  ;for each byte in the password the value in eax is multiplied by edi and the lower 8 bits xored with respectively each byte.
+  ;
+  ; eax = ((((((((0x811c9dc5 x 0x1000193) xor b0) x 0x1000193) xor b1) x 0x1000193) xor b2) x 0x1000193) xor b3) x 0x1000193 = 0x6fcd79a2
+  ;       ((((((((0x811c9dc5 x 0x1000193) xor b0) x 0x1000193) xor b1) x 0x1000193) xor b2) x 0x1000193) xor b3) = CCCA9D0117D3DE1
+  
+  ;because of the xor the formula isn't easy to reverse the formula, the only thing for sure is that each byte is between 0x00 and 0xFFF, 0x00 not included
+  ;because of the calculation of the string length, which uses the 0x00 as indication for end of string and I still don't know nothing about the riddle.
+  
+C) BRUTO FORCE
+  ; I wrote program to get the possible passwords (yes there are more), the sourcefile brute_force.asm is included with this file.
+
+  ; D: SOLUTION
+  ; In the meanwhile I've found that someone (not gonna reveal who yet) has used or is the author of the riddle.
+  ; I found 3 passwords with one possible since we enter the password from commandline.
+
+  ; ((((((((0x6fcd79a2 \ 0x1000193) xor b3) \ 0x1000193) xor b2) \ 0x1000193) xor b1) \ 0x1000193) xor b0) \ 0x1000193 = 0x811c9dc5
+  
+  40104c:	75 1b                	jne    0x401069                         ;not equal so exit
+
+D) CONCLUSION
+  ; if you don't know anything about the riddle a quick solution to crack this baby is 
+  ; printf '\x4e' | dd of=timo#4_patched bs=1 seek=24 count=1 conv=notrunc
+  ; in that case the program starts here and the message "_.:solved:._" is displayed.
+  ; edx however is 1 byte too much (trailing zero)
+
+  ; syscall write,stdout,'_.:solved:._\n\0x0',14
+  40104e:	b8 01 00 00 00       	mov    eax,0x1
+  401053:	bf 01 00 00 00       	mov    edi,0x1
+  401058:	48 be 19 20 40 00 00 	movabs rsi,0x402019
+  40105f:	00 00 00 
+  401062:	ba 0e 00 00 00       	mov    edx,0xe
+  401067:	0f 05                	syscall
+  ; syscall exit,0
+  401069:	b8 3c 00 00 00       	mov    eax,0x3c
+  40106e:	48 31 ff             	xor    rdi,rdi
+  401071:	0f 05                	syscall

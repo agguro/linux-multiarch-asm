@@ -1,0 +1,72 @@
+first I check with cat cm1leng, reveals some text.  One remarkable text was QTBXCTU
+so a 
+
+objdump -s -j .data ./cm1eng 
+
+reveals the .data section (could also be the .rodata section)
+
+./cm1eng:     file format elf32-i386
+
+Contents of section .data:
+ 80490f8 0a506173 73776f72 64203a20 00477265  .Password : .Gre
+ 8049108 61742079 6f752064 69642069 7420213a  at you did it !:
+ 8049118 290a0a20 20202020 20202020 20005154  )..          .QT
+ 8049128 42584354 5500                        BXCTU.
+
+The disassembly:
+
+objdump -d -M intel ./cm1eng 
+
+./cm1eng:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+08048080 <.text>:
+ 8048080:	b8 04 00 00 00       	mov    eax,0x4
+ 8048085:	bb 01 00 00 00       	mov    ebx,0x1
+ 804808a:	b9 f8 90 04 08       	mov    ecx,0x80490f8
+ 804808f:	ba 0d 00 00 00       	mov    edx,0xd
+ 8048094:	cd 80                	int    0x80                 ;show Password: max. 0x0d (13) bytes
+ 8048096:	ba 00 01 00 00       	mov    edx,0x100
+ 804809b:	b9 1b 91 04 08       	mov    ecx,0x804911b
+ 80480a0:	bb 00 00 00 00       	mov    ebx,0x0
+ 80480a5:	b8 03 00 00 00       	mov    eax,0x3
+ 80480aa:	cd 80                	int    0x80                 ;wait for input
+ 
+ ;the input is stored in 0x804911b
+
+ 80480ac:	be 26 91 04 08       	mov    esi,0x8049126        ;offset of our magic word QTBXCTU
+ 80480b1:	89 f7                	mov    edi,esi              ;put address in edi
+ 80480b3:	31 db                	xor    ebx,ebx
+ 80480b5:	fc                   	cld    
+ 80480b6:	ac                   	lods   al,BYTE PTR ds:[esi]     ;load byte of magic word
+ 80480b7:	34 21                	xor    al,0x21                  ;xor with 0x21
+ 80480b9:	aa                   	stos   BYTE PTR es:[edi],al     ;store back
+ 80480ba:	43                   	inc    ebx
+ 80480bb:	81 fb 07 00 00 00    	cmp    ebx,0x7                  ;repeat 7 more times
+ 80480c1:	74 02                	je     0x80480c5
+ 80480c3:	e2 f1                	loop   0x80480b6
+ 80480c5:	be 1b 91 04 08       	mov    esi,0x804911b            ;compare input from user with the password calculated
+ 80480ca:	bf 26 91 04 08       	mov    edi,0x8049126
+ 80480cf:	b9 07 00 00 00       	mov    ecx,0x7
+ 80480d4:	fc                   	cld    
+ 80480d5:	f3 a6                	repz cmps BYTE PTR ds:[esi],BYTE PTR es:[edi]
+ 80480d7:	75 16                	jne    0x80480ef                ;if not equal just bail out
+ 80480d9:	b8 04 00 00 00       	mov    eax,0x4                  ;if equal print message
+ 80480de:	bb 01 00 00 00       	mov    ebx,0x1
+ 80480e3:	b9 05 91 04 08       	mov    ecx,0x8049105
+ 80480e8:	ba 16 00 00 00       	mov    edx,0x16
+ 80480ed:	cd 80                	int    0x80
+ 80480ef:	b8 01 00 00 00       	mov    eax,0x1                  ;syscall exit
+ 80480f4:	cd 80                	int    0x80
+
+ Decyphering:
+
+              Q  T  B  X  C  T  U
+ascii-codes: 51 54 42 58 43 54 55
+xor 0x21     21 21 21 21 21 21 21
+result:      70 75 63 79 62 75 74
+ascii:        p  u  c  y  b  u  t
+
+password: pucybut

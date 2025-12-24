@@ -1,0 +1,155 @@
+objdump -D -Mintel ./timo#3
+
+./timo#3:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000401000 <.text>:
+;32 BIT
+;syscall write,stdout,0x402034,4 
+  401000:	b8 04 00 00 00       	mov    eax,0x4
+  401005:	bb 01 00 00 00       	mov    ebx,0x1
+  40100a:	b9 34 20 40 00       	mov    ecx,0x402034
+  40100f:	ba 04 00 00 00       	mov    edx,0x4
+  401014:	cd 80                	int    0x80
+;syscall write,stdout,0x40204b,7
+  401016:	b8 04 00 00 00       	mov    eax,0x4
+  40101b:	bb 01 00 00 00       	mov    ebx,0x1
+  401020:	b9 4b 20 40 00       	mov    ecx,0x40204b
+  401025:	ba 07 00 00 00       	mov    edx,0x7
+  40102a:	cd 80                	int    0x80
+;64 BIT
+;syscall write,stdout,0x402067,0x29  
+  40102c:	b8 01 00 00 00       	mov    eax,0x1
+  401031:	bf 01 00 00 00       	mov    edi,0x1
+  401036:	48 be 67 20 40 00 00 	movabs rsi,0x402067
+  40103d:	00 00 00 
+  401040:	ba 29 00 00 00       	mov    edx,0x29
+  401045:	0f 05                	syscall 
+;32 BIT
+;syscall write,stdout,0x402060,0x7  
+  401047:	b8 04 00 00 00       	mov    eax,0x4
+  40104c:	bb 01 00 00 00       	mov    ebx,0x1
+  401051:	b9 60 20 40 00       	mov    ecx,0x402060
+  401056:	ba 07 00 00 00       	mov    edx,0x7
+  40105b:	cd 80                	int    0x80
+;64 BIT
+;syscall write,stdout,0x402067,0x29
+  40105d:	b8 01 00 00 00       	mov    eax,0x1
+  401062:	bf 01 00 00 00       	mov    edi,0x1
+  401067:	48 be 67 20 40 00 00 	movabs rsi,0x402067
+  40106e:	00 00 00 
+  401071:	ba 29 00 00 00       	mov    edx,0x29
+  401076:	0f 05                	syscall 
+;32 BIT
+;syscall write,stdout,stdout,0x402038,0xA  
+  401078:	b8 04 00 00 00       	mov    eax,0x4
+  40107d:	bb 01 00 00 00       	mov    ebx,0x1
+  401082:	b9 38 20 40 00       	mov    ecx,0x402038
+  401087:	ba 0a 00 00 00       	mov    edx,0xa
+  40108c:	cd 80                	int    0x80
+;syscall write,stdout,stdout,0x402052,0x7
+  40108e:	b8 04 00 00 00       	mov    eax,0x4
+  401093:	bb 01 00 00 00       	mov    ebx,0x1
+  401098:	b9 52 20 40 00       	mov    ecx,0x402052
+  40109d:	ba 07 00 00 00       	mov    edx,0x7
+  4010a2:	cd 80                	int    0x80
+;64 BIT
+;syscall write,stdout,0x402090,0x29  
+  4010a4:	b8 01 00 00 00       	mov    eax,0x1
+  4010a9:	bf 01 00 00 00       	mov    edi,0x1
+  4010ae:	48 be 90 20 40 00 00 	movabs rsi,0x402090
+  4010b5:	00 00 00 
+  4010b8:	ba 29 00 00 00       	mov    edx,0x29
+  4010bd:	0f 05                	syscall 
+;32 BIT
+;syscall write,stdout,0x402042,0x9
+  4010bf:	b8 04 00 00 00       	mov    eax,0x4
+  4010c4:	bb 01 00 00 00       	mov    ebx,0x1
+  4010c9:	b9 42 20 40 00       	mov    ecx,0x402042
+  4010ce:	ba 09 00 00 00       	mov    edx,0x9
+  4010d3:	cd 80                	int    0x80
+;syscall write,stdout,0x402059,0x7
+  4010d5:	b8 04 00 00 00       	mov    eax,0x4
+  4010da:	bb 01 00 00 00       	mov    ebx,0x1
+  4010df:	b9 59 20 40 00       	mov    ecx,0x402059
+  4010e4:	ba 07 00 00 00       	mov    edx,0x7
+  4010e9:	cd 80                	int    0x80
+;64 BIT
+;syscall write,0x4020b9,0x14
+  4010eb:	b8 01 00 00 00       	mov    eax,0x1
+  4010f0:	bf 01 00 00 00       	mov    edi,0x1
+  4010f5:	48 be b9 20 40 00 00 	movabs rsi,0x4020b9
+  4010fc:	00 00 00 
+  4010ff:	ba 14 00 00 00       	mov    edx,0x14
+  401104:	0f 05                	syscall 
+;syscall read,stdin,0x4020ec,0x64
+  401106:	b8 00 00 00 00       	mov    eax,0x0
+  40110b:	bf 00 00 00 00       	mov    edi,0x0
+  401110:	be ec 20 40 00       	mov    esi,0x4020ec
+  401115:	ba 64 00 00 00       	mov    edx,0x64                   ;100 bytes space
+  40111a:	0f 05                	syscall 
+
+
+  40111c:	31 db                	xor    ebx,ebx
+  40111e:	b9 ec 20 40 00       	mov    ecx,0x4020ec               ;input buffer
+  401123:	67 8a 51 0c          	mov    dl,BYTE PTR [ecx+0xc]      ;read byte at 0x4020F9
+  401127:	80 ea 30             	sub    dl,0x30                    ;subtract 0x30
+  .loop:
+  40112a:	67 8a 19             	mov    bl,BYTE PTR [ecx]          ;read byte at 0x4020ec
+  40112d:	80 fb 0a             	cmp    bl,0xa                     ;is it 0xA
+  401130:	74 07                	je     0x401139                   ;it is
+  401132:	67 00 11             	add    BYTE PTR [ecx],dl          ;if not add to 0x4020ec
+  401135:	ff c1                	inc    ecx                        ;next byte
+  401137:	eb f1                	jmp    0x40112a                   ;repeat at .loop
+
+  401139:	be ec 20 40 00       	mov    esi,0x4020ec               ;input buffer
+  40113e:	bf 26 20 40 00       	mov    edi,0x402026               ;data to compare with
+  401143:	b9 0e 00 00 00       	mov    ecx,0xe                    ;
+  401148:	f3 a6                	repz cmps BYTE PTR ds:[rsi],BYTE PTR es:[rdi]   ;compare 13 bytes
+  40114a:	85 c9                	test   ecx,ecx                    ;if not all bytes matches ...
+  40114c:	75 31                	jne    0x40117f                   ;... exit
+
+; we got the passphrase
+;32 BIT
+;syscall write,stdout,0x402034,0x4  
+  40114e:	b8 04 00 00 00       	mov    eax,0x4
+  401153:	bb 01 00 00 00       	mov    ebx,0x1
+  401158:	b9 34 20 40 00       	mov    ecx,0x402034
+  40115d:	ba 04 00 00 00       	mov    edx,0x4
+  401162:	cd 80                	int    0x80
+;64 BIT
+;syscall write,stdout,0x4020cd,0x1C  
+  401164:	b8 01 00 00 00       	mov    eax,0x1
+  401169:	bf 01 00 00 00       	mov    edi,0x1
+  40116e:	48 be cd 20 40 00 00 	movabs rsi,0x4020cd
+  401175:	00 00 00 
+  401178:	ba 1c 00 00 00       	mov    edx,0x1c
+  40117d:	0f 05                	syscall 
+;32 BIT
+;syscall exit,0
+  40117f:	b8 01 00 00 00       	mov    eax,0x1
+  401184:	31 db                	xor    ebx,ebx
+  401186:	cd 80                	int    0x80
+
+; The crack:
+  
+; 4020yy   ec ed ef f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa               ;yy byte address
+; 4020ec:  xx xx xx xx xx xx xx xx xx xx xx xx xx xx               ;xx is input values
+; 402026:  35 56 57 56 52 65 11 34 40 47 3a 35 12 00               ;in ascii: 5VWVRe.4@G:5..
+
+; values lies between 0x11 and 0x65 both included, 0x0E further
+; first readable character is the space 0x20
+; 0x20 - 0x11 = 0x0F
+; add 0x0F to all bytes
+;         44 65 66 65 61 74 20 43 4F 56 49 44 21 00
+; check the result:
+; byte at 0x4020F9 is 0x21
+; 0x21-0x30 = 0xF1 which is also minus 0xF (at address 0x401127)
+; 00100001 - 00110000 = 11110001 -> (two's complement) 00001110 + 1 = 00001111 => -F
+;
+; subtract -F from all bytes at 402026 means an addition of 0xF to these bytes (address 0x401132)
+; which gives, in ascii 'Defeat COVID!', looking at the hexdump of the file reveales this phrase too, without the
+; exlamation point.
+

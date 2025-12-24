@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+$(document).ready(function(){
+    $.get("/bin/webvars",function(data){
+      $('#dir').html(data);
+  });
+});
+</script>
+<body>
+<div id="dir"></div>
+</html>

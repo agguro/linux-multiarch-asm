@@ -1,0 +1,1051 @@
+     1                                  ; name: fpuAbs
+     2                                  ;
+     3                                  ;
+     4                                  ; -----------------------------------------------------------------------
+     5                                  ; This procedure was written by Raymond Filiatreault, December 2002
+     6                                  ; Modified March 2004 to avoid any potential data loss from the FPU
+     7                                  ; Revised January 2005 to free the FPU st7 register if necessary.
+     8                                  ; Revised January 2010 to allow additional data types from memory to be
+     9                                  ;    used as source parameter and allow additional data types for storage. 
+    10                                  ;
+    11                                  ;                           |Src| -> Dest
+    12                                  ;
+    13                                  ; Rewritten for nasm December 2019 by Roberto Aguas Guerreiro.
+    14                                  ;
+    15                                  ; This FpuAbs function changes the sign of a REAL number (Src) to
+    16                                  ; positive with the FPU and returns the result at the specified
+    17                                  ; destination (the FPU itself or a memory location), unless an invalid
+    18                                  ; operation is reported by the FPU or the definition of the parameters
+    19                                  ; (with uID) is invalid.
+    20                                  ;
+    21                                  ; The source can only be a REAL number from the FPU itself or either a
+    22                                  ; REAL4, REAL8 or REAL10 from memory. (The absolute value of integers can
+    23                                  ; be easily obtained with CPU instructions.)
+    24                                  ;
+    25                                  ; The source is not checked for validity. This is the programmer's
+    26                                  ; responsibility.
+    27                                  ;
+    28                                  ; Only EAX is used to return error or success. All other CPU registers
+    29                                  ; are preserved.
+    30                                  ;
+    31                                  ; IF the source is specified to be the FPU top data register, it would be
+    32                                  ; removed. It would then be replaced by the result only if the FPU is
+    33                                  ; specified as the destination.
+    34                                  ;
+    35                                  ; IF the source is from memory
+    36                                  ; AND the FPU is specified as the destination for the result,
+    37                                  ;       the st7 data register will become the st0 data register where the
+    38                                  ;       result will be returned (any valid data in that register would
+    39                                  ;       have been trashed).
+    40                                  ;
+    41                                  ; -----------------------------------------------------------------------
+    42                                  
+    43                                  bits 64
+    44                                  
+    45                                  %include "fpu.inc"
+     1                              <1> %ifndef __FPU_INC__
+     2                              <1> %define __FPU_INC__
+     3                              <1> 
+     4                              <1> SRC_FPU         equ   00001b
+     5                              <1> SRC_EXTENDED    equ   00010b
+     6                              <1> SRC_DOUBLE      equ   00100b
+     7                              <1> SRC_SINGLE      equ   01000b
+     8                              <1> 
+     9                              <1> DEST_FPU        equ   10001b
+    10                              <1> DEST_EXTENDED   equ   10010b
+    11                              <1> DEST_DOUBLE     equ   10100b
+    12                              <1> DEST_SINGLE     equ   11000b
+    13                              <1> 
+    14                              <1> ;errors
+    15                              <1> ERR_FPU_EMPTY	equ 	-1
+    16                              <1> 
+    17                              <1> SRC1_FPU    equ   1
+    18                              <1> SRC1_REAL   equ   2
+    19                              <1> SRC1_REAL4  equ   10000h
+    20                              <1> SRC1_REAL8  equ   20000h
+    21                              <1> SRC1_DMEM   equ   4
+    22                              <1> SRC1_QMEM   equ   1000000h
+    23                              <1> SRC1_DIMM   equ   8
+    24                              <1> SRC1_CONST  equ   10h
+    25                              <1> 
+    26                              <1> SRC2_FPU    equ   100h
+    27                              <1> SRC2_REAL   equ   200h
+    28                              <1> SRC2_REAL4  equ   40000h
+    29                              <1> SRC2_REAL8  equ   80000h
+    30                              <1> SRC2_DMEM   equ   400h
+    31                              <1> SRC2_QMEM   equ   2000000h
+    32                              <1> SRC2_DIMM   equ   800h
+    33                              <1> SRC2_CONST  equ   1000h
+    34                              <1> 
+    35                              <1> DEST_MEM    equ   0
+    36                              <1> DEST_MEM4   equ   100000h
+    37                              <1> DEST_MEM8   equ   200000h
+    38                              <1> DEST_IMEM   equ   40h
+    39                              <1> DEST_IMEM8  equ   400000h
+    40                              <1> ;DEST_FPU    equ   80h
+    41                              <1> 
+    42                              <1> ANG_DEG     equ   0
+    43                              <1> ANG_RAD     equ   20h
+    44                              <1> 
+    45                              <1> STR_REG     equ   0
+    46                              <1> STR_SCI     equ   8000h
+    47                              <1> 
+    48                              <1> FPU_PI      equ   1
+    49                              <1> FPU_NAPIER  equ   2
+    50                              <1> 
+    51                              <1> XAM_VALID   equ   1
+    52                              <1> XAM_ZERO    equ   2
+    53                              <1> XAM_NEG     equ   4
+    54                              <1> XAM_SMALL   equ   8
+    55                              <1> XAM_INFINIT equ   16
+    56                              <1> 
+    57                              <1> CMP_EQU     equ   1
+    58                              <1> CMP_GREATER equ   2
+    59                              <1> CMP_LOWER   equ   4
+    60                              <1> 
+    61                              <1> %endif
+    46                                  
+    47                                  global _start
+    48                                  
+    49                                  section .data
+    50                                  fpuexception:
+    51 00000000 496E76616C6964206F-     	.invalidoperation:	db	"Invalid operation"
+    51 00000009 7065726174696F6E   
+    52 00000011 44656E6F726D616C69-     	.denormalized:		db	"Denormalized exception"
+    52 0000001A 7A6564206578636570-
+    52 00000023 74696F6E           
+    53 00000027 5A65726F2064697669-     	.zerodivide:		db	"Zero divide exception"
+    53 00000030 646520657863657074-
+    53 00000039 696F6E             
+    54 0000003C 4F766572666C6F7720-     	.overflow:			db	"Overflow exception"
+    54 00000045 657863657074696F6E 
+    55 0000004E 556E646572666C6F77-     	.underflow:			db	"Underflow exception"
+    55 00000057 20657863657074696F-
+    55 00000060 6E                 
+    56 00000061 507265636973696F6E-     	.precision:			db	"Precision exception"
+    56 0000006A 20657863657074696F-
+    56 00000073 6E                 
+    57 00000074 737461636B6661756C-     	.stackfault:		db	"stackfault"
+    57 0000007D 74                 
+    58 0000007E 457863657074696F6E-     	.exceptionflag:		db	"Exception occured",10
+    58 00000087 206F6363757265640A 
+    59                                  	.exceptionflag.len:	equ	$-fpuexception.exceptionflag
+    60                                  	
+    61                                  fpuconditions:
+    62 00000090 2B556E6E6F726D616C-     	.punnormalized: 	db "+Unnormalized"
+    62 00000099 697A6564           
+    63 0000009D 2D556E6E6F726D616C-     	.nunnormalized: 	db "-Unnormalized"
+    63 000000A6 697A6564           
+    64 000000AA 2B4E6F726D616C697A-     	.pnormalized:   	db "+Normalized"
+    64 000000B3 6564               
+    65 000000B5 2D4E6F726D616C697A-     	.nnormalized:   	db "-Normalized"
+    65 000000BE 6564               
+    66 000000C0 2B30                    	.poszero:       	db "+0"
+    67 000000C2 2D30                    	.negzero:       	db "-0"
+    68 000000C4 2B44656E6F726D616C-     	.pdenormalized: 	db "+Denormalized"
+    68 000000CD 697A6564           
+    69 000000D1 2D44656E6F726D616C-     	.ndenormalized: 	db "-Denormalized"
+    69 000000DA 697A6564           
+    70 000000DE 2B4E614E                	.pnan:          	db "+NaN"
+    71 000000E2 2D4E614E                	.nnan:          	db "-NaN"
+    72 000000E6 2B496E66696E697479      	.pinfinity:     	db "+Infinity"
+    73 000000EF 2D496E66696E697479      	.ninfinity:     	db "-Infinity"
+    74 000000F8 456D707479              	.empty:         	db "Empty"
+    75                                  topofstack:
+    76 000000FD 5354300A                	.st:				db	"ST0",10
+    77                                  	.st.len:			equ	$-topofstack.st
+    78                                  
+    79                                  fpuerror:
+    80                                  
+    81 00000101 F90FE9B7AF03E1850C-     	extDividend:		dt 		-8568.25360000
+    81 0000010A C0                 
+    82 0000010B 000000000000000000-     	extDivisor:			dt 		0.0
+    82 00000114 00                 
+    83                                  
+    84                                  %include "fpu.inc"
+     1                              <1> %ifndef __FPU_INC__
+     2                              <1> %define __FPU_INC__
+     3                              <1> 
+     4                              <1> SRC_FPU         equ   00001b
+     5                              <1> SRC_EXTENDED    equ   00010b
+     6                              <1> SRC_DOUBLE      equ   00100b
+     7                              <1> SRC_SINGLE      equ   01000b
+     8                              <1> 
+     9                              <1> DEST_FPU        equ   10001b
+    10                              <1> DEST_EXTENDED   equ   10010b
+    11                              <1> DEST_DOUBLE     equ   10100b
+    12                              <1> DEST_SINGLE     equ   11000b
+    13                              <1> 
+    14                              <1> ;errors
+    15                              <1> ERR_FPU_EMPTY	equ 	-1
+    16                              <1> 
+    17                              <1> SRC1_FPU    equ   1
+    18                              <1> SRC1_REAL   equ   2
+    19                              <1> SRC1_REAL4  equ   10000h
+    20                              <1> SRC1_REAL8  equ   20000h
+    21                              <1> SRC1_DMEM   equ   4
+    22                              <1> SRC1_QMEM   equ   1000000h
+    23                              <1> SRC1_DIMM   equ   8
+    24                              <1> SRC1_CONST  equ   10h
+    25                              <1> 
+    26                              <1> SRC2_FPU    equ   100h
+    27                              <1> SRC2_REAL   equ   200h
+    28                              <1> SRC2_REAL4  equ   40000h
+    29                              <1> SRC2_REAL8  equ   80000h
+    30                              <1> SRC2_DMEM   equ   400h
+    31                              <1> SRC2_QMEM   equ   2000000h
+    32                              <1> SRC2_DIMM   equ   800h
+    33                              <1> SRC2_CONST  equ   1000h
+    34                              <1> 
+    35                              <1> DEST_MEM    equ   0
+    36                              <1> DEST_MEM4   equ   100000h
+    37                              <1> DEST_MEM8   equ   200000h
+    38                              <1> DEST_IMEM   equ   40h
+    39                              <1> DEST_IMEM8  equ   400000h
+    40                              <1> ;DEST_FPU    equ   80h
+    41                              <1> 
+    42                              <1> ANG_DEG     equ   0
+    43                              <1> ANG_RAD     equ   20h
+    44                              <1> 
+    45                              <1> STR_REG     equ   0
+    46                              <1> STR_SCI     equ   8000h
+    47                              <1> 
+    48                              <1> FPU_PI      equ   1
+    49                              <1> FPU_NAPIER  equ   2
+    50                              <1> 
+    51                              <1> XAM_VALID   equ   1
+    52                              <1> XAM_ZERO    equ   2
+    53                              <1> XAM_NEG     equ   4
+    54                              <1> XAM_SMALL   equ   8
+    55                              <1> XAM_INFINIT equ   16
+    56                              <1> 
+    57                              <1> CMP_EQU     equ   1
+    58                              <1> CMP_GREATER equ   2
+    59                              <1> CMP_LOWER   equ   4
+    60                              <1> 
+    61                              <1> %endif
+    85                                  %include "unistd.inc"
+     1                              <1> %ifndef _ASM_UNISTD_INC_
+     2                              <1> %define _ASM_UNISTD_INC_      1
+     3                              <1> 
+     4                              <1> %if __BITS__ == 32
+     5                              <1>    %warning "using 32 bits syscalls"
+     6                              <1>    %include "unistd32.inc"
+     7                              <1> %elif __BITS__ == 64
+     8                              <1>    %include "unistd64.inc"
+     1                              <2> %ifndef __NASM_UNISTD64_INC__
+     2                              <2> %define __NASM_UNISTD64_INC__     1
+     3                              <2> 
+     4                              <2> ; ---------------------------------
+     5                              <2> ; SysCall Macro
+     6                              <2> ; ---------------------------------
+     7                              <2> 
+     8                              <2> ; To work around a Nasm warning this macro is defined
+     9                              <2> ; as taking 0-7 args since the opcode syscall is used
+    10                              <2> ; on 64-bit linux.
+    11                              <2> ; Also, use caution when checking integral values that
+    12                              <2> ; can benefit from sign-extension.  For example,
+    13                              <2> ; 0xFFFFFFFF can be interpreted as -1 or 4294967295.
+    14                              <2> ; The adventurous among you can also add checks for
+    15                              <2> ; specific cpu types and inject opcodes based on speed
+    16                              <2> ; vs. size considerations.
+    17                              <2> 
+    18                              <2> %imacro syscall 0-7.nolist
+    19                              <2> %if %0 > 0
+    20                              <2>   %if %0 > 1
+    21                              <2>     %if %0 > 2
+    22                              <2>       %if %0 > 3
+    23                              <2>         %if %0 > 4
+    24                              <2>           %if %0 > 5
+    25                              <2>             %if %0 > 6
+    26                              <2>               %ifnum %{7}
+    27                              <2>                 %if %{7} == 0
+    28                              <2>                   xor r9, r9
+    29                              <2>                 %elif %{7} == -1
+    30                              <2>                   or  r9, -1
+    31                              <2>                 %elif ((%{7} >= -2147483648) && (%{7} <= 2147483647))
+    32                              <2>                   mov r9d, %{7}
+    33                              <2>                 %else
+    34                              <2>                   mov r9, %{7}
+    35                              <2>                 %endif
+    36                              <2>               %elifnidni %{7}, r9
+    37                              <2>                 mov r9, %{7}
+    38                              <2>               %endif
+    39                              <2>             %endif
+    40                              <2>             %ifnum %{6}
+    41                              <2>               %if %{6} == 0
+    42                              <2>                 xor r8, r8
+    43                              <2>               %elif %{6} == -1
+    44                              <2>                 or  r8, -1
+    45                              <2>               %elif ((%{6} >= -2147483648) && (%{6} <= 2147483647))
+    46                              <2>                 mov r8d, %{6}
+    47                              <2>               %else
+    48                              <2>                 mov r8, %{6}
+    49                              <2>               %endif
+    50                              <2>             %elifnidni %{6}, r8
+    51                              <2>               mov r8, %{6}
+    52                              <2>             %endif
+    53                              <2>           %endif
+    54                              <2>           %ifnum %{5}
+    55                              <2>             %if %{5} == 0
+    56                              <2>               xor r10, r10
+    57                              <2>             %elif %{5} == -1
+    58                              <2>               or  r10, -1
+    59                              <2>             %elif ((%{5} >= -2147483648) && (%{5} <= 2147483647))
+    60                              <2>               mov r10d, %{5}
+    61                              <2>             %else
+    62                              <2>               mov r10, %{5}
+    63                              <2>             %endif
+    64                              <2>           %elifnidni %{5}, r10
+    65                              <2>             mov r10, %{5}
+    66                              <2>           %endif
+    67                              <2>         %endif
+    68                              <2>         %ifnum %{4}
+    69                              <2>           %if %{4} == 0
+    70                              <2>             xor rdx, rdx
+    71                              <2>           %elif %{4} == -1
+    72                              <2>             or  rdx, -1
+    73                              <2>           %elif ((%{4} >= -2147483648) && (%{4} <= 2147483647))
+    74                              <2>             mov edx, %{4}
+    75                              <2>           %else
+    76                              <2>             mov rdx, %{4}
+    77                              <2>           %endif
+    78                              <2>         %elifnidni %{4}, rdx
+    79                              <2>           mov rdx, %{4}
+    80                              <2>         %endif
+    81                              <2>       %endif
+    82                              <2>       %ifnum %{3}
+    83                              <2>         %if %{3} == 0
+    84                              <2>           xor rsi, rsi
+    85                              <2>         %elif %{3} == -1
+    86                              <2>           or  rsi, -1
+    87                              <2>         %elif ((%{3} >= -2147483648) && (%{3} <= 2147483647))
+    88                              <2>           mov esi, %{3}
+    89                              <2>         %else
+    90                              <2>           mov rsi, %{3}
+    91                              <2>         %endif
+    92                              <2>       %elifnidni %{3}, rsi
+    93                              <2>         mov rsi, %{3}
+    94                              <2>       %endif
+    95                              <2>     %endif
+    96                              <2>     %ifnum %{2}
+    97                              <2>       %if %{2} == 0
+    98                              <2>         xor rdi, rdi
+    99                              <2>       %elif %{2} == -1
+   100                              <2>         or  rdi, -1
+   101                              <2>       %elif ((%{2} >= -2147483648) && (%{2} <= 2147483647))
+   102                              <2>         mov edi, %{2}
+   103                              <2>       %else
+   104                              <2>         mov rdi, %{2}
+   105                              <2>       %endif
+   106                              <2>     %elifnidni %{2}, rdi
+   107                              <2>       mov rdi, %{2}
+   108                              <2>     %endif
+   109                              <2>   %endif
+   110                              <2>   ; take advantage of sign-extension
+   111                              <2>   mov eax, SYS_ %+ %{1}
+   112                              <2>   syscall  ; the opcode, not the macro
+   113                              <2> %else
+   114                              <2>   syscall  ; again, the opcode, not the macro
+   115                              <2> %endif  
+   116                              <2> %endmacro
+   117                              <2> 
+   118                              <2> ; ---------------------------------
+   119                              <2> ; System Call Listing
+   120                              <2> ; ---------------------------------
+   121                              <2> 
+   122                              <2> %define SYS_read 0
+   123                              <2> %define SYS_write 1
+   124                              <2> %define SYS_open 2
+   125                              <2> %define SYS_close 3
+   126                              <2> %define SYS_stat 4
+   127                              <2> %define SYS_fstat 5
+   128                              <2> %define SYS_lstat 6
+   129                              <2> %define SYS_poll 7
+   130                              <2> %define SYS_lseek 8
+   131                              <2> %define SYS_mmap 9
+   132                              <2> %define SYS_mprotect 10
+   133                              <2> %define SYS_munmap 11
+   134                              <2> %define SYS_brk 12
+   135                              <2> %define SYS_rt_sigaction 13
+   136                              <2> %define SYS_rt_sigprocmask 14
+   137                              <2> %define SYS_rt_sigreturn 15
+   138                              <2> %define SYS_ioctl 16
+   139                              <2> %define SYS_pread64 17
+   140                              <2> %define SYS_pwrite64 18
+   141                              <2> %define SYS_readv 19
+   142                              <2> %define SYS_writev 20
+   143                              <2> %define SYS_access 21
+   144                              <2> %define SYS_pipe 22
+   145                              <2> %define SYS_select 23
+   146                              <2> %define SYS_sched_yield 24
+   147                              <2> %define SYS_mremap 25
+   148                              <2> %define SYS_msync 26
+   149                              <2> %define SYS_mincore 27
+   150                              <2> %define SYS_madvise 28
+   151                              <2> %define SYS_shmget 29
+   152                              <2> %define SYS_shmat 30
+   153                              <2> %define SYS_shmctl 31
+   154                              <2> %define SYS_dup 32
+   155                              <2> %define SYS_dup2 33
+   156                              <2> %define SYS_pause 34
+   157                              <2> %define SYS_nanosleep 35
+   158                              <2> %define SYS_getitimer 36
+   159                              <2> %define SYS_alarm 37
+   160                              <2> %define SYS_setitimer 38
+   161                              <2> %define SYS_getpid 39
+   162                              <2> %define SYS_sendfile 40
+   163                              <2> %define SYS_socket 41
+   164                              <2> %define SYS_connect 42
+   165                              <2> %define SYS_accept 43
+   166                              <2> %define SYS_sendto 44
+   167                              <2> %define SYS_recvfrom 45
+   168                              <2> %define SYS_sendmsg 46
+   169                              <2> %define SYS_recvmsg 47
+   170                              <2> %define SYS_shutdown 48
+   171                              <2> %define SYS_bind 49
+   172                              <2> %define SYS_listen 50
+   173                              <2> %define SYS_getsockname 51
+   174                              <2> %define SYS_getpeername 52
+   175                              <2> %define SYS_socketpair 53
+   176                              <2> %define SYS_setsockopt 54
+   177                              <2> %define SYS_getsockopt 55
+   178                              <2> %define SYS_clone 56
+   179                              <2> %define SYS_fork 57
+   180                              <2> %define SYS_vfork 58
+   181                              <2> %define SYS_execve 59
+   182                              <2> %define SYS_exit 60
+   183                              <2> %define SYS_wait4 61
+   184                              <2> %define SYS_kill 62
+   185                              <2> %define SYS_uname 63
+   186                              <2> %define SYS_semget 64
+   187                              <2> %define SYS_semop 65
+   188                              <2> %define SYS_semctl 66
+   189                              <2> %define SYS_shmdt 67
+   190                              <2> %define SYS_msgget 68
+   191                              <2> %define SYS_msgsnd 69
+   192                              <2> %define SYS_msgrcv 70
+   193                              <2> %define SYS_msgctl 71
+   194                              <2> %define SYS_fcntl 72
+   195                              <2> %define SYS_flock 73
+   196                              <2> %define SYS_fsync 74
+   197                              <2> %define SYS_fdatasync 75
+   198                              <2> %define SYS_truncate 76
+   199                              <2> %define SYS_ftruncate 77
+   200                              <2> %define SYS_getdents 78
+   201                              <2> %define SYS_getcwd 79
+   202                              <2> %define SYS_chdir 80
+   203                              <2> %define SYS_fchdir 81
+   204                              <2> %define SYS_rename 82
+   205                              <2> %define SYS_mkdir 83
+   206                              <2> %define SYS_rmdir 84
+   207                              <2> %define SYS_creat 85
+   208                              <2> %define SYS_link 86
+   209                              <2> %define SYS_unlink 87
+   210                              <2> %define SYS_symlink 88
+   211                              <2> %define SYS_readlink 89
+   212                              <2> %define SYS_chmod 90
+   213                              <2> %define SYS_fchmod 91
+   214                              <2> %define SYS_chown 92
+   215                              <2> %define SYS_fchown 93
+   216                              <2> %define SYS_lchown 94
+   217                              <2> %define SYS_umask 95
+   218                              <2> %define SYS_gettimeofday 96
+   219                              <2> %define SYS_getrlimit 97
+   220                              <2> %define SYS_getrusage 98
+   221                              <2> %define SYS_sysinfo 99
+   222                              <2> %define SYS_times 100
+   223                              <2> %define SYS_ptrace 101
+   224                              <2> %define SYS_getuid 102
+   225                              <2> %define SYS_syslog 103
+   226                              <2> %define SYS_getgid 104
+   227                              <2> %define SYS_setuid 105
+   228                              <2> %define SYS_setgid 106
+   229                              <2> %define SYS_geteuid 107
+   230                              <2> %define SYS_getegid 108
+   231                              <2> %define SYS_setpgid 109
+   232                              <2> %define SYS_getppid 110
+   233                              <2> %define SYS_getpgrp 111
+   234                              <2> %define SYS_setsid 112
+   235                              <2> %define SYS_setreuid 113
+   236                              <2> %define SYS_setregid 114
+   237                              <2> %define SYS_getgroups 115
+   238                              <2> %define SYS_setgroups 116
+   239                              <2> %define SYS_setresuid 117
+   240                              <2> %define SYS_getresuid 118
+   241                              <2> %define SYS_setresgid 119
+   242                              <2> %define SYS_getresgid 120
+   243                              <2> %define SYS_getpgid 121
+   244                              <2> %define SYS_setfsuid 122
+   245                              <2> %define SYS_setfsgid 123
+   246                              <2> %define SYS_getsid 124
+   247                              <2> %define SYS_capget 125
+   248                              <2> %define SYS_capset 126
+   249                              <2> %define SYS_rt_sigpending 127
+   250                              <2> %define SYS_rt_sigtimedwait 128
+   251                              <2> %define SYS_rt_sigqueueinfo 129
+   252                              <2> %define SYS_rt_sigsuspend 130
+   253                              <2> %define SYS_sigaltstack 131
+   254                              <2> %define SYS_utime 132
+   255                              <2> %define SYS_mknod 133
+   256                              <2> %define SYS_uselib 134
+   257                              <2> %define SYS_personality 135
+   258                              <2> %define SYS_ustat 136
+   259                              <2> %define SYS_statfs 137
+   260                              <2> %define SYS_fstatfs 138
+   261                              <2> %define SYS_sysfs 139
+   262                              <2> %define SYS_getpriority 140
+   263                              <2> %define SYS_setpriority 141
+   264                              <2> %define SYS_sched_setparam 142
+   265                              <2> %define SYS_sched_getparam 143
+   266                              <2> %define SYS_sched_setscheduler 144
+   267                              <2> %define SYS_sched_getscheduler 145
+   268                              <2> %define SYS_sched_get_priority_max 146
+   269                              <2> %define SYS_sched_get_priority_min 147
+   270                              <2> %define SYS_sched_rr_get_interval 148
+   271                              <2> %define SYS_mlock 149
+   272                              <2> %define SYS_munlock 150
+   273                              <2> %define SYS_mlockall 151
+   274                              <2> %define SYS_munlockall 152
+   275                              <2> %define SYS_vhangup 153
+   276                              <2> %define SYS_modify_ldt 154
+   277                              <2> %define SYS_pivot_root 155
+   278                              <2> %define SYS__sysctl 156
+   279                              <2> %define SYS_prctl 157
+   280                              <2> %define SYS_arch_prctl 158
+   281                              <2> %define SYS_adjtimex 159
+   282                              <2> %define SYS_setrlimit 160
+   283                              <2> %define SYS_chroot 161
+   284                              <2> %define SYS_sync 162
+   285                              <2> %define SYS_acct 163
+   286                              <2> %define SYS_settimeofday 164
+   287                              <2> %define SYS_mount 165
+   288                              <2> %define SYS_umount2 166
+   289                              <2> %define SYS_swapon 167
+   290                              <2> %define SYS_swapoff 168
+   291                              <2> %define SYS_reboot 169
+   292                              <2> %define SYS_sethostname 170
+   293                              <2> %define SYS_setdomainname 171
+   294                              <2> %define SYS_iopl 172
+   295                              <2> %define SYS_ioperm 173
+   296                              <2> %define SYS_create_module 174
+   297                              <2> %define SYS_init_module 175
+   298                              <2> %define SYS_delete_module 176
+   299                              <2> %define SYS_get_kernel_syms 177
+   300                              <2> %define SYS_query_module 178
+   301                              <2> %define SYS_quotactl 179
+   302                              <2> %define SYS_nfsservctl 180
+   303                              <2> %define SYS_getpmsg 181
+   304                              <2> %define SYS_putpmsg 182
+   305                              <2> %define SYS_afs_syscall 183
+   306                              <2> %define SYS_tuxcall 184
+   307                              <2> %define SYS_security 185
+   308                              <2> %define SYS_gettid 186
+   309                              <2> %define SYS_readahead 187
+   310                              <2> %define SYS_setxattr 188
+   311                              <2> %define SYS_lsetxattr 189
+   312                              <2> %define SYS_fsetxattr 190
+   313                              <2> %define SYS_getxattr 191
+   314                              <2> %define SYS_lgetxattr 192
+   315                              <2> %define SYS_fgetxattr 193
+   316                              <2> %define SYS_listxattr 194
+   317                              <2> %define SYS_llistxattr 195
+   318                              <2> %define SYS_flistxattr 196
+   319                              <2> %define SYS_removexattr 197
+   320                              <2> %define SYS_lremovexattr 198
+   321                              <2> %define SYS_fremovexattr 199
+   322                              <2> %define SYS_tkill 200
+   323                              <2> %define SYS_time 201
+   324                              <2> %define SYS_futex 202
+   325                              <2> %define SYS_sched_setaffinity 203
+   326                              <2> %define SYS_sched_getaffinity 204
+   327                              <2> %define SYS_set_thread_area 205
+   328                              <2> %define SYS_io_setup 206
+   329                              <2> %define SYS_io_destroy 207
+   330                              <2> %define SYS_io_getevents 208
+   331                              <2> %define SYS_io_submit 209
+   332                              <2> %define SYS_io_cancel 210
+   333                              <2> %define SYS_get_thread_area 211
+   334                              <2> %define SYS_lookup_dcookie 212
+   335                              <2> %define SYS_epoll_create 213
+   336                              <2> %define SYS_epoll_ctl_old 214
+   337                              <2> %define SYS_epoll_wait_old 215
+   338                              <2> %define SYS_remap_file_pages 216
+   339                              <2> %define SYS_getdents64 217
+   340                              <2> %define SYS_set_tid_address 218
+   341                              <2> %define SYS_restart_syscall 219
+   342                              <2> %define SYS_semtimedop 220
+   343                              <2> %define SYS_fadvise64 221
+   344                              <2> %define SYS_timer_create 222
+   345                              <2> %define SYS_timer_settime 223
+   346                              <2> %define SYS_timer_gettime 224
+   347                              <2> %define SYS_timer_getoverrun 225
+   348                              <2> %define SYS_timer_delete 226
+   349                              <2> %define SYS_clock_settime 227
+   350                              <2> %define SYS_clock_gettime 228
+   351                              <2> %define SYS_clock_getres 229
+   352                              <2> %define SYS_clock_nanosleep 230
+   353                              <2> %define SYS_exit_group 231
+   354                              <2> %define SYS_epoll_wait 232
+   355                              <2> %define SYS_epoll_ctl 233
+   356                              <2> %define SYS_tgkill 234
+   357                              <2> %define SYS_utimes 235
+   358                              <2> %define SYS_vserver 236
+   359                              <2> %define SYS_mbind 237
+   360                              <2> %define SYS_set_mempolicy 238
+   361                              <2> %define SYS_get_mempolicy 239
+   362                              <2> %define SYS_mq_open 240
+   363                              <2> %define SYS_mq_unlink 241
+   364                              <2> %define SYS_mq_timedsend 242
+   365                              <2> %define SYS_mq_timedreceive 243
+   366                              <2> %define SYS_mq_notify 244
+   367                              <2> %define SYS_mq_getsetattr 245
+   368                              <2> %define SYS_kexec_load 246
+   369                              <2> %define SYS_waitid 247
+   370                              <2> %define SYS_add_key 248
+   371                              <2> %define SYS_request_key 249
+   372                              <2> %define SYS_keyctl 250
+   373                              <2> %define SYS_ioprio_set 251
+   374                              <2> %define SYS_ioprio_get 252
+   375                              <2> %define SYS_inotify_init 253
+   376                              <2> %define SYS_inotify_add_watch 254
+   377                              <2> %define SYS_inotify_rm_watch 255
+   378                              <2> %define SYS_migrate_pages 256
+   379                              <2> %define SYS_openat 257
+   380                              <2> %define SYS_mkdirat 258
+   381                              <2> %define SYS_mknodat 259
+   382                              <2> %define SYS_fchownat 260
+   383                              <2> %define SYS_futimesat 261
+   384                              <2> %define SYS_newfstatat 262
+   385                              <2> %define SYS_unlinkat 263
+   386                              <2> %define SYS_renameat 264
+   387                              <2> %define SYS_linkat 265
+   388                              <2> %define SYS_symlinkat 266
+   389                              <2> %define SYS_readlinkat 267
+   390                              <2> %define SYS_fchmodat 268
+   391                              <2> %define SYS_faccessat 269
+   392                              <2> %define SYS_pselect6 270
+   393                              <2> %define SYS_ppoll 271
+   394                              <2> %define SYS_unshare 272
+   395                              <2> %define SYS_set_robust_list 273
+   396                              <2> %define SYS_get_robust_list 274
+   397                              <2> %define SYS_splice 275
+   398                              <2> %define SYS_tee 276
+   399                              <2> %define SYS_sync_file_range 277
+   400                              <2> %define SYS_vmsplice 278
+   401                              <2> %define SYS_move_pages 279
+   402                              <2> %define SYS_utimensat 280
+   403                              <2> %define SYS_epoll_pwait 281
+   404                              <2> %define SYS_signalfd 282
+   405                              <2> %define SYS_timerfd_create 283
+   406                              <2> %define SYS_eventfd 284
+   407                              <2> %define SYS_fallocate 285
+   408                              <2> %define SYS_timerfd_settime 286
+   409                              <2> %define SYS_timerfd_gettime 287
+   410                              <2> %define SYS_accept4 288
+   411                              <2> %define SYS_signalfd4 289
+   412                              <2> %define SYS_eventfd2 290
+   413                              <2> %define SYS_epoll_create1 291
+   414                              <2> %define SYS_dup3 292
+   415                              <2> %define SYS_pipe2 293
+   416                              <2> %define SYS_inotify_init1 294
+   417                              <2> %define SYS_preadv 295
+   418                              <2> %define SYS_pwritev 296
+   419                              <2> %define SYS_rt_tgsigqueueinfo 297
+   420                              <2> %define SYS_perf_event_open 298
+   421                              <2> %define SYS_recvmmsg 299
+   422                              <2> %define SYS_fanotify_init 300
+   423                              <2> %define SYS_fanotify_mark 301
+   424                              <2> %define SYS_prlimit64 302
+   425                              <2> %define SYS_name_to_handle_at 303
+   426                              <2> %define SYS_open_by_handle_at 304
+   427                              <2> %define SYS_clock_adjtime 305
+   428                              <2> %define SYS_syncfs 306
+   429                              <2> %define SYS_sendmmsg 307
+   430                              <2> %define SYS_setns 308
+   431                              <2> %define SYS_getcpu 309
+   432                              <2> %define SYS_process_vm_readv 310
+   433                              <2> %define SYS_process_vm_writev 311
+   434                              <2> %define SYS_kcmp 312
+   435                              <2> %define SYS_finit_module 313
+   436                              <2> %define SYS_sched_setattr 314
+   437                              <2> %define SYS_sched_getattr 315
+   438                              <2> %define SYS_renameat2 316
+   439                              <2> %define SYS_seccomp 317
+   440                              <2> %define SYS_getrandom 318
+   441                              <2> %define SYS_memfd_create 319
+   442                              <2> %define SYS_kexec_file_load 320
+   443                              <2> %define SYS_bpf 321
+   444                              <2> %define SYS_execveat 322
+   445                              <2> %define SYS_userfaultfd 323
+   446                              <2> %define SYS_membarrier 324
+   447                              <2> %define SYS_mlock2 325
+   448                              <2> 
+   449                              <2> %endif
+     9                              <1>    %include "obsolete_syscalls.inc"          ; this file will be removed once all examples are updated
+     1                              <2> %ifndef _ASM_OBSOLETE_SYSCALLS_INC_
+     2                              <2> %define _ASM_OBSOLETE_SYSCALLS_INC_     1
+     3                              <2>  
+     4                              <2>   %define SYS_ACCEPT                 43
+     5                              <2>   %define SYS_ACCEPT4                288
+     6                              <2>   %define SYS_ACCESS                 21
+     7                              <2>   %define SYS_ACCT                   163
+     8                              <2>   %define SYS_ADD_KEY                248
+     9                              <2>   %define SYS_ADJTIMEX               159
+    10                              <2>   %define SYS_AFS_SYSCALL            183
+    11                              <2>   %define SYS_ALARM                  37
+    12                              <2>   %define SYS_ARCH_PRCTL             158
+    13                              <2>   %define SYS_BIND                   49
+    14                              <2>   %define SYS_BRK                    12
+    15                              <2>   %define SYS_CAPGET                 125
+    16                              <2>   %define SYS_CAPSET                 126
+    17                              <2>   %define SYS_CHDIR                  80 
+    18                              <2>   %define SYS_CHMOD                  90 
+    19                              <2>   %define SYS_CHOWN                  92 
+    20                              <2>   %define SYS_CHROOT                 161
+    21                              <2>   %define SYS_CLOCK_GETRES           229
+    22                              <2>   %define SYS_CLOCK_GETTIME          228
+    23                              <2>   %define SYS_CLOCK_NANOSLEEP        230
+    24                              <2>   %define SYS_CLOCK_SETTIME          227
+    25                              <2>   %define SYS_CLONE                  56
+    26                              <2>   %define SYS_CLOSE                  3
+    27                              <2>   %define SYS_CONNECT                42
+    28                              <2>   %define SYS_CREAT                  85
+    29                              <2>   %define SYS_CREATE_MODULE          174
+    30                              <2>   %define SYS_DELETE_MODULE          176
+    31                              <2>   %define SYS_DUP                    32
+    32                              <2>   %define SYS_DUP2                   33
+    33                              <2>   %define SYS_DUP3                   292
+    34                              <2>   %define SYS_EPOLL_CREATE           213
+    35                              <2>   %define SYS_EPOLL_CREATE1          291
+    36                              <2>   %define SYS_EPOLL_CTL              233
+    37                              <2>   %define SYS_EPOLL_CTL_OLD          214
+    38                              <2>   %define SYS_EPOLL_PWAIT            281
+    39                              <2>   %define SYS_EPOLL_WAIT             232
+    40                              <2>   %define SYS_EPOLL_WAIT_OLD         215
+    41                              <2>   %define SYS_EVENTFD                284
+    42                              <2>   %define SYS_EVENTFD2               290
+    43                              <2>   %define SYS_EXECVE                 59
+    44                              <2>   %define SYS_EXIT                   60
+    45                              <2>   %define SYS_EXIT_GROUP             231
+    46                              <2>   %define SYS_FACCESSAT              269
+    47                              <2>   %define SYS_FADVISE64              221
+    48                              <2>   %define SYS_FALLOCATE              285
+    49                              <2>   %define SYS_FANOTIFY_INIT          300
+    50                              <2>   %define SYS_FANOTIFY_MARK          301
+    51                              <2>   %define SYS_FCHDIR                 81
+    52                              <2>   %define SYS_FCHMOD                 91
+    53                              <2>   %define SYS_FCHMODAT               268
+    54                              <2>   %define SYS_FCHOWN                 93 
+    55                              <2>   %define SYS_FCHOWNAT               260
+    56                              <2>   %define SYS_FCNTL                  72 
+    57                              <2>   %define SYS_FDATASYNC              75 
+    58                              <2>   %define SYS_FGETXATTR              193
+    59                              <2>   %define SYS_FLISTXATTR             196
+    60                              <2>   %define SYS_FLOCK                  73 
+    61                              <2>   %define SYS_FORK                   57 
+    62                              <2>   %define SYS_FREMOVEXATTR           199
+    63                              <2>   %define SYS_FSETXATTR              190
+    64                              <2>   %define SYS_FSTAT                  5  
+    65                              <2>   %define SYS_FSTATFS                138
+    66                              <2>   %define SYS_FSYNC                  74 
+    67                              <2>   %define SYS_FTRUNCATE              77 
+    68                              <2>   %define SYS_FUTEX                  202
+    69                              <2>   %define SYS_FUTIMESAT              261
+    70                              <2>   %define SYS_GET_KERNEL_SYMS        177
+    71                              <2>   %define SYS_GET_MEMPOLICY          239
+    72                              <2>   %define SYS_GET_ROBUST_LIST        274
+    73                              <2>   %define SYS_GET_THREAD_AREA        211
+    74                              <2>   %define SYS_GETCWD                 79 
+    75                              <2>   %define SYS_GETDENTS               78 
+    76                              <2>   %define SYS_GETDENTS64             217
+    77                              <2>   %define SYS_GETEGID                108
+    78                              <2>   %define SYS_GETEUID                107
+    79                              <2>   %define SYS_GETGID                 104
+    80                              <2>   %define SYS_GETGROUPS              115
+    81                              <2>   %define SYS_GETITIMER              36 
+    82                              <2>   %define SYS_GETPEERNAME            52 
+    83                              <2>   %define SYS_GETPGID                121
+    84                              <2>   %define SYS_GETPGRP                111
+    85                              <2>   %define SYS_GETPID                 39 
+    86                              <2>   %define SYS_GETPMSG                181
+    87                              <2>   %define SYS_GETPPID                110
+    88                              <2>   %define SYS_GETPRIORITY            140
+    89                              <2>   %define SYS_GETRESGID              120
+    90                              <2>   %define SYS_GETRESUID              118
+    91                              <2>   %define SYS_GETRLIMIT              97 
+    92                              <2>   %define SYS_GETRUSAGE              98 
+    93                              <2>   %define SYS_GETSID                 124
+    94                              <2>   %define SYS_GETSOCKNAME            51 
+    95                              <2>   %define SYS_GETSOCKOPT             55 
+    96                              <2>   %define SYS_GETTID                 186
+    97                              <2>   %define SYS_GETTIMEOFDAY           96 
+    98                              <2>   %define SYS_GETUID                 102
+    99                              <2>   %define SYS_GETXATTR               191
+   100                              <2>   %define SYS_INIT_MODULE            175
+   101                              <2>   %define SYS_INOTIFY_ADD_WATCH      254
+   102                              <2>   %define SYS_INOTIFY_INIT           253
+   103                              <2>   %define SYS_INOTIFY_INIT1          294
+   104                              <2>   %define SYS_INOTIFY_RM_WATCH       255
+   105                              <2>   %define SYS_IO_CANCEL              210
+   106                              <2>   %define SYS_IO_DESTROY             207
+   107                              <2>   %define SYS_IO_GETEVENTS           208
+   108                              <2>   %define SYS_IO_SETUP               206
+   109                              <2>   %define SYS_IO_SUBMIT              209
+   110                              <2>   %define SYS_IOCTL                  16 
+   111                              <2>   %define SYS_IOPERM                 173
+   112                              <2>   %define SYS_IOPL                   172
+   113                              <2>   %define SYS_IOPRIO_GET             252
+   114                              <2>   %define SYS_IOPRIO_SET             251
+   115                              <2>   %define SYS_KEXEC_LOAD             246
+   116                              <2>   %define SYS_KEYCTL                 250
+   117                              <2>   %define SYS_KILL                   62
+   118                              <2>   %define SYS_LCHOWN                 94 
+   119                              <2>   %define SYS_LGETXATTR              192
+   120                              <2>   %define SYS_LINK                   86 
+   121                              <2>   %define SYS_LINKAT                 265
+   122                              <2>   %define SYS_LISTEN                 50 
+   123                              <2>   %define SYS_LISTXATTR              194
+   124                              <2>   %define SYS_LLISTXATTR             195
+   125                              <2>   %define SYS_LOOKUP_DCOOKIE         212
+   126                              <2>   %define SYS_LREMOVEXATTR           198
+   127                              <2>   %define SYS_LSEEK                  8  
+   128                              <2>   %define SYS_LSETXATTR              189
+   129                              <2>   %define SYS_LSTAT                  6
+   130                              <2>   %define SYS_MADVISE                28 
+   131                              <2>   %define SYS_MBIND                  237
+   132                              <2>   %define SYS_MIGRATE_PAGES          256
+   133                              <2>   %define SYS_MINCORE                27 
+   134                              <2>   %define SYS_MKDIR                  83 
+   135                              <2>   %define SYS_MKDIRAT                258
+   136                              <2>   %define SYS_MKNOD                  133
+   137                              <2>   %define SYS_MKNODAT                259
+   138                              <2>   %define SYS_MLOCK                  149
+   139                              <2>   %define SYS_MLOCKALL               151
+   140                              <2>   %define SYS_MMAP                   9  
+   141                              <2>   %define SYS_MODIFY_LDT             154
+   142                              <2>   %define SYS_MOUNT                  165
+   143                              <2>   %define SYS_MOVE_PAGES             279
+   144                              <2>   %define SYS_MPROTECT               10 
+   145                              <2>   %define SYS_MQ_GETSETATTR          245
+   146                              <2>   %define SYS_MQ_NOTIFY              244
+   147                              <2>   %define SYS_MQ_OPEN                240
+   148                              <2>   %define SYS_MQ_TIMEDRECEIVE        243
+   149                              <2>   %define SYS_MQ_TIMEDSEND           242
+   150                              <2>   %define SYS_MQ_UNLINK              241
+   151                              <2>   %define SYS_MREMAP                 25 
+   152                              <2>   %define SYS_MSGCTL                 71 
+   153                              <2>   %define SYS_MSGGET                 68
+   154                              <2>   %define SYS_MSGRCV                 70
+   155                              <2>   %define SYS_MSGSND                 69
+   156                              <2>   %define SYS_MSYNC                  26
+   157                              <2>   %define SYS_MUNLOCK                150
+   158                              <2>   %define SYS_MUNLOCKALL             152
+   159                              <2>   %define SYS_MUNMAP                 11 
+   160                              <2>   %define SYS_NANOSLEEP              35
+   161                              <2>   %define SYS_NEWFSTATAT             262
+   162                              <2>   %define SYS_NFSSERVCTL             180
+   163                              <2>   %define SYS_OPEN                   2
+   164                              <2>   %define SYS_OPENAT                 257
+   165                              <2>   %define SYS_PAUSE                  34 
+   166                              <2>   %define SYS_PERF_EVENT_OPEN        298
+   167                              <2>   %define SYS_PERSONALITY            135
+   168                              <2>   %define SYS_PIPE                   22 
+   169                              <2>   %define SYS_PIPE2                  293
+   170                              <2>   %define SYS_PIVOT_ROOT             155
+   171                              <2>   %define SYS_POLL                   7  
+   172                              <2>   %define SYS_PPOLL                  271
+   173                              <2>   %define SYS_PRCTL                  157
+   174                              <2>   %define SYS_PREAD64                17 
+   175                              <2>   %define SYS_PREADV                 295
+   176                              <2>   %define SYS_PRLIMIT64              302
+   177                              <2>   %define SYS_PSELECT6               270
+   178                              <2>   %define SYS_PTRACE                 101
+   179                              <2>   %define SYS_PUTPMSG                182
+   180                              <2>   %define SYS_PWRITE64               18 
+   181                              <2>   %define SYS_PWRITEV                296
+   182                              <2>   %define SYS_QUERY_MODULE           178
+   183                              <2>   %define SYS_QUOTACTL               179
+   184                              <2>   %define SYS_READ                   0  
+   185                              <2>   %define SYS_READAHEAD              187
+   186                              <2>   %define SYS_READLINK               89 
+   187                              <2>   %define SYS_READLINKAT             267
+   188                              <2>   %define SYS_READV                  19 
+   189                              <2>   %define SYS_REBOOT                 169
+   190                              <2>   %define SYS_RECVFROM               45 
+   191                              <2>   %define SYS_RECVMMSG               299
+   192                              <2>   %define SYS_RECVMSG                47 
+   193                              <2>   %define SYS_REMAP_FILE_PAGES       216
+   194                              <2>   %define SYS_REMOVEXATTR            197
+   195                              <2>   %define SYS_RENAME                 82 
+   196                              <2>   %define SYS_RENAMEAT               264
+   197                              <2>   %define SYS_REQUEST_KEY            249
+   198                              <2>   %define SYS_RESTART_SYSCALL        219
+   199                              <2>   %define SYS_RMDIR                  84 
+   200                              <2>   %define SYS_RT_SIGACTION           13
+   201                              <2>   %define SYS_RT_SIGPENDING          127
+   202                              <2>   %define SYS_RT_SIGPROCMASK         14 
+   203                              <2>   %define SYS_RT_SIGQUEUEINFO        129
+   204                              <2>   %define SYS_RT_SIGRETURN           15 
+   205                              <2>   %define SYS_RT_SIGSUSPEND          130
+   206                              <2>   %define SYS_RT_SIGTIMEDWAIT        128
+   207                              <2>   %define SYS_RT_TGSIGQUEUEINFO      297
+   208                              <2>   %define SYS_SCHED_GET_PRIORITY_MAX 146
+   209                              <2>   %define SYS_SCHED_GET_PRIORITY_MIN 147
+   210                              <2>   %define SYS_SCHED_GETAFFINITY      204
+   211                              <2>   %define SYS_SCHED_GETPARAM         143
+   212                              <2>   %define SYS_SCHED_GETSCHEDULER     145
+   213                              <2>   %define SYS_SCHED_RR_GET_INTERVAL  148
+   214                              <2>   %define SYS_SCHED_SETAFFINITY      203
+   215                              <2>   %define SYS_SCHED_SETPARAM         142
+   216                              <2>   %define SYS_SCHED_SETSCHEDULER     144
+   217                              <2>   %define SYS_SCHED_YIELD            24 
+   218                              <2>   %define SYS_SECURITY               185
+   219                              <2>   %define SYS_SELECT                 23 
+   220                              <2>   %define SYS_SEMCTL                 66 
+   221                              <2>   %define SYS_SEMGET                 64 
+   222                              <2>   %define SYS_SEMOP                  65 
+   223                              <2>   %define SYS_SEMTIMEDOP             220
+   224                              <2>   %define SYS_SENDFILE               40 
+   225                              <2>   %define SYS_SENDMSG                46 
+   226                              <2>   %define SYS_SENDTO                 44 
+   227                              <2>   %define SYS_SET_MEMPOLICY          238
+   228                              <2>   %define SYS_SET_ROBUST_LIST        273
+   229                              <2>   %define SYS_SET_THREAD_AREA        205
+   230                              <2>   %define SYS_SET_TID_ADDRESS        218
+   231                              <2>   %define SYS_SETDOMAINNAME          171
+   232                              <2>   %define SYS_SETFSGID               123
+   233                              <2>   %define SYS_SETFSUID               122
+   234                              <2>   %define SYS_SETGID                 106
+   235                              <2>   %define SYS_SETGROUPS              116
+   236                              <2>   %define SYS_SETHOSTNAME            170
+   237                              <2>   %define SYS_SETITIMER              38 
+   238                              <2>   %define SYS_SETPGID                109
+   239                              <2>   %define SYS_SETPRIORITY            141
+   240                              <2>   %define SYS_SETREGID               114
+   241                              <2>   %define SYS_SETRESGID              119
+   242                              <2>   %define SYS_SETRESUID              117
+   243                              <2>   %define SYS_SETREUID               113
+   244                              <2>   %define SYS_SETRLIMIT              160
+   245                              <2>   %define SYS_SETSID                 112
+   246                              <2>   %define SYS_SETSOCKOPT             54 
+   247                              <2>   %define SYS_SETTIMEOFDAY           164
+   248                              <2>   %define SYS_SETUID                 105
+   249                              <2>   %define SYS_SETXATTR               188
+   250                              <2>   %define SYS_SHMAT                  30 
+   251                              <2>   %define SYS_SHMCTL                 31 
+   252                              <2>   %define SYS_SHMDT                  67 
+   253                              <2>   %define SYS_SHMGET                 29 
+   254                              <2>   %define SYS_SHUTDOWN               48 
+   255                              <2>   %define SYS_SIGALTSTACK            131
+   256                              <2>   %define SYS_SIGNALFD               282
+   257                              <2>   %define SYS_SIGNALFD4              289
+   258                              <2>   %define SYS_SOCKET                 41 
+   259                              <2>   %define SYS_SOCKETPAIR             53 
+   260                              <2>   %define SYS_SPLICE                 275
+   261                              <2>   %define SYS_STAT                   4  
+   262                              <2>   %define SYS_STATFS                 137
+   263                              <2>   %define SYS_SWAPOFF                168
+   264                              <2>   %define SYS_SWAPON                 167
+   265                              <2>   %define SYS_SYMLINK                88 
+   266                              <2>   %define SYS_SYMLINKAT              266
+   267                              <2>   %define SYS_SYNC                   162
+   268                              <2>   %define SYS_SYNC_FILE_RANGE        277
+   269                              <2>   %define SYS__SYSCTL                156
+   270                              <2>   %define SYS_SYSFS                  139
+   271                              <2>   %define SYS_SYSINFO                99 
+   272                              <2>   %define SYS_SYSLOG                 103
+   273                              <2>   %define SYS_TEE                    276
+   274                              <2>   %define SYS_TGKILL                 234
+   275                              <2>   %define SYS_TIME                   201
+   276                              <2>   %define SYS_TIMER_CREATE           222
+   277                              <2>   %define SYS_TIMER_DELETE           226
+   278                              <2>   %define SYS_TIMER_GETOVERRUN       225
+   279                              <2>   %define SYS_TIMER_GETTIME          224
+   280                              <2>   %define SYS_TIMER_SETTIME          223
+   281                              <2>   %define SYS_TIMERFD_CREATE         283
+   282                              <2>   %define SYS_TIMERFD_GETTIME        287
+   283                              <2>   %define SYS_TIMERFD_SETTIME        286
+   284                              <2>   %define SYS_TIMES                  100
+   285                              <2>   %define SYS_TKILL                  200
+   286                              <2>   %define SYS_TRUNCATE               76 
+   287                              <2>   %define SYS_TUXCALL                184
+   288                              <2>   %define SYS_UMASK                  95 
+   289                              <2>   %define SYS_UMOUNT2                166
+   290                              <2>   %define SYS_UNAME                  63 
+   291                              <2>   %define SYS_UNLINK                 87 
+   292                              <2>   %define SYS_UNLINKAT               263
+   293                              <2>   %define SYS_UNSHARE                272
+   294                              <2>   %define SYS_USELIB                 134
+   295                              <2>   %define SYS_USTAT                  136
+   296                              <2>   %define SYS_UTIME                  132
+   297                              <2>   %define SYS_UTIMENSAT              280
+   298                              <2>   %define SYS_UTIMES                 235
+   299                              <2>   %define SYS_VFORK                  58 
+   300                              <2>   %define SYS_VHANGUP                153
+   301                              <2>   %define SYS_VMSPLICE               278
+   302                              <2>   %define SYS_VSERVER                236
+   303                              <2>   %define SYS_WAIT4                  61
+   304                              <2>   %define SYS_WAITID                 247
+   305                              <2>   %define SYS_WRITE                  1
+   306                              <2>   %define SYS_WRITEV                 20
+   307                              <2> %endif  
+    10                              <1> %endif
+    11                              <1>      %define stdin   0
+    12                              <1>      %define stdout  1
+    13                              <1>      %define stderr  2
+    14                              <1>      %define STDIN   0             ; just in case someone likes the uppercase version
+    15                              <1>      %define STDOUT  1             ; just in case someone likes the uppercase version
+    16                              <1>      %define STDERR  2             ; just in case someone likes the uppercase version
+    17                              <1>      %define true    1
+    18                              <1>      %define false   0
+    19                              <1>      %define TRUE    1
+    20                              <1>      %define FALSE   0
+    21                              <1> %endif
+    86                                  
+    87                                  section .text
+    88                                  
+    89                                  _start:
+    90 00000000 48BF-                   	mov		rdi,extDivisor
+    90 00000002 [0B01000000000000] 
+    91 0000000A 48BE-                   	mov		rsi,extDividend
+    91 0000000C [0101000000000000] 
+    92 00000014 E812000000              	call	fpuDiv
+    93 00000019 4889C7                  	mov		rdi,rax
+    94 0000001C E82B000000              	call	fpuCheck
+    95 00000021 4831FFB83C0000000F-     	syscall	exit,0
+    95 0000002A 05                 
+    96                                  	
+    97                                  fpuDiv:
+    98 0000002B 4831C0                  	xor		rax,rax							;zero out rax for status word
+    99 0000002E 55                      	push	rbp
+   100 0000002F 4889E5                  	mov     rbp,rsp
+   101 00000032 4883EC64                	sub     rsp,100
+   102 00000036 9BDD3424                	fsave 	[rsp]						;save the FPU state
+   103 0000003A DB2E                    	fld		tword[rsi]
+   104 0000003C DB2F                    	fld		tword[rdi]
+   105 0000003E DEF9                    	fdiv
+   106 00000040 9BDFE0                  	fstsw 	ax							;store results in AX
+   107 00000043 9B                          fwait								;for precaution
+   108 00000044 DD2424                  	frstor	[rsp]
+   109 00000047 4889EC                  	mov		rsp,rbp
+   110 0000004A 5D                      	pop		rbp
+   111 0000004B C3                      	ret
+   112                                      
+   113                                  fpuCheck:
+   114 0000004C 55                      	push	rbp
+   115 0000004D 4889E5                  	mov		rbp,rsp
+   116 00000050 4889F8                  	mov		rax,rdi
+   117                                  	;get FPU register
+   118 00000053 482500380000            	and		rax,0011100000000000b
+   119 00000059 48C1C005                	rol     rax,5
+   120 0000005D 000425[00010000]        	add		byte[topofstack+3],al
+   121 00000064 BA0400000048BE-         	syscall write,stdout,topofstack.st,topofstack.st.len
+   121 0000006B [FD00000000000000]-
+   121 00000073 BF01000000B8010000-
+   121 0000007C 000F05             
+   122                                  	;check if there was an exception.st
+   123 0000007F 4883E000                	and 	rax,0000000000000000b
+   124 00000083 4889EC                  	mov		rsp,rbp
+   125 00000086 5D                      	pop		rbp
+   126 00000087 C3                      	ret

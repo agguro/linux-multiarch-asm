@@ -1,0 +1,155 @@
+
+../objectfiles/FpuXexpY.o:     file format pe-i386
+
+
+Disassembly of section .text:
+
+00000000 <_FpuXexpY@16>:
+   0:	55                   	push   ebp
+   1:	8b ec                	mov    ebp,esp
+   3:	83 c4 88             	add    esp,0xffffff88
+   6:	f7 45 14 01 01 00 00 	test   DWORD PTR [ebp+0x14],0x101
+   d:	74 0d                	je     1c <_FpuXexpY@16+0x1c>
+   f:	d9 e5                	fxam   
+  11:	9b df e0             	fstsw  ax
+  14:	9b                   	fwait
+  15:	9e                   	sahf   
+  16:	73 04                	jae    1c <_FpuXexpY@16+0x1c>
+  18:	7a 02                	jp     1c <_FpuXexpY@16+0x1c>
+  1a:	74 76                	je     92 <_FpuXexpY@16+0x92>
+  1c:	9b dd 75 94          	fsave  [ebp-0x6c]
+  20:	f7 45 14 01 00 00 00 	test   DWORD PTR [ebp+0x14],0x1
+  27:	74 0b                	je     34 <_FpuXexpY@16+0x34>
+  29:	8d 45 94             	lea    eax,[ebp-0x6c]
+  2c:	db 68 1c             	fld    TBYTE PTR [eax+0x1c]
+  2f:	e9 80 00 00 00       	jmp    b4 <_FpuXexpY@16+0xb4>
+  34:	8b 45 08             	mov    eax,DWORD PTR [ebp+0x8]
+  37:	f7 45 14 10 00 00 00 	test   DWORD PTR [ebp+0x14],0x10
+  3e:	75 58                	jne    98 <_FpuXexpY@16+0x98>
+  40:	f7 45 14 02 00 00 00 	test   DWORD PTR [ebp+0x14],0x2
+  47:	74 04                	je     4d <_FpuXexpY@16+0x4d>
+  49:	db 28                	fld    TBYTE PTR [eax]
+  4b:	eb 67                	jmp    b4 <_FpuXexpY@16+0xb4>
+  4d:	f7 45 14 00 00 02 00 	test   DWORD PTR [ebp+0x14],0x20000
+  54:	74 04                	je     5a <_FpuXexpY@16+0x5a>
+  56:	dd 00                	fld    QWORD PTR [eax]
+  58:	eb 5a                	jmp    b4 <_FpuXexpY@16+0xb4>
+  5a:	f7 45 14 00 00 01 00 	test   DWORD PTR [ebp+0x14],0x10000
+  61:	74 04                	je     67 <_FpuXexpY@16+0x67>
+  63:	d9 00                	fld    DWORD PTR [eax]
+  65:	eb 4d                	jmp    b4 <_FpuXexpY@16+0xb4>
+  67:	f7 45 14 04 00 00 00 	test   DWORD PTR [ebp+0x14],0x4
+  6e:	74 04                	je     74 <_FpuXexpY@16+0x74>
+  70:	db 00                	fild   DWORD PTR [eax]
+  72:	eb 40                	jmp    b4 <_FpuXexpY@16+0xb4>
+  74:	f7 45 14 00 00 00 01 	test   DWORD PTR [ebp+0x14],0x1000000
+  7b:	74 04                	je     81 <_FpuXexpY@16+0x81>
+  7d:	df 28                	fild   QWORD PTR [eax]
+  7f:	eb 33                	jmp    b4 <_FpuXexpY@16+0xb4>
+  81:	f7 45 14 08 00 00 00 	test   DWORD PTR [ebp+0x14],0x8
+  88:	74 05                	je     8f <_FpuXexpY@16+0x8f>
+  8a:	db 45 08             	fild   DWORD PTR [ebp+0x8]
+  8d:	eb 25                	jmp    b4 <_FpuXexpY@16+0xb4>
+  8f:	dd 65 94             	frstor [ebp-0x6c]
+  92:	33 c0                	xor    eax,eax
+  94:	c9                   	leave  
+  95:	c2 10 00             	ret    0x10
+  98:	83 f8 01             	cmp    eax,0x1
+  9b:	75 04                	jne    a1 <_FpuXexpY@16+0xa1>
+  9d:	d9 eb                	fldpi  
+  9f:	eb 13                	jmp    b4 <_FpuXexpY@16+0xb4>
+  a1:	83 f8 02             	cmp    eax,0x2
+  a4:	75 e9                	jne    8f <_FpuXexpY@16+0x8f>
+  a6:	d9 e8                	fld1   
+  a8:	d9 ea                	fldl2e 
+  aa:	d8 e1                	fsub   st,st(1)
+  ac:	d9 f0                	f2xm1  
+  ae:	d8 c1                	fadd   st,st(1)
+  b0:	d9 fd                	fscale 
+  b2:	dd d9                	fstp   st(1)
+  b4:	f7 45 14 00 01 00 00 	test   DWORD PTR [ebp+0x14],0x100
+  bb:	74 0b                	je     c8 <_FpuXexpY@16+0xc8>
+  bd:	8d 45 94             	lea    eax,[ebp-0x6c]
+  c0:	db 68 1c             	fld    TBYTE PTR [eax+0x1c]
+  c3:	e9 80 00 00 00       	jmp    148 <_FpuXexpY@16+0x148>
+  c8:	8b 45 0c             	mov    eax,DWORD PTR [ebp+0xc]
+  cb:	f7 45 14 00 10 00 00 	test   DWORD PTR [ebp+0x14],0x1000
+  d2:	75 54                	jne    128 <_FpuXexpY@16+0x128>
+  d4:	f7 45 14 00 02 00 00 	test   DWORD PTR [ebp+0x14],0x200
+  db:	74 04                	je     e1 <_FpuXexpY@16+0xe1>
+  dd:	db 28                	fld    TBYTE PTR [eax]
+  df:	eb 67                	jmp    148 <_FpuXexpY@16+0x148>
+  e1:	f7 45 14 00 00 08 00 	test   DWORD PTR [ebp+0x14],0x80000
+  e8:	74 04                	je     ee <_FpuXexpY@16+0xee>
+  ea:	dd 00                	fld    QWORD PTR [eax]
+  ec:	eb 5a                	jmp    148 <_FpuXexpY@16+0x148>
+  ee:	f7 45 14 00 00 04 00 	test   DWORD PTR [ebp+0x14],0x40000
+  f5:	74 04                	je     fb <_FpuXexpY@16+0xfb>
+  f7:	d9 00                	fld    DWORD PTR [eax]
+  f9:	eb 4d                	jmp    148 <_FpuXexpY@16+0x148>
+  fb:	f7 45 14 00 04 00 00 	test   DWORD PTR [ebp+0x14],0x400
+ 102:	74 04                	je     108 <_FpuXexpY@16+0x108>
+ 104:	db 00                	fild   DWORD PTR [eax]
+ 106:	eb 40                	jmp    148 <_FpuXexpY@16+0x148>
+ 108:	f7 45 14 00 00 00 02 	test   DWORD PTR [ebp+0x14],0x2000000
+ 10f:	74 04                	je     115 <_FpuXexpY@16+0x115>
+ 111:	df 28                	fild   QWORD PTR [eax]
+ 113:	eb 33                	jmp    148 <_FpuXexpY@16+0x148>
+ 115:	f7 45 14 00 08 00 00 	test   DWORD PTR [ebp+0x14],0x800
+ 11c:	74 05                	je     123 <_FpuXexpY@16+0x123>
+ 11e:	db 45 0c             	fild   DWORD PTR [ebp+0xc]
+ 121:	eb 25                	jmp    148 <_FpuXexpY@16+0x148>
+ 123:	e9 67 ff ff ff       	jmp    8f <_FpuXexpY@16+0x8f>
+ 128:	83 f8 01             	cmp    eax,0x1
+ 12b:	75 04                	jne    131 <_FpuXexpY@16+0x131>
+ 12d:	d9 eb                	fldpi  
+ 12f:	eb 17                	jmp    148 <_FpuXexpY@16+0x148>
+ 131:	83 f8 02             	cmp    eax,0x2
+ 134:	0f 85 55 ff ff ff    	jne    8f <_FpuXexpY@16+0x8f>
+ 13a:	d9 e8                	fld1   
+ 13c:	d9 ea                	fldl2e 
+ 13e:	d8 e1                	fsub   st,st(1)
+ 140:	d9 f0                	f2xm1  
+ 142:	d8 c1                	fadd   st,st(1)
+ 144:	d9 fd                	fscale 
+ 146:	dd d9                	fstp   st(1)
+ 148:	d9 c9                	fxch   st(1)
+ 14a:	d9 f1                	fyl2x  
+ 14c:	d9 c0                	fld    st(0)
+ 14e:	d9 fc                	frndint 
+ 150:	dc e9                	fsubr  st(1),st
+ 152:	d9 c9                	fxch   st(1)
+ 154:	d9 f0                	f2xm1  
+ 156:	d9 e8                	fld1   
+ 158:	de c1                	faddp  st(1),st
+ 15a:	d9 fd                	fscale 
+ 15c:	9b df e0             	fstsw  ax
+ 15f:	9b                   	fwait
+ 160:	d0 e8                	shr    al,1
+ 162:	0f 82 27 ff ff ff    	jb     8f <_FpuXexpY@16+0x8f>
+ 168:	dd d9                	fstp   st(1)
+ 16a:	f7 45 14 80 00 00 00 	test   DWORD PTR [ebp+0x14],0x80
+ 171:	74 05                	je     178 <_FpuXexpY@16+0x178>
+ 173:	db 7d 8a             	fstp   TBYTE PTR [ebp-0x76]
+ 176:	eb 1f                	jmp    197 <_FpuXexpY@16+0x197>
+ 178:	8b 45 10             	mov    eax,DWORD PTR [ebp+0x10]
+ 17b:	f7 45 14 00 00 10 00 	test   DWORD PTR [ebp+0x14],0x100000
+ 182:	74 04                	je     188 <_FpuXexpY@16+0x188>
+ 184:	d9 18                	fstp   DWORD PTR [eax]
+ 186:	eb 0f                	jmp    197 <_FpuXexpY@16+0x197>
+ 188:	f7 45 14 00 00 20 00 	test   DWORD PTR [ebp+0x14],0x200000
+ 18f:	74 04                	je     195 <_FpuXexpY@16+0x195>
+ 191:	dd 18                	fstp   QWORD PTR [eax]
+ 193:	eb 02                	jmp    197 <_FpuXexpY@16+0x197>
+ 195:	db 38                	fstp   TBYTE PTR [eax]
+ 197:	dd 65 94             	frstor [ebp-0x6c]
+ 19a:	f7 45 14 01 01 00 00 	test   DWORD PTR [ebp+0x14],0x101
+ 1a1:	74 02                	je     1a5 <_FpuXexpY@16+0x1a5>
+ 1a3:	dd d8                	fstp   st(0)
+ 1a5:	f7 45 14 80 00 00 00 	test   DWORD PTR [ebp+0x14],0x80
+ 1ac:	74 05                	je     1b3 <_FpuXexpY@16+0x1b3>
+ 1ae:	dd c7                	ffree  st(7)
+ 1b0:	db 6d 8a             	fld    TBYTE PTR [ebp-0x76]
+ 1b3:	0c 01                	or     al,0x1
+ 1b5:	c9                   	leave  
+ 1b6:	c2 10 00             	ret    0x10
