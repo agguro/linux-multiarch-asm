@@ -83,17 +83,20 @@ check_cmd meson
 check_cmd ninja
 check_cmd gdb-multiarch
 
+# 2. Dynamic Tool Checks
 check_compiler_for() {
     local TARGET=$1
     local PREFIX=""
+    local EMULATOR=""
     
-    # Common tools for all
+    # 1. Standard GNU Binutils & Compiler (Needed for EVERYTHING)
     local TOOLS=("gcc" "as" "ld" "objdump")
-    
+
     if [ "$TARGET" = "$REAL_HOST_ARCH" ]; then
-        # Check standard tools
+        # Check standard GNU tools
         for tool in "${TOOLS[@]}"; do check_cmd "$tool"; done
-        # Special check for NASM only on x86_64
+        
+        # 2. Add NASM ONLY for x86_64 (For your archive directory)
         if [ "$TARGET" = "x86_64" ]; then
             check_cmd nasm
         fi
@@ -105,11 +108,14 @@ check_compiler_for() {
             riscv64) PREFIX="riscv64-linux-gnu-"; EMULATOR="qemu-riscv64" ;;
         esac
 
+        # Check Cross-GNU tools
         for tool in "${TOOLS[@]}"; do check_cmd "${PREFIX}${tool}"; done
         [ -n "$EMULATOR" ] && check_cmd "$EMULATOR"
         
-        # If we are cross-compiling FOR x86_64 from another arch
-        if [ "$TARGET" = "x86_64" ]; then check_cmd nasm; fi
+        # 3. Add NASM ONLY for x86_64 Cross-target
+        if [ "$TARGET" = "x86_64" ]; then 
+            check_cmd nasm 
+        fi
     fi
 }
 
