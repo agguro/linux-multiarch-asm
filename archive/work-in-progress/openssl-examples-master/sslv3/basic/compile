@@ -1,3 +1,0 @@
-gcc -o bin/server src/server.c -lssl -lcrypto
-gcc -o bin/client src/client.c -lssl -lcrypto
-
