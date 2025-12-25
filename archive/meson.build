@@ -1,12 +1,26 @@
 # archive/meson.build
 
-message('>>> Configuring NASM build for architecture: ' +
-        host_machine.cpu_family())
-        
-# for use with nasm commandline arguments
+nasm = find_program('nasm')
+ld   = find_program('ld')
+
+# NASM include path (string!)
 nasm_incdir = join_paths(meson.current_source_dir(), 'includes')
 
-subdir('examples')
-subdir('snippets')
-subdir('projects')
+# Default NASM flags
+nasm_common_flags = [
+  '-felf64',
+  '-Fdwarf',
+  '-I', nasm_incdir,
+]
 
+# Default ld flags for pure NASM programs
+ld_common_flags = [
+  '-melf_x86_64',
+  '-z', 'noexecstack',
+]
+
+# Default dynamic linker
+ld_dynamic_linker = '/lib64/ld-linux-x86-64.so.2'
+
+subdir('examples')
+subdir('projects')
