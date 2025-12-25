@@ -1,20 +1,26 @@
 # snippets/convert/nibblebcd2bin/meson.build
 # Pure NASM example (_start), linked with ld
+# Produces:
+#   - nibblebcd2bin
+#   - nibblebcd2bin.debug
+#   - nibblebcd2bin.lst
+#   - nibblebcd2bin.debug.lst
 
 asm_file = 'nibblebcd2bin.asm'
 name     = 'nibblebcd2bin'
 
 # -------------------------------
-# Assemble
+# Assemble (debug)
 # -------------------------------
 
-obj = custom_target(
-  name + '_obj',
+obj_debug = custom_target(
+  name + '_obj_debug',
   input: asm_file,
-  output: name + '.o',
+  output: name + '.debug.o',
   command: [nasm] + nasm_common_flags + [
     '-g',
     '-Fdwarf',
+    '-l', name + '.debug.lst',
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
@@ -22,15 +28,47 @@ obj = custom_target(
 )
 
 # -------------------------------
-# Link (ld, not compiler driver)
+# Assemble (release)
 # -------------------------------
 
-exe = custom_target(
-  name,
-  input: obj,
-  output: name,
+obj_release = custom_target(
+  name + '_obj_release',
+  input: asm_file,
+  output: name + '.o',
+  command: [nasm] + nasm_common_flags + [
+    '-l', name + '.lst',
+    '-o', '@OUTPUT@',
+    '@INPUT@',
+  ],
+  build_by_default: true,
+)
+
+# -------------------------------
+# Link (debug)
+# -------------------------------
+
+exe_debug = custom_target(
+  name + '.debug',
+  input: obj_debug,
+  output: name + '.debug',
   command: [ld] + ld_common_flags + [
     '-g',
+    '--dynamic-linker', ld_dynamic_linker,
+    '-o', '@OUTPUT@',
+    '@INPUT@',
+  ],
+  build_by_default: true,
+)
+
+# -------------------------------
+# Link (release)
+# -------------------------------
+
+exe_release = custom_target(
+  name,
+  input: obj_release,
+  output: name,
+  command: [ld] + ld_common_flags + [
     '--dynamic-linker', ld_dynamic_linker,
     '-o', '@OUTPUT@',
     '@INPUT@',

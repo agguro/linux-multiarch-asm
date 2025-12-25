@@ -1,13 +1,44 @@
-# examples/common-gateway-interface/parsejsonobject/meson.build
+#!/usr/bin/env bash
+#
+# Autogenerate meson.build files for pure NASM leaf directories
+#
+# - Finds directories with exactly one .asm file
+# - Always overwrites meson.build
+# - Assumes pure NASM (_start) programs
+# - Uses ld explicitly (no executable())
+# - Generates debug + release binaries
+# - Generates .lst and .debug.lst
+# - Adds a path comment for orientation
+
+set -euo pipefail
+
+find . -type d | while read -r dir; do
+  # Find .asm files directly in this directory
+  mapfile -t asm_files < <(find "$dir" -maxdepth 1 -type f -name '*.asm')
+  [ "${#asm_files[@]}" -eq 0 ] && continue
+
+  # Skip non-leaf directories (ASM exists deeper)
+  if find "$dir" -mindepth 2 -type f -name '*.asm' | grep -q .; then
+    continue
+  fi
+
+  asm_file="$(basename "${asm_files[0]}")"
+  name="${asm_file%.asm}"
+
+  rel_path="${dir#./}"
+  [ -z "$rel_path" ] && rel_path="."
+
+  cat > "$dir/meson.build" <<EOF
+# ${rel_path}/meson.build
 # Pure NASM example (_start), linked with ld
 # Produces:
-#   - parsejsonobject
-#   - parsejsonobject.debug
-#   - parsejsonobject.lst
-#   - parsejsonobject.debug.lst
+#   - ${name}
+#   - ${name}.debug
+#   - ${name}.lst
+#   - ${name}.debug.lst
 
-asm_file = 'parsejsonobject.asm'
-name     = 'parsejsonobject'
+asm_file = '${asm_file}'
+name     = '${name}'
 
 # -------------------------------
 # Assemble (debug)
@@ -75,3 +106,8 @@ exe_release = custom_target(
   ],
   build_by_default: true,
 )
+EOF
+
+  echo "Generated: $dir/meson.build"
+done
+

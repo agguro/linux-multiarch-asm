@@ -1,20 +1,26 @@
 # examples/ipc/Exeapp4/meson.build
 # Pure NASM example (_start), linked with ld
+# Produces:
+#   - exeapp4
+#   - exeapp4.debug
+#   - exeapp4.lst
+#   - exeapp4.debug.lst
 
 asm_file = 'exeapp4.asm'
 name     = 'exeapp4'
 
 # -------------------------------
-# Assemble
+# Assemble (debug)
 # -------------------------------
 
-obj = custom_target(
-  name + '_obj',
+obj_debug = custom_target(
+  name + '_obj_debug',
   input: asm_file,
-  output: name + '.o',
+  output: name + '.debug.o',
   command: [nasm] + nasm_common_flags + [
     '-g',
     '-Fdwarf',
+    '-l', name + '.debug.lst',
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
@@ -22,15 +28,47 @@ obj = custom_target(
 )
 
 # -------------------------------
-# Link (ld, not compiler driver)
+# Assemble (release)
 # -------------------------------
 
-exe = custom_target(
-  name,
-  input: obj,
-  output: name,
+obj_release = custom_target(
+  name + '_obj_release',
+  input: asm_file,
+  output: name + '.o',
+  command: [nasm] + nasm_common_flags + [
+    '-l', name + '.lst',
+    '-o', '@OUTPUT@',
+    '@INPUT@',
+  ],
+  build_by_default: true,
+)
+
+# -------------------------------
+# Link (debug)
+# -------------------------------
+
+exe_debug = custom_target(
+  name + '.debug',
+  input: obj_debug,
+  output: name + '.debug',
   command: [ld] + ld_common_flags + [
     '-g',
+    '--dynamic-linker', ld_dynamic_linker,
+    '-o', '@OUTPUT@',
+    '@INPUT@',
+  ],
+  build_by_default: true,
+)
+
+# -------------------------------
+# Link (release)
+# -------------------------------
+
+exe_release = custom_target(
+  name,
+  input: obj_release,
+  output: name,
+  command: [ld] + ld_common_flags + [
     '--dynamic-linker', ld_dynamic_linker,
     '-o', '@OUTPUT@',
     '@INPUT@',
