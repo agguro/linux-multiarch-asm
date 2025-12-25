@@ -13,11 +13,9 @@
 set -euo pipefail
 
 find . -type d | while read -r dir; do
-  # Find .asm files directly in this directory
   mapfile -t asm_files < <(find "$dir" -maxdepth 1 -type f -name '*.asm')
   [ "${#asm_files[@]}" -eq 0 ] && continue
 
-  # Skip non-leaf directories (ASM exists deeper)
   if find "$dir" -mindepth 2 -type f -name '*.asm' | grep -q .; then
     continue
   fi
@@ -31,23 +29,16 @@ find . -type d | while read -r dir; do
   cat > "$dir/meson.build" <<EOF
 # ${rel_path}/meson.build
 # Pure NASM example (_start), linked with ld
-# Produces:
-#   - ${name}
-#   - ${name}.debug
-#   - lst/${name}.lst
-#   - lst/${name}.debug.lst
 
 asm_file = '${asm_file}'
 name     = '${name}'
 
-# -------------------------------
-# Listing directory
-# -------------------------------
+lst_build_dir = join_paths(meson.current_build_dir(), 'lst')
 
 lst_dir = custom_target(
   name + '_lst_dir',
   output: 'lst',
-  command: ['mkdir', '-p', '@OUTPUT@'],
+  command: ['mkdir', '-p', lst_build_dir],
 )
 
 # -------------------------------
@@ -62,7 +53,7 @@ obj_debug = custom_target(
   command: [nasm] + nasm_common_flags + [
     '-g',
     '-Fdwarf',
-    '-l', 'lst/' + name + '.debug.lst',
+    '-l', join_paths(lst_build_dir, name + '.debug.lst'),
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
@@ -79,7 +70,7 @@ obj_release = custom_target(
   output: name + '.o',
   depends: lst_dir,
   command: [nasm] + nasm_common_flags + [
-    '-l', 'lst/' + name + '.lst',
+    '-l', join_paths(lst_build_dir, name + '.lst'),
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
@@ -96,7 +87,6 @@ exe_debug = custom_target(
   output: name + '.debug',
   command: [ld] + ld_common_flags + [
     '-g',
-    '--dynamic-linker', ld_dynamic_linker,
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
@@ -112,7 +102,6 @@ exe_release = custom_target(
   input: obj_release,
   output: name,
   command: [ld] + ld_common_flags + [
-    '--dynamic-linker', ld_dynamic_linker,
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
