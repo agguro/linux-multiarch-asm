@@ -1,8 +1,5 @@
 # archive/meson.build
 
-nasm = find_program('nasm')
-ld   = find_program('ld')
-
 # NASM include path (string!)
 nasm_incdir = join_paths(meson.current_source_dir(), 'includes')
 
