@@ -3,7 +3,6 @@ project('linux-multiarch-asm', 'c', 'cpp', version: '1.0')
 
 # Detect NASM for the Archive
 nasm = find_program('nasm', required: false)
-inc_dir = include_directories('includes')
 
 # 1. Handle New Multi-Arch (GAS)
 subdir('architectures')
