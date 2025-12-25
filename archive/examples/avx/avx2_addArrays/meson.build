@@ -1,7 +1,13 @@
-# examples/avx/avx2_addArrays/meson.build
-# Pure NASM example (_start), linked with ld
+# archive/examples/avx/avx2_addArrays/meson.build
+#
+# AVX2 example:
+# - main.cpp (C++)
+# - avx2_addArrays.asm (NASM helper)
+# - linked via C++ compiler driver
+# - AVX2 flags inherited from parent directory
 
 asm_file = 'avx2_addArrays.asm'
+cpp_file = 'main.cpp'
 name     = 'avx2_addArrays'
 
 lst_build_dir = join_paths(meson.current_build_dir(), 'lst')
@@ -13,11 +19,11 @@ lst_dir = custom_target(
 )
 
 # -------------------------------
-# Assemble (debug)
+# Assemble NASM (debug)
 # -------------------------------
 
-obj_debug = custom_target(
-  name + '_obj_debug',
+asm_obj_debug = custom_target(
+  name + '_asm_debug',
   input: asm_file,
   output: name + '.debug.o',
   depends: lst_dir,
@@ -28,15 +34,14 @@ obj_debug = custom_target(
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
-  build_by_default: true,
 )
 
 # -------------------------------
-# Assemble (release)
+# Assemble NASM (release)
 # -------------------------------
 
-obj_release = custom_target(
-  name + '_obj_release',
+asm_obj_release = custom_target(
+  name + '_asm_release',
   input: asm_file,
   output: name + '.o',
   depends: lst_dir,
@@ -45,36 +50,29 @@ obj_release = custom_target(
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
-  build_by_default: true,
 )
 
 # -------------------------------
-# Link (debug)
+# Executable (debug)
 # -------------------------------
 
-exe_debug = custom_target(
+exe_debug = executable(
   name + '.debug',
-  input: obj_debug,
-  output: name + '.debug',
-  command: [ld] + ld_common_flags + [
-    '-g',
-    '-o', '@OUTPUT@',
-    '@INPUT@',
-  ],
-  build_by_default: true,
+  cpp_file,
+  asm_obj_debug,
+  cpp_args: avx2_cpp_args,
+  install: false,
 )
 
 # -------------------------------
-# Link (release)
+# Executable (release)
 # -------------------------------
 
-exe_release = custom_target(
+exe_release = executable(
   name,
-  input: obj_release,
-  output: name,
-  command: [ld] + ld_common_flags + [
-    '-o', '@OUTPUT@',
-    '@INPUT@',
-  ],
-  build_by_default: true,
+  cpp_file,
+  asm_obj_release,
+  cpp_args: avx2_cpp_args,
+  install: false,
 )
+
