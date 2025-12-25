@@ -7,6 +7,6 @@ message('>>> Configuring NASM build for architecture: ' +
 nasm_incdir = join_paths(meson.current_source_dir(), 'includes')
 
 subdir('examples')
-subdir('functions')
+subdir('snippets')
 subdir('projects')
 
