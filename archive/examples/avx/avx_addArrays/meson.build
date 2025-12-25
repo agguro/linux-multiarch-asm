@@ -1,32 +1,37 @@
-# archive/examples/avx/avx_addArrays/meson.build
-
-name     = 'avx_addArrays'
+# examples/avx/avx_addArrays/meson.build
+# Pure NASM example (_start), linked with ld
 
 asm_file = 'avx_addArrays.asm'
-cpp_file = 'main.cpp'
+name     = 'avx_addArrays'
 
-nasm_obj = custom_target(
-  name + '_asm',
+# -------------------------------
+# Assemble
+# -------------------------------
+
+obj = custom_target(
+  name + '_obj',
   input: asm_file,
   output: name + '.o',
-  command: [nasm,
-    '-felf64',
-    '-g',
-    '-Fdwarf',
+  command: [nasm] + nasm_common_flags + [
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
   build_by_default: true,
 )
 
-exe = executable(
+# -------------------------------
+# Link (ld, not compiler driver)
+# -------------------------------
+
+exe = custom_target(
   name,
-  cpp_file,
-  nasm_obj,
-  cpp_args: avx_cpp_args,     # ← inherited
-  link_args: avx_link_args,   # ← inherited
-  install: false,
+  input: obj,
+  output: name,
+  command: [ld] + ld_common_flags + [
+    '-g',
+    '--dynamic-linker', ld_dynamic_linker,
+    '-o', '@OUTPUT@',
+    '@INPUT@',
+  ],
+  build_by_default: true,
 )
-
-test(name, exe, verbose: true)
-

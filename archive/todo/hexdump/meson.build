@@ -1,51 +1,18 @@
 # todo/hexdump/meson.build
+# Pure NASM example (_start), linked with ld
 
 asm_file = 'hexdump.asm'
-name     = asm_file.split('.')[0]
-src      = files(asm_file)
+name     = 'hexdump'
 
 # -------------------------------
-# NASM flags
+# Assemble
 # -------------------------------
 
-nasm_common = [
-  '-felf64',
-  '-I', nasm_incdir,
-]
-
-nasm_debug = nasm_common + [
-  '-g',
-  '-F', 'dwarf',
-]
-
-nasm_release = nasm_common
-
-# -------------------------------
-# Assemble (debug)
-# -------------------------------
-
-obj_debug = custom_target(
-  name + '_obj_debug',
-  input: src,
-  output: name + '.debug.o',
-  command: [nasm] + nasm_debug + [
-    '-l', name + '.debug.lst',
-    '-o', '@OUTPUT@',
-    '@INPUT@',
-  ],
-  build_by_default: true,
-)
-
-# -------------------------------
-# Assemble (release)
-# -------------------------------
-
-obj_release = custom_target(
-  name + '_obj_release',
-  input: src,
+obj = custom_target(
+  name + '_obj',
+  input: asm_file,
   output: name + '.o',
-  command: [nasm] + nasm_release + [
-    '-l', name + '.lst',
+  command: [nasm] + nasm_common_flags + [
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
@@ -53,31 +20,18 @@ obj_release = custom_target(
 )
 
 # -------------------------------
-# Link
+# Link (ld, not compiler driver)
 # -------------------------------
 
-exe_debug = executable(
-  name + '.debug',
-  obj_debug,
-  link_args: [
-    '-g',
-    '-z', 'noexecstack',
-  ],
-  install: false,
-)
-
-exe_release = executable(
+exe = custom_target(
   name,
-  obj_release,
-  link_args: [
-    '-s',
-    '-z', 'noexecstack',
+  input: obj,
+  output: name,
+  command: [ld] + ld_common_flags + [
+    '-g',
+    '--dynamic-linker', ld_dynamic_linker,
+    '-o', '@OUTPUT@',
+    '@INPUT@',
   ],
-  install: false,
+  build_by_default: true,
 )
-
-# -------------------------------
-# Tests
-# -------------------------------
-
-test(name, exe_release, verbose: true)
