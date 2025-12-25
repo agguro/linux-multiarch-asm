@@ -1,16 +1,3 @@
 # examples/meson.build
-subdir('database')
-subdir('qt')
-subdir('ipc')
-subdir('x11')
 subdir('basics')
-subdir('ecc')
-subdir('networking')
-subdir('avx')
-subdir('libraries')
-subdir('common-gateway-interface')
-subdir('math')
-subdir('smc')
-subdir('prng')
-subdir('python')
-subdir('system')
+
