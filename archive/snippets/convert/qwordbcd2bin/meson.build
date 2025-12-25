@@ -3,11 +3,21 @@
 # Produces:
 #   - qwordbcd2bin
 #   - qwordbcd2bin.debug
-#   - qwordbcd2bin.lst
-#   - qwordbcd2bin.debug.lst
+#   - lst/qwordbcd2bin.lst
+#   - lst/qwordbcd2bin.debug.lst
 
 asm_file = 'qwordbcd2bin.asm'
 name     = 'qwordbcd2bin'
+
+# -------------------------------
+# Listing directory
+# -------------------------------
+
+lst_dir = custom_target(
+  name + '_lst_dir',
+  output: 'lst',
+  command: ['mkdir', '-p', '@OUTPUT@'],
+)
 
 # -------------------------------
 # Assemble (debug)
@@ -17,10 +27,11 @@ obj_debug = custom_target(
   name + '_obj_debug',
   input: asm_file,
   output: name + '.debug.o',
+  depends: lst_dir,
   command: [nasm] + nasm_common_flags + [
     '-g',
     '-Fdwarf',
-    '-l', name + '.debug.lst',
+    '-l', 'lst/' + name + '.debug.lst',
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
@@ -35,8 +46,9 @@ obj_release = custom_target(
   name + '_obj_release',
   input: asm_file,
   output: name + '.o',
+  depends: lst_dir,
   command: [nasm] + nasm_common_flags + [
-    '-l', name + '.lst',
+    '-l', 'lst/' + name + '.lst',
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],

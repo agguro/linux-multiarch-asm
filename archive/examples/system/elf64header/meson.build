@@ -3,11 +3,21 @@
 # Produces:
 #   - elf64header
 #   - elf64header.debug
-#   - elf64header.lst
-#   - elf64header.debug.lst
+#   - lst/elf64header.lst
+#   - lst/elf64header.debug.lst
 
 asm_file = 'elf64header.asm'
 name     = 'elf64header'
+
+# -------------------------------
+# Listing directory
+# -------------------------------
+
+lst_dir = custom_target(
+  name + '_lst_dir',
+  output: 'lst',
+  command: ['mkdir', '-p', '@OUTPUT@'],
+)
 
 # -------------------------------
 # Assemble (debug)
@@ -17,10 +27,11 @@ obj_debug = custom_target(
   name + '_obj_debug',
   input: asm_file,
   output: name + '.debug.o',
+  depends: lst_dir,
   command: [nasm] + nasm_common_flags + [
     '-g',
     '-Fdwarf',
-    '-l', name + '.debug.lst',
+    '-l', 'lst/' + name + '.debug.lst',
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
@@ -35,8 +46,9 @@ obj_release = custom_target(
   name + '_obj_release',
   input: asm_file,
   output: name + '.o',
+  depends: lst_dir,
   command: [nasm] + nasm_common_flags + [
-    '-l', name + '.lst',
+    '-l', 'lst/' + name + '.lst',
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
