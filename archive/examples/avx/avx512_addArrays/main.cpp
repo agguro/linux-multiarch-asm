@@ -19,18 +19,18 @@ extern "C" void avx512_addArrays(float dest[], float arr1[], float arr2[]);
 
 void printArray(float[], int count);
 
-// Data is aligned to 32-byte boundaries
-float array1[] __attribute__((aligned(32))) =   // First source array
+// Data is aligned to 64-byte boundaries
+float array1[] __attribute__((aligned(64))) =   // First source array
 {
     1, 2, 3, 4, 5, 6, 7, 8
 };
 
-float array2[] __attribute__((aligned(32))) =   // Second source array
+float array2[] __attribute__((aligned(64))) =   // Second source array
 {
     1, 2, 3, 4, 5, 6, 7, 8
 };
 
-float dest[8] __attribute__((aligned(32)));     // Destination arrayµ
+float dest[8] __attribute__((aligned(64)));     // Destination arrayµ
 
 int main()
 {
