@@ -1,8 +1,37 @@
-# todo/hexdump/meson.build
+#!/usr/bin/env bash
+#
+# Autogenerate meson.build files for pure NASM leaf directories
+#
+# - Finds directories with exactly one .asm file
+# - Always overwrites meson.build
+# - Assumes pure NASM (_start) programs
+# - Uses ld explicitly (no executable())
+# - Generates debug + release binaries
+# - Generates .lst and .debug.lst in a lst/ subdirectory
+# - Adds a path comment for orientation
+
+set -euo pipefail
+
+find . -type d | while read -r dir; do
+  mapfile -t asm_files < <(find "$dir" -maxdepth 1 -type f -name '*.asm')
+  [ "${#asm_files[@]}" -eq 0 ] && continue
+
+  if find "$dir" -mindepth 2 -type f -name '*.asm' | grep -q .; then
+    continue
+  fi
+
+  asm_file="$(basename "${asm_files[0]}")"
+  name="${asm_file%.asm}"
+
+  rel_path="${dir#./}"
+  [ -z "$rel_path" ] && rel_path="."
+
+  cat > "$dir/meson.build" <<EOF
+# ${rel_path}/meson.build
 # Pure NASM example (_start), linked with ld
 
-asm_file = 'hexdump.asm'
-name     = 'hexdump'
+asm_file = '${asm_file}'
+name     = '${name}'
 
 lst_build_dir = join_paths(meson.current_build_dir(), 'lst')
 
@@ -78,3 +107,8 @@ exe_release = custom_target(
   ],
   build_by_default: true,
 )
+EOF
+
+  echo "Generated: $dir/meson.build"
+done
+

@@ -1,22 +1,15 @@
 # examples/system/elf64header/meson.build
 # Pure NASM example (_start), linked with ld
-# Produces:
-#   - elf64header
-#   - elf64header.debug
-#   - lst/elf64header.lst
-#   - lst/elf64header.debug.lst
 
 asm_file = 'elf64header.asm'
 name     = 'elf64header'
 
-# -------------------------------
-# Listing directory
-# -------------------------------
+lst_build_dir = join_paths(meson.current_build_dir(), 'lst')
 
 lst_dir = custom_target(
   name + '_lst_dir',
   output: 'lst',
-  command: ['mkdir', '-p', '@OUTPUT@'],
+  command: ['mkdir', '-p', lst_build_dir],
 )
 
 # -------------------------------
@@ -31,7 +24,7 @@ obj_debug = custom_target(
   command: [nasm] + nasm_common_flags + [
     '-g',
     '-Fdwarf',
-    '-l', 'lst/' + name + '.debug.lst',
+    '-l', join_paths(lst_build_dir, name + '.debug.lst'),
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
@@ -48,7 +41,7 @@ obj_release = custom_target(
   output: name + '.o',
   depends: lst_dir,
   command: [nasm] + nasm_common_flags + [
-    '-l', 'lst/' + name + '.lst',
+    '-l', join_paths(lst_build_dir, name + '.lst'),
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
@@ -65,7 +58,6 @@ exe_debug = custom_target(
   output: name + '.debug',
   command: [ld] + ld_common_flags + [
     '-g',
-    '--dynamic-linker', ld_dynamic_linker,
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
@@ -81,7 +73,6 @@ exe_release = custom_target(
   input: obj_release,
   output: name,
   command: [ld] + ld_common_flags + [
-    '--dynamic-linker', ld_dynamic_linker,
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
