@@ -33,3 +33,6 @@ avx2_addArrays:
     mov	    rsp,rbp
     pop	    rbp
     ret
+
+;inform compiler that the stack isn't executable    
+section .note.GNU-stack noalloc noexec nowrite progbits
