@@ -1,16 +1,22 @@
 # archive/examples/avx/meson.build
+#
+# AVX subtree policy:
+# - These examples are C/C++ programs with NASM helpers
+# - They are linked via the compiler driver
+# - Instruction-set selection is defined here
+# - Actual build logic lives in leaf directories
 
-# AVX compilation flags for all subprojects
-avx_cpp_args = [
+# Common optimization level for AVX examples
+avx_common_cpp_args = [
   '-O2',
-  '-mavx',
 ]
 
-avx_link_args = [
-  '-z', 'noexecstack',
-]
+# Instruction-set–specific flags
+avx_cpp_args      = avx_common_cpp_args + ['-mavx']
+avx2_cpp_args     = avx_common_cpp_args + ['-mavx2']
+avx512_cpp_args   = avx_common_cpp_args + ['-mavx512f']
 
-# Make them visible to subdirs
+# Descend into examples
 subdir('avx_addArrays')
 subdir('avx2_addArrays')
 subdir('avx512_addArrays')
