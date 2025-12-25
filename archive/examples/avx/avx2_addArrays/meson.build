@@ -1,10 +1,10 @@
 # archive/examples/avx/avx2_addArrays/meson.build
 #
-# AVX2 example:
+# AVX example:
 # - main.cpp (C++)
 # - avx2_addArrays.asm (NASM helper)
 # - linked via C++ compiler driver
-# - AVX2 flags inherited from parent directory
+# - AVX flags inherited from parent directory
 
 asm_file = 'avx2_addArrays.asm'
 cpp_file = 'main.cpp'
