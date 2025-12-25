@@ -1,6 +1,31 @@
-# examples/ecc/CalculateParity/meson.build
+#!/usr/bin/env bash
+#
+# Script to autogenerate meson.build files for NASM leaf directories
+# Recursively scans for directories containing .asm sources
+# Adds a path comment at the top of each generated meson.build
+# Overwrites existing meson.build files (expected to be placeholders)
 
-asm_file = 'calculateparity.asm'
+set -euo pipefail
+
+find . -type d | while read -r dir; do
+  # Find NASM sources in this directory
+  mapfile -t asm_files < <(find "$dir" -maxdepth 1 -type f -name '*.asm')
+  [ "${#asm_files[@]}" -eq 0 ] && continue
+
+  # Skip non-leaf directories (subdirs containing .asm)
+  sub_asm=$(find "$dir" -mindepth 2 -type f -name '*.asm' | wc -l)
+  [ "$sub_asm" -ne 0 ] && continue
+
+  asm_file="$(basename "${asm_files[0]}")"
+  base="${asm_file%.asm}"
+
+  rel_path="${dir#./}"
+  [ -z "$rel_path" ] && rel_path="."
+
+  cat > "$dir/meson.build" <<EOF
+# ${rel_path}/meson.build
+
+asm_file = '${asm_file}'
 name     = asm_file.split('.')[0]
 src      = files(asm_file)
 
@@ -81,3 +106,8 @@ exe_release = executable(
 # -------------------------------
 
 test(name, exe_release, verbose: true)
+EOF
+
+  echo "Generated: $dir/meson.build"
+done
+
