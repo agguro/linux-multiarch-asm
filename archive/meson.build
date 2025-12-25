@@ -1,7 +1,7 @@
 # archive/meson.build
 
 # archive global include files
-nasm_inc = include_directories('includes')
+nasm_inc = include_directories('../archive/includes')
 
 # Detect architecture
 target_arch = host_machine.cpu_family()
