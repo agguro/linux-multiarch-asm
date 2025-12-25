@@ -23,4 +23,3 @@ ld_common_flags = [
 ld_dynamic_linker = '/lib64/ld-linux-x86-64.so.2'
 
 subdir('examples')
-subdir('projects')
