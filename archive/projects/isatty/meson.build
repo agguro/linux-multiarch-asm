@@ -1,0 +1,1 @@
+# projects/isatty/meson.build

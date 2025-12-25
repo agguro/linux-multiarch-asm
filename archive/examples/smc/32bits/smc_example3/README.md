@@ -1,0 +1,2 @@
+# smc_example3
+

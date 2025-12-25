@@ -1,0 +1,17 @@
+# todo
+
+- [quadraticequations](quadraticequations)
+- [hexdump](hexdump)
+- [memfd](memfd)
+- [optimization-examples](optimization-examples)
+- [mersenne-twister](mersenne-twister)
+- [bluetooth](bluetooth)
+- [bioritme](bioritme)
+- [mmx-demo](mmx-demo)
+- [fpulib](fpulib)
+- [openssl-examples-master](openssl-examples-master)
+- [cracks](cracks)
+- [compressing](compressing)
+- [mouse-programming](mouse-programming)
+- [sudoku](sudoku)
+- [fastnoise](fastnoise)

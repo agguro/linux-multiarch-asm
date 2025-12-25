@@ -1,0 +1,11 @@
+# projects/meson.build
+subdir('extxterm')
+subdir('bootcdrom')
+subdir('easter')
+subdir('isatty')
+subdir('bubblesort')
+subdir('keyfilter')
+subdir('modulo97')
+subdir('oop')
+subdir('josephus-problem')
+subdir('agguro')

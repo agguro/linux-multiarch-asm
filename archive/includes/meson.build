@@ -1,0 +1,10 @@
+# includes/meson.build
+subdir('nasmx')
+subdir('asm-generic')
+subdir('postgresql')
+subdir('sqlite')
+subdir('sys')
+subdir('cpu')
+subdir('bits')
+subdir('gtk')
+subdir('mysql')

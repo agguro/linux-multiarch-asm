@@ -1,0 +1,18 @@
+# basics
+
+- [printenv](printenv)
+- [waitforkeypress](waitforkeypress)
+- [uuid](uuid)
+- [cpuid](cpuid)
+- [arguments](arguments)
+- [dealcards](dealcards)
+- [readfile](readfile)
+- [rotatebits](rotatebits)
+- [hello](hello)
+- [dirinfo](dirinfo)
+- [keyfilter](keyfilter)
+- [palindrome](palindrome)
+- [winsize](winsize)
+- [waitforenterkeypress](waitforenterkeypress)
+- [cwd](cwd)
+- [inputdemo](inputdemo)

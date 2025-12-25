@@ -1,0 +1,10 @@
+# examples/common-gateway-interface/meson.build
+subdir('cgiroot')
+subdir('parsejsonobject')
+subdir('cookies')
+subdir('webvars')
+subdir('downloadfile')
+subdir('querystring')
+subdir('jsonobject')
+subdir('downloaddata')
+subdir('postrequest')

@@ -1,0 +1,3 @@
+# Factorial
+
+- [Recursive](Recursive)

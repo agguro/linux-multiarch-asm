@@ -1,0 +1,17 @@
+# examples
+
+- [database](database)
+- [qt](qt)
+- [ipc](ipc)
+- [x11](x11)
+- [basics](basics)
+- [ecc](ecc)
+- [networking](networking)
+- [avx](avx)
+- [libraries](libraries)
+- [common-gateway-interface](common-gateway-interface)
+- [math](math)
+- [smc](smc)
+- [prng](prng)
+- [python](python)
+- [system](system)
