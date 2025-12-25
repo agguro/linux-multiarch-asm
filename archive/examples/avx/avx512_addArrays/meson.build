@@ -1,10 +1,10 @@
 # archive/examples/avx/avx512_addArrays/meson.build
 #
-# AVX2 example:
+# AVX example:
 # - main.cpp (C++)
 # - avx512_addArrays.asm (NASM helper)
 # - linked via C++ compiler driver
-# - AVX2 flags inherited from parent directory
+# - AVX flags inherited from parent directory
 
 asm_file = 'avx512_addArrays.asm'
 cpp_file = 'main.cpp'
@@ -60,7 +60,7 @@ exe_debug = executable(
   name + '.debug',
   cpp_file,
   asm_obj_debug,
-  cpp_args: avx2_cpp_args,
+  cpp_args: avx512_cpp_args,
   install: false,
 )
 
