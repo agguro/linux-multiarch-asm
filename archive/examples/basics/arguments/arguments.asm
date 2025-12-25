@@ -1,103 +1,129 @@
-;name: arguments.asm
-;
-;description: Read the number of arguments and if any write it to stdout.
-;
-;build: nasm -felf64 arguments.asm -o arguments.o
-;   ld -melf_x86_64 arguments.o -o arguments  
+; name        : arguments.asm
+; description : Read arguments.
+; build       : release: nasm -f elf64 -I ../../../includes -o arguments.o arguments.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o arguments *.o
+;               debug  : nasm -f elf64 -I ../../../includes -g -Fdwarf -o arguments.debug.o arguments.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o arguments.debug *.o
 
 bits 64
 
-    %include "unistd.inc"
+[list -]
+     %include "unistd.inc"
+[list +]
 
-global _start
-    crlf:      equ  10
+%define LF 10
 
 section .bss
-    buffer:    resb 20                  ;reserve 20 bytes as a buffer
+    buffer:    resb 21
         
 section .rodata
-
-    msgArgc:   db   "argc        : ",0
-    msgProg:   db   "Programname : ",0
-    msgArgv:   db   "argv[]      : ",0
+    msg:
+    .argc:    db   "argc        : ",0
+    .prog:    db   "Programname : ",0
+    .argv:    db   "argv[]      : ",0
         
 section .text
-
+    global _start
 _start:
-    ;write message and argc as unsigned integer to STDOUT
-    mov     rsi, msgArgc                ;write first line
-    call    Write.string
+    ; --- Handle argc ---
+    pop     rax                         
+    mov     rcx, rax                    
+    dec     rcx                         
     
-    ;convert the value of argc in unsigned integer ASCII
-    pop     rax                         ;get argc of stack
-    dec	    rax                         ;number of arguments is rax minus one
-    mov     rcx, rax                    ;initialize RCX as counter (argc)
-    call    Convert                     ;convert RAX into unsigned integer ASCII
-    call    Write.string                ;write the unsigned integer
-    mov     al,crlf                     ;end of line
-    call    Write.char
+    ; PIC: Load address relative to RIP
+    lea     rsi, [rel msg.argc]
+    call    write.string
     
-    ;write message and the programname to STDOUT
-    mov     rsi, msgProg                ;write second line
-    call    Write.string       
-    pop     rsi                         ;get programname from stack
-    call    Write.string                ;write the programname
-    mov     al,crlf                     ;end of line
-    call    Write.char
-    ;write message and all arguments to STDOUT
-    mov     rsi, msgArgv
-    call    Write.string
-    cmp     rcx, 0                      ;are there arguments?
-    je      .endOfArgs                  ;no arguments, nothing to show
-.nextArg:
-    pop     rsi
-    call    Write.string
-    cmp     rcx,1
-    je      .endOfArgs
-    mov     al,' '
-    call    Write.char
-.noSpace:       
-    loop    .nextArg
+    mov     rax, rcx                    
+    call    convert                     
+    call    write.string
+    mov     al, LF
+    call    write.char
+    
+    ; --- Handle Program Name ---
+    lea     rsi, [rel msg.prog]
+    call    write.string
+    
+    pop     rsi                         
+    call    write.string
+    mov     al, LF
+    call    write.char
 
-.endOfArgs:     
-    mov     al,crlf
-    call    Write.char
-Exit:
+    ; --- Handle Arguments ---
+    lea     rsi, [rel msg.argv]
+    call    write.string
+    
+    test    rcx, rcx                    
+    jz      .end_of_args
+
+.next_arg:
+    push    rcx                         
+    pop     rsi                         
+    call    write.string
+    
+    pop     rcx                         
+    cmp     rcx, 1                      
+    je      .end_of_args
+    
+    mov     al, ' '                     
+    call    write.char
+    loop    .next_arg
+
+.end_of_args:     
+    mov     al, LF
+    call    write.char
+
     syscall exit, 0
 
-Write:
-.string:
-    cld                                 ;make sure we count upwards in memory
-    lodsb                               ;load byte from RSI:RAX in AL
-    and     al,al                       ;if zero then end of ASCIIZ string
-    je      .done
-    call    Write.char
-    jmp     .string
-.char:
+; --- Utility Functions ---
+
+write.string:
+    push    rax
     push    rsi
-    push    rcx
-    mov     rsi,buffer
-    mov     byte [buffer],al
-    syscall write,stdout,buffer,1       
-    xor     rdx, 1
-    jnz     .done
-    mov     byte[rsi],0
-    pop     rcx
-    pop     rsi                         ;restore used registers
+    cld
+.loop:
+    lodsb                               
+    test    al, al                      
+    jz      .done
+    call    write.char
+    jmp     .loop
 .done:
+    pop     rsi
+    pop     rax
     ret
 
-Convert:
-    mov     rsi,buffer+19
-    mov     rbx,10
+write.char:
+    push    rax
+    push    rdi
+    push    rsi
+    push    rdx
+    push    rcx
+    push    r11
+    
+    ; PIC: access buffer relative to RIP
+    lea     rsi, [rel buffer]
+    mov     [rsi], al                
+    syscall write, stdout, rsi, 1
+    
+    pop     r11
+    pop     rcx
+    pop     rdx
+    pop     rsi
+    pop     rdi
+    pop     rax
+    ret
+
+convert:
+    ; PIC: Get end of buffer relative to RIP
+    lea     rsi, [rel buffer + 20]
+    mov     byte [rsi], 0               
+    mov     rbx, 10
 .repeat:
-    xor     rdx,rdx                     ;the remainder
-    div     rbx                         ;divide RAX by 10, remainder in RDX
-    or      dl,0x30                     ;convert to ASCII
-    mov     byte[rsi],dl                ;remainder in byte pointed to by RSI
-    and     rax, rax                    ;quotient = 0? 
-    je      .done                       ;yes, stop converting
     dec     rsi
-    jmp	    .repeat
-.done:
+    xor     rdx, rdx
+    div     rbx                         
+    add     dl, '0'                     
+    mov     [rsi], dl
+    test    rax, rax                    
+    jnz     .repeat
     ret

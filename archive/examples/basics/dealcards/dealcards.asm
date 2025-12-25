@@ -1,109 +1,111 @@
-;name: dealcards.asm
-;
-;build: nasm -felf64 dealcards.asm -o dealcards.o
-;       ld -s -melf_x86_64 -o dealcards dealcards.o 
-;
-;description: Create a set of shuffled cards.
-;             This demo creates 20 sets of dealed cards
+; name        : dealcards.asm
+; description : Create a set of shuffled cards.
+; build       : release: nasm -f elf64  -I ../../../includes dealcards.asm -o dealcards.o
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o dealcards dealcards.o 
+;               debug  : nasm -f elf64 -I ../../../includes -g -Fdwarf -o dealcards.debug.o dealcards.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o dealcards.debug *.o
 
+bits 64
 
 [list -]
     %include "unistd.inc"
 [list +]
 
-;numbers are displayed wrong above 99
 %define TOTAL_CARDS 52
-
-bits 64
-    
+   
 section .data
-     
-    shuffledcards:  times TOTAL_CARDS db 0
-    buffer:         times 2 db 0
-    spacer:         db " "
-    eol:            db 0x0A
+    shuffledcards: times TOTAL_CARDS db 0
+    buffer:        times 2 db 0
+    spacer:        db " "
+    eol:           db 0x0A
 
 section .text
-
-global _start
+    global _start
 _start:
+    ; PIC: Get address of shuffledcards buffer
+    lea     rdi, [rel shuffledcards]
+    mov     rsi, TOTAL_CARDS
+    call    shuffle
 
-    mov     rdi,shuffledcards              ; pointer to buffer for the shuffled cards
-    mov     rsi,TOTAL_CARDS                ; total cards to shuffle
-    call    shuffle                         ; shuffle the cards
-    mov     rdi,shuffledcards              ; pointer to the cards
-    mov     rsi,TOTAL_CARDS                ; number of cards to show
-    call    showCards                       ; show the cards
-    mov     rsi,eol
-    mov     rdx,1
-    call    writeString                     ; print end of line
-    syscall exit,0
+    lea     rdi, [rel shuffledcards]
+    mov     rsi, TOTAL_CARDS
+    call    showCards
+
+    lea     rsi, [rel eol]
+    mov     rdx, 1
+    call    writeString
+
+    syscall exit, 0
     
 showCards:
-;RDI : pointer to buffer with cards to show
-;RSI : number of cards to show
-    mov     rcx,rsi                        ; number of cards to show in rcx
-    mov     rsi,rdi                        ; pointer to card buffer in rdi
-    xor     rax,rax
+    mov     rcx, rsi              
+    mov     rsi, rdi              
 .next:     
-    lodsb
-    mov     rbx,10
-    xor     rdx,rdx
-    idiv    rbx
-    or      dl,"0"
-    mov     byte[buffer+1],dl
-    mov     rdx,2                          ; length of output
-    or      al,"0"
-    mov     byte[buffer],al
     push    rcx
     push    rsi
-    mov     rsi,buffer
-    mov     rdx,3
+    
+    xor     rax, rax
+    lodsb                         ; Get card value
+    mov     rbx, 10
+    xor     rdx, rdx
+    div     rbx                   ; Using div (unsigned) is safer here
+    
+    ; PIC: Get address of buffer
+    lea     rdi, [rel buffer]
+    add     al, "0"
+    add     dl, "0"
+    mov     [rdi], al             ; Tens
+    mov     [rdi + 1], dl         ; Units
+    
+    mov     rsi, rdi              ; RSI = pointer to buffer
+    mov     rdx, 2                ; Length 2
     call    writeString
+    
+    ; Print spacer
+    lea     rsi, [rel spacer]
+    mov     rdx, 1
+    call    writeString
+    
     pop     rsi
     pop     rcx
-    loopnz  .next
+    loop    .next
     ret
 
 writeString:
-;RSI : pointer to the string
-;RDX : length of the string
-    syscall write,stdout
+    syscall write, stdout, rsi, rdx
     ret
 
-
 shuffle:
-;RDI : pointer to buffer where the cards must be stored
-;RSI : total cards in a deck
-    mov     rbx,rsi                        ; TOTAL_CARDS in bl
-    xor     r8,r8
+    ; RDI : pointer to buffer
+    ; RSI : total cards
+    mov     rbx, rsi              ; rbx = limit
+    xor     r8, r8                ; r8 = current card count
 .newcard:
-    inc     r8                              ; increment counter
-    cmp     r8,rbx                         ; TOTAL_CARDS reached?
+    inc     r8
+    cmp     r8, rbx
     jg      .endshuffling
 .tryagain:
-    rdtsc                                      ; read the time stamp counter
-    shr     rax,3                          ; divide by 8, this an empirical value, without, the algorithm takes a long time for cards = 52, 20
-                                          ; still don't know why
-    xor     ah,ah
-    idiv    bl                              ; tsc divided by TOTAL_OF_CARDS, modulo in RDX
-    and     ah,ah
-    jne     .check
-    mov     ah,bl                          ; if remainder is zero, then remainder is the highest card
-     ; loop through shuffledcards to check if card is already choosen
-.check:     
-    mov     rsi,rdi
-    mov     rcx,r8
+    rdtsc                         ; EDX:EAX = timestamp
+    shr     rax, 3                ; Your empirical shift
+    xor     rdx, rdx              ; Clear rdx for div
+    div     rbx                   ; rax / total_cards, rem in rdx
+    
+    mov     rax, rdx              ; rax = remainder (0 to 51)
+    inc     rax                   ; rax = 1 to 52
+    mov     r10b, al              ; r10b = candidate card
+
+    ; Check if card is already chosen
+    mov     rsi, rdi              ; Start of buffer
+    mov     rcx, r8               ; Check up to current count
 .checknext:     
-    lodsb                                      ; AL has the card
-    and     al,al
-    je      .storecard
-    cmp     al,ah
+    lodsb
+    test    al, al                ; Reached uninitialized part?
+    jz      .storecard
+    cmp     al, r10b              ; Already exists?
     je      .tryagain
     loop    .checknext
 .storecard:    
-    dec     rsi
-    mov     byte[rsi],ah
+    mov     [rsi - 1], r10b
     jmp     .newcard
 .endshuffling:
     ret

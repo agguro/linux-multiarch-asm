@@ -4,7 +4,6 @@
      ; THIS FILE COULD CONTAIN ERRORS IN THE STRUCTURES USE AT YOUR OWN RISK
      ; stat structure is already tested and should work fine
      ; source: C header files
-     ; converted for nasm by Roberto Aguas Guerreiro <aggurobe@gmail.com>
 
      ; permission and type flags
 
@@ -84,75 +83,5 @@
           ._unused2:        resq 1
           ._unused3:        resq 1
      ENDSTRUC
-
-     %macro STAT 1
-          %1: 
-          ISTRUC STAT_STRUC
-               at STAT_STRUC.st_dev,        dq 0 ; device
-               at STAT_STRUC.st_ino,        dq 0 ; file serial number
-               at STAT_STRUC.st_nlink,      dq 0 ; link count 
-               at STAT_STRUC.st_mod,        dd 0 ; file mode
-               at STAT_STRUC.st_uid,        dd 0 ; user id of owner
-               at STAT_STRUC.st_gid,        dd 0 ; group id of owner
-               at STAT_STRUC.st_rdev,       dq 0 ; device number if device
-               at STAT_STRUC._pad1,         dd 0
-               at STAT_STRUC.st_size,       dq 0 ; filesize in bytes
-               at STAT_STRUC.st_blksize,    dd 0 ; optimal block size for I/O
-               at STAT_STRUC._pad2,         dd 0
-               at STAT_STRUC.st_blocks,     dq 0 ; number of 512-byte blocks allocated
-               at STAT_STRUC.st_atime,      dq 0 ; last access time secs
-               at STAT_STRUC.st_atime_nsec, dq 0 ; last access time nsecs
-               at STAT_STRUC.st_mtime,      dq 0 ; last modification time secs
-               at STAT_STRUC.st_mtime_nsec, dq 0 ; last modification time nsecs
-               at STAT_STRUC.st_ctime,      dq 0 ; last status changed time secs
-               at STAT_STRUC.st_ctime_nsec, dq 0 ; last status changed time nsecs
-               at STAT_STRUC._unused1,      dq 0
-               at STAT_STRUC._unused2,      dq 0
-               at STAT_STRUC._unused3,      dq 0
-          IEND  
-
-          ; definition macro's for STAT structure
-
-          %define %1.st_dev        %1+STAT_STRUC.st_dev
-          %define %1.st_ino        %1+STAT_STRUC.st_ino
-          %define %1.st_nlink      %1+STAT_STRUC.st_nlink
-          %define %1.st_mod        %1+STAT_STRUC.st_mod
-          %define %1.st_uid        %1+STAT_STRUC.st_uid
-          %define %1.st_gid        %1+STAT_STRUC.st_gid
-          %define %1.st_rdev       %1+STAT_STRUC.st_rdev
-          ; %define %1._pad1         %1+STAT_STRUC._pad1
-          %define %1.st_size       %1+STAT_STRUC.st_size
-          %define %1.st_blksize    %1+STAT_STRUC.st_blksize
-          ; %define %1._pad2         %1+STAT_STRUC._pad2
-          %define %1.st_blocks     %1+STAT_STRUC.st_blocks
-          %define %1.st_atime      %1+STAT_STRUC.st_atime
-          %define %1.st_atime_nsec %1+STAT_STRUC.st_atime_nsec
-          %define %1.st_mtime      %1+STAT_STRUC.st_mtime
-          %define %1.st_mtime_nsec %1+STAT_STRUC.st_mtime_nsec
-          %define %1.st_ctime      %1+STAT_STRUC.st_ctime
-          %define %1.st_ctime_nsec %1+STAT_STRUC.st_ctime_nsec
-          ; %define %1._unused1      %1+STAT_STRUC._unused1
-          ; %define %1._unused2      %1+STAT_STRUC._unused2
-          ; %define %1._unused3      %1+STAT_STRUC._unused3
-     %endmacro
-
-     ; stat64 structure definition
-     ; the only structure I'm aware of today that is used in a low level programming language is the
-     ; STAT structure. To be complete I added stat64 structure definitions too.
-     ; feel free to correct it (and let me know please)
-     %macro STAT64 1
-          %1: 
-          ; definition macro's for STAT64 structure
-          %define %1.st_mode       %1+STAT_STRUC.st_mod
-          %define %1.st_ino        %1+STAT_STRUC.st_ino
-          %define %1.st_dev        %1+STAT_STRUC.st_dev
-          %define %1.st_nlink      %1+STAT_STRUC.st_nlink
-          %define %1.st_uid        %1+STAT_STRUC.st_uid
-          %define %1.st_gid        %1+STAT_STRUC.st_gid
-          %define %1.st_size       %1+STAT_STRUC.st_size
-          %define %1.st_atime      %1+STAT_STRUC.st_atime
-          %define %1.st_mtime      %1+STAT_STRUC.st_mtime
-          %define %1.st_ctime      %1+STAT_STRUC.st_ctime
-     %endmacro
 
 %endif    ; _ASM_SYS_STAT_INC_

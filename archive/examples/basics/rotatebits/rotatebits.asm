@@ -1,98 +1,109 @@
-;name: rotatebits.asm
-;
-;description: rotate the most significant bit in the least significant position 
-;
-;build: nasm -felf64 rotatebits.asm -o rotatebits.o
-;       ld -melf_x86_64 -o rotatebits rotatebits.o 
-;
-;reference: number of leading zeros: Hacker's Delight
+; name        : rotatebits.asm
+; description : rotate significant bits left (3 methods compared)
+; build       : release: nasm -f elf64 -I ../../../includes -o rotatebits.o rotatebits.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o rotatebits rotatebits.o
+;               debug  : nasm -f elf64 -I ../../../includes -g -Fdwarf -o rotatebits.debug.o rotatebits.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o rotatebits.debug rotatebits.debug.o
 
 bits 64
-align 16
 
 [list -]
-     %include "unistd.inc"
+    %include "unistd.inc"
 [list +]
 
-section .bss
+; --- Manifest Constants ---
+%define TEST_NUMBER  -10525    ; Change this once to update the whole demo
 
-    reg64:      resb    64                      ;64 bits in a register
+section .bss
+    reg64:      resb    64
 
 section .rodata
-    
-    msg:       db      0x0A
-    .length:   equ     $-msg
+    msg:        db      0x0A
+    header1:    db      "1. Manual (Hacker's Delight): ", 10
+    header1.l:  equ     $ - header1
+    header2:    db      "2. BSR (Architectural):       ", 10
+    header2.l:  equ     $ - header2
+    header3:    db      "3. LZCNT (Modern):           ", 10
+    header3.l:  equ     $ - header3
+    orig_msg:   db      "Original Value:               ", 10
+    orig_msg.l: equ     $ - orig_msg
      
 section .text
-
-global _start
+    global _start
 _start:
+    mov      rdi, TEST_NUMBER                ; The test value
 
-    mov     rdi,10856
-    push    rdi
-    call    bin2ascii
-    syscall write,stdout,reg64,64
-    syscall write,stdout,msg,msg.length
-    pop     rdi
-    call    Rotatenbitsleft
-    mov     rdi,rax
-    call    bin2ascii
-    syscall write,stdout,reg64,64
-    syscall write, stdout, msg, msg.length
+    ; --- 0. Show Original Baseline ---
+    lea      rsi, [rel orig_msg]
+    mov      rdx, orig_msg.l
+    call     Write
+    mov      rdi, TEST_NUMBER
+    call     bin2ascii
+    call     PrintBuffer
+    
+    ; --- 1. Original Manual Method ---
+    lea      rsi, [rel header1]
+    mov      rdx, header1.l
+    call     Write
+    mov      rdi, TEST_NUMBER
+    call     Rotatenbitsleft_Manual
+    mov      rdi, rax
+    call     bin2ascii
+    call     PrintBuffer
+    
+    ; --- 2. BSR Method ---
+    lea      rsi, [rel header2]
+    mov      rdx, header2.l
+    call     Write
+    mov      rdi, TEST_NUMBER
+    call     Rotatenbitsleft_BSR
+    mov      rdi, rax
+    call     bin2ascii
+    call     PrintBuffer
+
+    ; --- 3. LZCNT Method ---
+    lea      rsi, [rel header3]
+    mov      rdx, header3.l
+    call     Write
+    mov      rdi, TEST_NUMBER
+    call     Rotatenbitsleft_LZCNT
+    mov      rdi, rax
+    call     bin2ascii
+    call     PrintBuffer
+    
     syscall exit, 0
 
-;bin2ascii : convert a binary value into an ascii string
-;in : rdi is value
-;out : ---
-bin2ascii:
-    push    rdi
-    push    rcx
-    mov     rax,rdi
-    mov     rdi,reg64
-    mov     rcx,64                              ;times to rotate
-.repeat:
-    xor     dl,dl
-    rcl     rax,1
-    adc     dl,0x30
-    mov     byte[rdi],dl
-    inc     rdi
-    loop    .repeat
-    pop     rcx
-    pop     rdi
-    ret
+; LOGIC EXPLANATION: "The Significant Window"
+; 1. Identify the Most Significant Bit (MSB) that is set to 1.
+; 2. Treat the bits from that 1 down to bit 0 as the "Active Window".
+; 3. Perform a circular shift within that window:
+;    Example (8-bit): 000[1100] (12) 
+;    Rotate Window:   000[1001] (9)
+
+Rotatenbitsleft_Manual:
+    push     rdi
+    call     NLZ_Manual                 ; Get leading zeros (the "padding")
+    mov      rcx, rax                   ; Count of zeros to skip
+    pop      rdi
+    mov      rax, rdi
     
-;RotateNbits: rotate msbit in a bitword to the least significant position ignoring leading zeros
-;in : decimal number in RDI
-;out : most significant bit of value in RDI becomes least significant bit.
-;      result in RAX
-;Used registers must be saved by caller
-
-Rotatenbitsleft:   
-    call      NLZ                           ;get the number of leading zeros, these must be skipped
-    mov       rcx, rax                      ;value of leading zero bits in RCX for rotation count
-    mov       rax, rdi                      ;value in rax
-    rol       rax, cl                       ;move all bits until most significant bit is in position 63 in RAX
-    rcl       rax, 1                        ;move most signifant bit in carry flag
-    inc       rcx                           ;add one to shift count (one bit is moved into carry)
-    pushfq                                  ;store flags (especially carry flag)
-    ror       rax, cl                       ;shift all bits back in place
-    popfq                                   ;restore flags
-    rcl       rax, 1                        ;move carry flag into position 0 of rax    
+    ; The Magic 3-Step Rotation:
+    rol      rax, cl                    ; Step A: Slide the padding out, MSB is now at bit 63
+    rol      rax, 1                     ; Step B: Wrap bit 63 around to bit 0
+    ror      rax, cl                    ; Step C: Slide the padding back to the front
     ret
 
-; count number of leading zero's
-; source: Hackers Delight
-; in : RDI : number to check
-; out : RAX : number of leading zeros
-
-NLZ:
-    and       rdi, rdi
+NLZ_Manual:
+    test      rdi, rdi
     jnz       .start
     mov       rax, 64
     ret
 .start: 
+    push      rbx
+    push      rcx
+    push      rdx
     mov       rax, rdi
-    xor       rbx, rbx                        ;storage for number of zero bits
+    xor       rbx, rbx
     mov       rcx, 32
     mov       rdx, 0xFFFFFFFF00000000
 .repeat:      
@@ -103,7 +114,78 @@ NLZ:
 .nozeros:
     shr       rcx, 1
     shl       rdx, cl
-    and       rcx, rcx
+    test      rcx, rcx
     jnz       .repeat
-    mov       rax, rbx                        ;result in rax
+    mov       rax, rbx
+    pop       rdx
+    pop       rcx
+    pop       rbx
+    ret
+
+Rotatenbitsleft_BSR:
+    test     rdi, rdi
+    jz       .zero
+    bsr      rax, rdi
+    mov      rcx, 63
+    sub      rcx, rax
+    mov      rax, rdi
+    rol      rax, cl
+    rol      rax, 1
+    ror      rax, cl
+    ret
+.zero:
+    xor      rax, rax
+    ret
+
+Rotatenbitsleft_LZCNT:
+    lzcnt    rcx, rdi
+    test     rcx, 64
+    jnz      .zero
+    mov      rax, rdi
+    rol      rax, cl
+    rol      rax, 1
+    ror      rax, cl
+    ret
+.zero:
+    xor      rax, rax
+    ret
+
+; UTILITIES (PIC)
+
+bin2ascii:
+    push     rax
+    push     rcx
+    push     rdi
+    push     rdx
+    mov      rax, rdi
+    lea      rdi, [rel reg64]
+    mov      rcx, 64
+.loop:
+    xor      dl, dl
+    shl      rax, 1
+    adc      dl, '0'
+    mov      [rdi], dl
+    inc      rdi
+    loop     .loop
+    pop      rdx
+    pop      rdi
+    pop      rcx
+    pop      rax
+    ret
+
+PrintBuffer:
+    lea      rsi, [rel reg64]
+    mov      rdx, 64
+    call     Write
+    lea      rsi, [rel msg]
+    mov      rdx, 1
+    call     Write
+    ret
+
+Write:
+    push    rcx
+    push    r11
+    syscall write, stdout, rsi, rdx
+    pop     r11
+    pop     rcx
     ret

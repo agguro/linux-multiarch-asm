@@ -1,24 +1,25 @@
-;name: hello.asm
-;
-;build: nasm -felf64 hello.asm -o hello.o
-;       ld -melf_x86_64 -o hello hello.o
-;
-;description: writes 'Hello world!" to stdout
+; name        : hello.asm
+; description : writes 'Hello world!" to stdout
+; build       : release: nasm -f elf64 -I ../../../includes -o hello.o hello.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o hello *.o
+;               debug  : nasm -f elf64 -I ../../../includes -g -Fdwarf -o hello.debug.o hello.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o hello.debug *.o
+
+bits 64
 
 [list -]
      %include "unistd.inc"
 [list +]
 
-bits 64
-
-section .data
-
-    message:   db "Hello world!",10
-    .len:      equ $-message
+section .rodata
+    message:    db "Hello world!", 10
+    .len:       equ $ - message
         
 section .text
      global _start
-     
 _start:
-    syscall write,stdout,message,message.len
-    syscall exit,0
+    ; PIC: Use lea with RIP-relative addressing
+    lea     rsi, [rel message]
+    syscall write, stdout, rsi, message.len
+    
+    syscall exit, 0

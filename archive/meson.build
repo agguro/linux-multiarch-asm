@@ -12,10 +12,8 @@ nasm_common_flags = [
 # Default ld flags for pure NASM programs
 ld_common_flags = [
    '-melf_x86_64',
-   
+   '-pie',
+   '--dynamic-linker','/lib64/ld-linux-x86-64.so.2',   
 ]
-
-# Default dynamic linker
-ld_dynamic_linker = '/lib64/ld-linux-x86-64.so.2'
 
 subdir('examples')

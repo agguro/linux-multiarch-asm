@@ -1,61 +1,75 @@
-;name: cpuid
-;
-;build: nasm -felf64 cpuid.asm -o cpuid.o
-;       ld -s -melf_x86_64 -o cpuid cpuid.o 
-;
-;description:  Checks if CPUID instruction is supported and if yes, shows also the Vendor ID
+; name        : cpuid.asm
+; description : Checks for CPUID support and shows Vendor ID
+; build       : release: nasm -f elf64  -I ../../../includes cpuid.asm -o cpuid.o
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cpuid cpuid.o
+;               debug  : nasm -f elf64 -I ../../../includes -g -Fdwarf -o cpuid.debug.o cpuid.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cpuid.debug *.o
+
+bits 64
 
 [list -]
     %include "unistd.inc"
-    %include "cpu/cpu.inc"
 [list +]
 
-section .data
+section .rodata
+    msg_prefix: db  "The processor Vendor ID is '"
+    .len:       equ $ - msg_prefix
+    
+    msg_suffix: db  "'", 10
+    .len:       equ $ - msg_suffix
 
-    output:         db  "The processor Vendor ID is '"
-    .regEBXvalue:   db  "xxxx"
-    .regEDXvalue:   db  "xxxx"
-    .regECXvalue:   db  "xxxx"
-                    db  "'", 10
-    .len:           equ $-output
+    msg_error:  db  "CPUID is not supported", 10
+    .len:       equ $ - msg_error
 
-    nosupport:      db  "CPUID is not supported", 10
-    .len:           equ $-nosupport
+section .bss
+    ; Reserve 12 bytes for the Vendor ID string (3 regs * 4 bytes)
+    vendor_id:  resb 12
 
 section .text
-
-global _start
+    global _start
 _start:
+    ; --- Step 1: Check for CPUID Support ---
+    pushfq
+    pop     rax
+    mov     rcx, rax
+    xor     rax, 0x200000
+    push    rax
+    popfq
+    pushfq
+    pop     rax
+    xor     rax, rcx
+    test    rax, 0x200000
+    jz      .no_support
 
-    ;assemble in 32 bit mode
-    bits 32
-    
-    ;returns 1 if CPUID is supported, 0 otherwise (ZF is also set accordingly)
-    pushfd                                  ;get 32 bits flags
-    pop     eax                             ;and put in EAX
-    mov     ecx,eax                         ;save the original flags state in ECX 
-    xor     eax,0x200000                    ;flip bit 21 
-    push    eax                             ;and put via EAX
-    popfd                                   ;on stack
-    pushfd                                  ;get the flags again
-    pop     eax                             ;put in EAX
-    xor     eax,ecx                         ;and check if bit 21 is the same as stored before
-    shr     eax,21                          ;move bit 21 to bit 0
-    and     eax,1                           ;and mask others
-    push    ecx                             ;
-    popfd                                   ;and restore original flags
-    jnz     .supported
-    
-    bits 64
-    syscall write,stdout,nosupport,nosupport.len
-    syscall exit
-
-.supported:
-    ; CPUID is supported
-    xor     eax,eax                         ;get vendor ID
+    ; --- Step 2: Get CPUID Data ---
+    xor     eax, eax
     cpuid
-    mov     [output.regEBXvalue],ebx        ;first 4 letters of vendor from ebx in place
-    mov     [output.regEDXvalue],edx        ;next 4 letters of vendor from edx in place
-    mov     [output.regECXvalue],ecx        ;last 4 letters of vendor from ecx in place
-    syscall write,stdout,output,output.len
-    syscall exit
+
+    ; PIC: Get the address of our BSS buffer
+    lea     rdi, [rel vendor_id]
+    
+    ; Store the 12-byte Vendor ID
+    mov     [rdi], ebx                  ; Bytes 0-3
+    mov     [rdi + 4], edx              ; Bytes 4-7
+    mov     [rdi + 8], ecx              ; Bytes 8-11
+
+    ; --- Step 3: Print in Sequence ---
+    
+    ; 1. Prefix
+    lea     rsi, [rel msg_prefix]
+    syscall write, stdout, rsi, msg_prefix.len
+    
+    ; 2. The Vendor ID (from BSS)
+    lea     rsi, [rel vendor_id]
+    syscall write, stdout, rsi, 12
+    
+    ; 3. Suffix
+    lea     rsi, [rel msg_suffix]
+    syscall write, stdout, rsi, msg_suffix.len
+
+    syscall exit, 0
+
+.no_support:
+    lea     rsi, [rel msg_error]
+    syscall write, stdout, rsi, msg_error.len
+    syscall exit, 1

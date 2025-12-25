@@ -1,174 +1,152 @@
-;name: keyfilter.asm
-;
-;description: The program displays the ASCII code in hexadecimal of the pressed key.
-;
-;
-;build: nasm -felf64 keyfilter.asm -o keyfilter.o
-;       ld -melf_x86_64 keyfilter.o -o keyfilter
-;
-;remark: On terminals with escape key sequences binded to keys (like the cursor keys) the
-;        program exits after pressing those (since ESCAPE sequences starts with the ESC key)
-;
-;source: 11.7 Writing UNIX® Filters - FreeBSD Developers’ Handbook
+; name        : keyfilter.asm
+; description : The program displays the ASCII code in hexadecimal of the pressed key.
+; build       : release: nasm -f elf64  -I ../../../includes keyfilter.asm -o keyfilter.o
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o keyfilter keyfilter.o
+;               debug  : nasm -f elf64 -I ../../../includes -g -Fdwarf -o keyfilter.debug.o keyfilter.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o keyfilter.debug *.o
 
 bits 64
 
-%include "unistd.inc"
-%include "sys/termios.inc"
+[list -]
+    %include "unistd.inc"
+    %include "sys/termios.inc"
+[list +]
 
 section .bss
-
     buffer:     resq    8
-    .length:    equ     $-buffer
-    
-section .rodata
+    .length:    equ     $ - buffer
+    termios:    resb    TERMIOS_STRUC_size
 
-    intro:      db      "filter - by Agguro 2011 source:  FreeBSD Developers’ Handbook.", 10
-                db      "The program shows the ASCII codes of the pressed keys. ESC terminates the "
-                db      "program with key code or CTRL-C without.", 10
-                db      "start typing >> "
-    .length:    equ     $-intro      
-    EOL:
-    .start:     db      "1B", 10      ;print the ASCII code for ESC to be complete
-    .end:
+section .rodata
+    intro:      db      "filter - by Agguro 2011 modernized for 2025", 10
+                db      "ESC terminates, CTRL-C without.", 10
+                db      "start typing >> ", 0
+    .length:    equ     $ - intro      
+    EOL_str:    db      "1B", 10
+    .len:       equ     $ - EOL_str
 
 section .data
+    output:     db      0, 0, " "      ; Hex digits + space
+    .length:    equ     $ - output
 
-    output:     db      0,0," "
-    .length:    equ     $-output
-
-    TERMIOS termios                   ;termios structure
-    
 section .text
+    global _start
 
-global _start
 _start:
-
-    mov     rsi,intro
-    mov     rdx,intro.length
-    call    Write
-    call    termios_canonical_mode_off          ;switch canonical mode off
-    call    termios_echo_mode_off               ;no echo
+    lea      rsi, [rel intro]
+    mov      rdx, intro.length
+    call     Write
+    
+    call     termios_canonical_mode_off
+    call     termios_echo_mode_off
 
 getKeyStroke:
-    syscall read,stdin,buffer,buffer.length 
-    cmp     byte[buffer],0x1B                   ;if ESC pressed
-    je      Exit
-    mov     al,byte[buffer]
-  
+    lea      rsi, [rel buffer]
+    mov      rdx, buffer.length
+    syscall  read, stdin, rsi, rdx 
+    
+    ; Check for ESC (0x1B)
+    lea      rax, [rel buffer]
+    cmp      byte [rax], 0x1B
+    je       Exit
+    
+    movzx    rax, byte [rax]
+
 toASCII:
-    shl     rax,4                               ;most significant nibble in AH
-    shr     al,4                                ;least significant nibble in AL
-    or      ax,3030h                            ;attempt to convert both to ASCII
-    cmp     al,"9"                              ;is AL = ascii 9 ?
-    jle     .highNibble
-    add     al,7
-.highNibble:
-    cmp     ah,"9"
-    jle     .done
-    add     ah,7
+    ; Convert byte to hex
+    mov      ah, al
+    and      al, 0x0F                 ; low nibble
+    shr      ah, 4                    ; high nibble
+    
+    or       ax, 3030h                ; Convert to '0'-'9' range
+    
+    cmp      al, '9'
+    jbe      .checkHigh
+    add      al, 7                    ; Adjust for 'A'-'F'
+.checkHigh:
+    cmp      ah, '9'
+    jbe      .done
+    add      ah, 7
 .done:
-    ror     ax,8                                ;little ENDIAN notation
-    mov     word[output],ax                     ;ASCII in buffer to print
-    mov     rsi,output
-    mov     rdx,output.length
-    call    Write
-    jmp     getKeyStroke
+    lea      rdi, [rel output]
+    mov      [rdi], ah
+    mov      [rdi+1], al
+    
+    mov      rsi, rdi
+    mov      rdx, output.length
+    call     Write
+    jmp      getKeyStroke
   
 Exit:
-    mov     rsi,EOL
-    mov     rdx,EOL.end-EOL.start
-    call    Write     
-    call    termios_canonical_mode_on           ;switch canonical mode back on
-    call    termios_echo_mode_on                ;restore echo
-    syscall exit,0
-
-;write to STDOUT
-Write:
-    push    rcx
-    push    rax
-    push    rdi
-    syscall write,stdout
-    pop     rdi
-    pop     rax
-    pop     rcx
-    ret
-
-;subroutine to switch canonical mode on
-;RAX is unchanged on exit
-termios_canonical_mode_on:
-    push    rax
-    mov     rax,ICANON
-    jmp     termios_set_localmode_flag
-  
-;subroutine to switch echo mode on
-;RAX is unchanged on exit
-termios_echo_mode_on:
-    push    rax
-    mov     rax,ECHO
-    jmp     termios_set_localmode_flag
-  
-;subroutine to set the bits in the c_lflag stored in EAX
-;RAX is unchanged on exit
-termios_set_localmode_flag:
-    push    rax
-    call    termios_stdin_read
-    or      dword[termios.c_lflag],eax
-    call    termios_stdin_write
-    pop     rax
-    pop     rax
-    ret
-  
-;subroutine to switch canonical mode off
-;RAX is unchanged on exit
-termios_canonical_mode_off:
-    push    rax
-    mov     rax,ICANON
-    jmp     termios_clear_localmode_flag
-  
-;subroutine to switch echo mode off
-;RAX is unchanged on exit
-termios_echo_mode_off:
-    push    rax
-    mov     rax,ECHO
-    jmp     termios_clear_localmode_flag
-  
-;subroutine to clear the bits in the c_lflag stored in EAX
-;RAX is unchanged on exit
-termios_clear_localmode_flag:
-    push    rax
-    call    termios_stdin_read
-    not     eax
-    and     [termios.c_lflag],eax
-    call    termios_stdin_write
-    pop     rax
-    pop     rax
-    ret
-  
-;subroutine for all TCGETS operation on the syscall IOCTL
-;the original value of RCX is restored on exit
-termios_stdin_read:
-    push    rsi
-    mov     rsi,TCGETS
-    jmp     termios_stdin_syscall
-  
-;subroutine for all TCSETS operation on the syscall IOCTL
-;the original value of RCX is restored on exit
-termios_stdin_write:
-    push    rsi
-    mov     rsi,TCSETS
-    jmp     termios_stdin_syscall
+    lea      rsi, [rel EOL_str]
+    mov      rdx, EOL_str.len
+    call     Write     
     
-;subroutine for operations on the syscall IOCTL for STDIN
-;all registers are restored to their original values on exit of the subroutine
+    call     termios_canonical_mode_on
+    call     termios_echo_mode_on
+    syscall  exit, 0
+
+; --- Utility Functions ---
+
+Write:
+    push     rcx
+    push     r11
+    syscall  write, stdout, rsi, rdx
+    pop      r11
+    pop      rcx
+    ret
+
+; --- Termios Management (PICified & Fixed) ---
+
+termios_canonical_mode_on:
+    mov      eax, ICANON
+    call     termios_set_localmode_flag
+    ret
+
+termios_echo_mode_on:
+    mov      eax, ECHO
+    call     termios_set_localmode_flag
+    ret
+
+termios_set_localmode_flag:
+    push     rax
+    call     termios_stdin_read
+    pop      rax
+    lea      rdx, [rel termios]
+    or       dword [rdx + TERMIOS_STRUC.c_lflag], eax
+    call     termios_stdin_write
+    ret
+
+termios_canonical_mode_off:
+    mov      eax, ICANON
+    call     termios_clear_localmode_flag
+    ret
+
+termios_echo_mode_off:
+    mov      eax, ECHO
+    call     termios_clear_localmode_flag
+    ret
+
+termios_clear_localmode_flag:
+    push     rax
+    call     termios_stdin_read
+    pop      rax
+    not      eax
+    lea      rdx, [rel termios]
+    and      dword [rdx + TERMIOS_STRUC.c_lflag], eax
+    call     termios_stdin_write
+    ret
+    
+termios_stdin_write:
+    mov      rsi, TCSETS
+    jmp      termios_stdin_syscall
+
+termios_stdin_read:
+    mov      rsi, TCGETS
+
 termios_stdin_syscall:
-    push    rax
-    push    rdi
-    push    rdx
-    mov     rdx,termios
-    syscall ioctl,stdin
-    pop     rdx
-    pop     rdi
-    pop     rax
-    pop     rsi
+    push     rax                      ; Protect RAX from syscall clobber
+    lea      rdx, [rel termios]
+    syscall  ioctl, stdin, rsi, rdx
+    pop      rax
     ret

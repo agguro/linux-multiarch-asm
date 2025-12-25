@@ -29,26 +29,4 @@
         .ypixels:   resq    1       ; not used
     ENDSTRUC
 
-    ; *** MACROS ***
-
-    %macro TERMIOS 1
-        %1: ISTRUC TERMIOS_STRUC
-            at TERMIOS_STRUC.c_iflag, dd 0
-            at TERMIOS_STRUC.c_oflag, dd 0
-            at TERMIOS_STRUC.c_cflag, dd 0
-            at TERMIOS_STRUC.c_lflag, dd 0
-            at TERMIOS_STRUC.c_line,  db 0
-            at TERMIOS_STRUC.c_cc,    times 19 db 0
-        IEND
-    %endmacro
-
-    %macro WINSIZE 1
-        %1: ISTRUC WINSIZE_STRUC
-                at WINSIZE_STRUC.rows,    dq 0
-                at WINSIZE_STRUC.cols,    dq 0
-                at WINSIZE_STRUC.xpixels, dq 0
-                at WINSIZE_STRUC.ypixels, dq 0
-            IEND
-    %endmacro
-
 %endif  ; _ASM_SYS_TERMIOS_INC_

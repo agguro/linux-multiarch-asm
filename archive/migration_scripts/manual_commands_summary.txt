@@ -1,0 +1,228 @@
+
+======================================================================
+ PROJECT: arguments
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o arguments.o arguments.asm
+  ld -m elf_x86_64 -o arguments *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o arguments.debug.o arguments.asm
+  ld -m elf_x86_64 -o arguments.debug *.o
+
+======================================================================
+ PROJECT: avx2_addArrays
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o avx2_addArrays.o avx2_addArrays.asm
+  g++ -o avx2_addArrays *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o avx2_addArrays.debug.o avx2_addArrays.asm
+  g++ -o avx2_addArrays.debug *.o
+
+======================================================================
+ PROJECT: avx512_addArrays
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o avx512_addArrays.o avx512_addArrays.asm
+  g++ -o avx512_addArrays *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o avx512_addArrays.debug.o avx512_addArrays.asm
+  g++ -o avx512_addArrays.debug *.o
+
+======================================================================
+ PROJECT: avx_addArrays
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o avx_addArrays.o avx_addArrays.asm
+  g++ -o avx_addArrays *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o avx_addArrays.debug.o avx_addArrays.asm
+  g++ -o avx_addArrays.debug *.o
+
+======================================================================
+ PROJECT: cpuid
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o cpuid.o cpuid.asm
+  ld -m elf_x86_64 -o cpuid *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o cpuid.debug.o cpuid.asm
+  ld -m elf_x86_64 -o cpuid.debug *.o
+
+======================================================================
+ PROJECT: cwd
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o cwd.o cwd.asm
+  ld -m elf_x86_64 -o cwd *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o cwd.debug.o cwd.asm
+  ld -m elf_x86_64 -o cwd.debug *.o
+
+======================================================================
+ PROJECT: dealcards
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o dealcards.o dealcards.asm
+  ld -m elf_x86_64 -o dealcards *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o dealcards.debug.o dealcards.asm
+  ld -m elf_x86_64 -o dealcards.debug *.o
+
+======================================================================
+ PROJECT: dirinfo
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o dirinfo.o dirinfo.asm
+  ld -m elf_x86_64 -o dirinfo *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o dirinfo.debug.o dirinfo.asm
+  ld -m elf_x86_64 -o dirinfo.debug *.o
+
+======================================================================
+ PROJECT: hello
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o hello.o hello.asm
+  ld -m elf_x86_64 -o hello *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o hello.debug.o hello.asm
+  ld -m elf_x86_64 -o hello.debug *.o
+
+======================================================================
+ PROJECT: inputdemo
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o inputdemo.o inputdemo.asm
+  ld -m elf_x86_64 -o inputdemo *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o inputdemo.debug.o inputdemo.asm
+  ld -m elf_x86_64 -o inputdemo.debug *.o
+
+======================================================================
+ PROJECT: keyfilter
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o keyfilter.o keyfilter.asm
+  ld -m elf_x86_64 -o keyfilter *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o keyfilter.debug.o keyfilter.asm
+  ld -m elf_x86_64 -o keyfilter.debug *.o
+
+======================================================================
+ PROJECT: palindrome
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o palindrome.o palindrome.asm
+  ld -m elf_x86_64 -o palindrome *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o palindrome.debug.o palindrome.asm
+  ld -m elf_x86_64 -o palindrome.debug *.o
+
+======================================================================
+ PROJECT: printenv
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o printenv.o printenv.asm
+  ld -m elf_x86_64 -o printenv *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o printenv.debug.o printenv.asm
+  ld -m elf_x86_64 -o printenv.debug *.o
+
+======================================================================
+ PROJECT: readfile
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o readfile.o readfile.asm
+  ld -m elf_x86_64 -o readfile *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o readfile.debug.o readfile.asm
+  ld -m elf_x86_64 -o readfile.debug *.o
+
+======================================================================
+ PROJECT: rotatebits
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o rotatebits.o rotatebits.asm
+  ld -m elf_x86_64 -o rotatebits *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o rotatebits.debug.o rotatebits.asm
+  ld -m elf_x86_64 -o rotatebits.debug *.o
+
+======================================================================
+ PROJECT: uuid
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o uuid.o uuid.asm
+  ld -m elf_x86_64 -o uuid *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o uuid.debug.o uuid.asm
+  ld -m elf_x86_64 -o uuid.debug *.o
+
+======================================================================
+ PROJECT: waitforenterkeypress
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o waitforenterkeypress.o waitforenterkeypress.asm
+  ld -m elf_x86_64 -o waitforenterkeypress *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o waitforenterkeypress.debug.o waitforenterkeypress.asm
+  ld -m elf_x86_64 -o waitforenterkeypress.debug *.o
+
+======================================================================
+ PROJECT: waitforkeypress
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o waitforkeypress.o waitforkeypress.asm
+  ld -m elf_x86_64 -o waitforkeypress *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o waitforkeypress.debug.o waitforkeypress.asm
+  ld -m elf_x86_64 -o waitforkeypress.debug *.o
+
+======================================================================
+ PROJECT: winsize
+======================================================================
+
+--- RELEASE VERSION ---
+  nasm -f elf64 -I ../../includes -o winsize.o winsize.asm
+  ld -m elf_x86_64 -o winsize *.o
+
+--- DEBUG VERSION ---
+  nasm -f elf64 -I ../../includes -g -Fdwarf -o winsize.debug.o winsize.asm
+  ld -m elf_x86_64 -o winsize.debug *.o

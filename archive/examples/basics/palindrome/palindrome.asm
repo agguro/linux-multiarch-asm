@@ -1,106 +1,107 @@
-;name: palindrome.asm
-;
-;description: The program checks if a given string is a palindrome. If no string is passed on
-;             the commandline a brief message is displayed on how to use the program.
-;             The string can be any charactersequence and is case sensitive thus Aa is a
-;             palindrome of aA but not of aa.
-;
-;build: nasm -felf64 palindrome.asm -o palindrome.o
-;       ld -melf_x86_64 palindrome.o -o palindrome 
-;
-;usage: ./palindrome string1 string2 .... stringn
+; name        : palindrome.asm
+; description : Checks if a given string is a palindrome
+; build       : release: nasm -f elf64  -I ../../../includes palindrome.asm -o palindrome.o
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o palindrome palindrome.o
+;               debug  : nasm -f elf64 -I ../../../includes -g -Fdwarf -o palindrome.debug.o palindrome.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o palindrome.debug *.o
+; usage       : ./palindrome string1 string2 .... stringn
 
 bits 64
 
-%include "unistd.inc"
-
-global _start
+[List -]
+    %include "unistd.inc"
+[list +]
 
 section .bss
 
-section .data
+section .rodata
     usage:
-    .start:     db  "Palindrome by Agguro.",10
+    .start:     db  "Palindrome by agguro.",10
                 db  "usage: palindrome string1 string2 ...",10
-    .length:    equ $-usage.start
+    .length:    equ $ - usage.start
+    
     txt:
     .is:        db  " is "
-    .islength:  equ $-txt.is
+    .islength:  equ $ - txt.is
     .no:        db  "not "
-    .nolength:  equ $-txt.no
+    .nolength:  equ $ - txt.no
     .yes:       db  "a palindrome.",10
-    .yeslength: equ $-txt.yes
+    .yeslength: equ $ - txt.yes
     
 section .text
-
+    global _start
 _start:
-    pop	    rcx                    ;argc in RCX
-    cmp     rcx,2                  ;is there an argument?
+    pop     rcx                    ; argc in RCX
+    cmp     rcx, 2                 ; is there an argument?
     jl      .noArguments
-    pop     rax                    ;pointer to command      
-    dec     rcx                    ;argc - 1 because of command
+    pop     rax                    ; pointer to command      
+    dec     rcx                    ; argc - 1 because of command
 .repeat:
-    pop     rsi                    ;get pointer to string
-    call    String.length          ;get length of string
-    mov     rdx,rax                ;lenght in rdx
+    pop     rsi                    ; get pointer to string (from stack, already absolute)
+    call    String.length          ; get length of string
+    mov     rdx, rax               ; length in rdx
     call    String.write
     
     push    rsi
-    mov	    rsi,txt.is
-    mov	    rdx,txt.islength
+    lea     rsi, [rel txt.is]      ; PIC: RIP-relative addressing
+    mov     rdx, txt.islength
     call    String.write
-    pop	    rsi
+    pop     rsi
     
     call    Palindrome.check
     
     jnc     .isPalindrome
-    mov	    rsi,txt.no
-    mov	    rdx,txt.nolength
+    lea     rsi, [rel txt.no]      ; PIC: RIP-relative addressing
+    mov     rdx, txt.nolength
     call    String.write
 
 .isPalindrome:
-    mov     rsi,txt.yes
-    mov     rdx,txt.yeslength
+    lea     rsi, [rel txt.yes]     ; PIC: RIP-relative addressing
+    mov     rdx, txt.yeslength
     call    String.write
 .until:
     loop    .repeat
     jmp     Exit
 .noArguments:    
-    mov     rsi,usage
-    mov     rdx,usage.length
+    lea     rsi, [rel usage]       ; PIC: RIP-relative addressing
+    mov     rdx, usage.length
     call    String.write
-    jmp     Exit
 Exit:
     syscall exit, 0
 
 Palindrome:
 .check:
-    ;RSI has the pointer to a zero terminated string. If the string is a palindrome then the
-    ;subroutine returns with the carryflag cleared, otherwise the carryflag is set.
-
+    ; RSI has the pointer to a zero terminated string.
     push    rsi
     push    rdi
     push    rax
     push    rcx  
-    ;get length of stringz pointed by RSI
+    
     call    String.length
-    ;pointer to last character of string
-    mov     rdi,rsi
-    add     rdi,rax                 ;calculate pointer to last character in string
+    
+    ; pointer to last character of string
+    mov     rdi, rsi
+    add     rdi, rax               ; calculate pointer to last character in string
     dec     rdi
-    ;calculate middle of string
-    shr     rax,1                   ;divide rax by 2
-    mov     rcx,rax                 ;integer part of division in rcx
-.repeat:    
-    mov     al,byte[rsi]            ;read byte RCX from begin of string
-    mov     ah,byte[rdi]            ;read byte RCX from end of string
-    cmp     al,ah      
+    
+    ; calculate middle of string
+    shr     rax, 1                 ; divide rax by 2
+    mov     rcx, rax               ; integer part of division in rcx
+    test    rcx, rcx               ; handle single-char strings
+    jz      .isPalindrome_check
+
+.repeat_check:    
+    mov     al, byte [rsi]         ; read from start
+    mov     ah, byte [rdi]         ; read from end
+    cmp     al, ah      
     jne     .noPalindrome
-    inc     rsi                     ;move pointer to next byte position
-    dec     rdi                     ;move pointer to previous byte position
-    dec     rcx                     ;adjust counter
-    jnz     .repeat
-    clc                             ;string is palindrome
+    inc     rsi
+    dec     rdi
+    dec     rcx
+    jnz     .repeat_check
+
+.isPalindrome_check:
+    clc                            ; string is palindrome
     jmp     .done
 .noPalindrome:
     stc
@@ -113,27 +114,25 @@ Palindrome:
 
 String:
 .length:
-    ; RSI has the pointer to a zero terminated string
-    ; the length will be returned in RAX, all registers except RAX are restored
-    push    rsi                     ;store used registers
+    push    rsi
     push    rcx     
-    xor     rcx,rcx                 ;bytecounter
-.repeat:    
-    lodsb                           ;byte in AL
-    cmp     al,0                    ;if 0 then end of string
-    je      .done
-    inc     rcx                     ;else increment byte counter
-    jmp     .repeat
-.done:    
-    mov     rax,rcx                 ;string length in RAX
-    pop     rcx                     ;restore used registers
+    xor     rcx, rcx
+.repeat_len:    
+    lodsb
+    test    al, al
+    je      .done_len
+    inc     rcx
+    jmp     .repeat_len
+.done_len:    
+    mov     rax, rcx
+    pop     rcx
     pop     rsi
     ret
 
 .write:
-    ; show a string pointed by RSI and length RDX on STDOUT
-    ; all registers are restored, rcx will be destroyed after the syscall
     push    rcx
-    syscall write, stdout
+    push    r11                    ; Good habit for PIC syscalls
+    syscall write, stdout, rsi, rdx
+    pop     r11
     pop     rcx
     ret

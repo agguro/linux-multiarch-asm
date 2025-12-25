@@ -1,131 +1,101 @@
-;name: uuid.asm
-;
-;description: Generates a UUID
-;
-;build: nasm -felf64 uuid.asm -o uuid.o
-;       ld -melf_x86_64 uuid.o -o uuid
-;
-;remark: Because UUID need to be unique (that's why U stands for) the user need to
-;        check each generated UUID against a table which contains already generated
-;        UUID's. This algorithm applied 10000 gives 51 same UUIDs, 100000 times
-;        gives 135 same UUIDs, 1000000 gives us 18884 same UUIDs. So check the presence
-;        of an already generated uuid. Another possibility is the use of mysql uuid
-;        but requires the installation of mysql server.
+; name        : uuid.asm
+; description : Generates a UUID using a contiguous pre-formatted buffer (PIC)
+; build       : release: nasm -f elf64 -I ../../../includes -o uuid.o uuid.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o uuid uuid.o
+;               debug  : nasm -f elf64 -I ../../../includes -g -Fdwarf -o uuid.debug.o uuid.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o uuid.debug uuid.debug.o
 
 bits 64
 
-%include "unistd.inc"
-
-;IOV structure definition
-struc IOV_STRUC
-    .iov_base:  resq    1
-    .iov_len:   resq    1
-endstruc
-
-;macro to use IOV in a less complex manner
-%macro IOV 3
-    %define %1.base     %1+IOV_STRUC.base
-    %define %1.len      %1+IOV_STRUC.len
-
-    %1: istruc IOV_STRUC
-    at IOV_STRUC.iov_base, dq   %2
-    at IOV_STRUC.iov_len, dq    %3
-    iend
-%endmacro
-
-section .bss
-    ;keep all groups together to create 32 values at once
-    uuid:           
-    .group1:        resb      8
-    .group2:        resb      4
-    .group3:        resb      4
-    .group4:        resb      4
-    .group5:        resb      12
+[list -]
+    %include "unistd.inc"
+[list +]
 
 section .data
+    ; The most economic way: the hyphens are "baked" into the binary image
+    uuid_str:
+    .g1:      times 8 db 0
+              db '-'
+    .g2:      times 4 db 0
+              db '-'
+    .g3:      times 4 db 0
+              db '-'
+    .g4:      times 4 db 0
+              db '-'
+    .g5:      times 12 db 0
+    .eol:     db 10        ; Newline (LF)
+    .len:     equ $ - uuid_str
 
-iov:
-    IOV s1,uuid.group1,8
-    IOV s2,hyphen,1
-    IOV s3,uuid.group2,4
-    IOV s4,hyphen,1
-    IOV s5,uuid.group3,4
-    IOV s6,hyphen,1
-    IOV s7,uuid.group4,4
-    IOV s8,hyphen,1
-    IOV s9,uuid.group5,12
-    IOV s10,crlf,1
-
-    crlf:           db      10
-    hyphen:         db      "-"
-    
 section .text
+    global _start
 
-global _start
 _start:
-    mov     rdi, uuid 
-    call    generate
-    ; convert to ascii
-    mov     rsi, uuid
-    mov     rdi, uuid
-    mov     rcx, 32
-nextDigit:      
-    cld
-    lodsb
-    call    nibbletoasciihex
-    stosb
-    loop    nextDigit
-    syscall writev,stdout,iov,10
-    syscall exit, 0
+    ; Fill Group 1 (8 chars)
+    lea     rdi, [rel uuid_str.g1]
+    mov     rcx, 8
+    call    fill_group
+
+    ; Fill Group 2 (4 chars)
+    lea     rdi, [rel uuid_str.g2]
+    mov     rcx, 4
+    call    fill_group
+
+    ; Fill Group 3 (4 chars)
+    lea     rdi, [rel uuid_str.g3]
+    mov     rcx, 4
+    call    fill_group
+
+    ; Fill Group 4 (4 chars)
+    lea     rdi, [rel uuid_str.g4]
+    mov     rcx, 4
+    call    fill_group
+
+    ; Fill Group 5 (12 chars)
+    lea     rdi, [rel uuid_str.g5]
+    mov     rcx, 12
+    call    fill_group
+
+    ; Single system call to print the entire formatted result
+    lea     rsi, [rel uuid_str]
+    mov     rdx, uuid_str.len
+    syscall write, stdout, rsi, rdx
     
-generate:
-;in  : rdi = pointer to buffer to store 32 bytes
-;out : rdi = pointer to buffer with GUID
-    mov	    rcx,32                  ;32 characters to generate
-.repeat:      
-    xor	    rax,rax                 ;lower boundary of interval
-    mov     rdx,0xF                 ;higher boundary of interval
-    call    GenerateRandom
-    cld
-    stosb
-    loop    .repeat
+    syscall exit, 0
+
+; --- Subroutines ---
+
+fill_group:
+    ; In: RDI = pointer to group, RCX = number of nibbles to fill
+.loop:
+    call    GenerateRandomNibble   ; returns ASCII hex in AL
+    stosb                          ; store AL at RDI and inc RDI
+    loop    .loop
     ret
 
-nibbletoasciihex:
-; in  :: AL = NIBBLE or 4 bits (least significant)
-; out :: AL = Hexadecimal ASCII of NIBBLE   
-    and     al,0x0F
-    or      al,"0"
-    cmp     al,"9"
+GenerateRandomNibble:
+    rdtsc                          ; read timestamp counter (EDX:EAX)
+    shl     rdx, 32
+    or      rax, rdx               ; create 64-bit seed
+    call    XorShift               ; scramble the bits
+    and     rax, 0x0F              ; mask to get 0-15
+    
+    ; Convert to ASCII Hex
+    add     al, '0'
+    cmp     al, '9'
     jbe     .done
-    add     al,39
+    add     al, 39                 ; Jump to 'a' range (39 + 1 + '9' = 'a')
 .done:
     ret
 
-GenerateRandom:
-;in rdi : lower boundary of interval
-;   rsi : higher boundary of interval
-;interval length is 0xF
-    mov	    rbx,0xF
-    rdtsc                               ;read cpu time stamp counter
-    push    rax
-    rdtsc                               ;read cpu time stamp counter
-    mov     rax,rdx
-    pop     rax     
-    rol     rdx,32                      ;mov EDX in high 32 bits of RAX
-    or      rax,rdx                     ;RAX = seed
-    call    XorShift                    ;get a pseudo random number
-    and     rax,0xF
-    ret
-    
 XorShift:
-    mov     rdx,rax                     ;XORSHIFT algorithm
-    shl     rax,13
-    xor     rax,rdx
-    mov     rdx,rax
-    shr     rax,17
-    xor     rax,rdx
-    mov     rdx,rax
-    shl     rax,5
-    xor     rax,rdx                     ;rax random 64 bit value
+    ; Fast 64-bit pseudo-random number generator
+    mov     rdx, rax
+    shl     rax, 13
+    xor     rax, rdx
+    mov     rdx, rax
+    shr     rax, 17
+    xor     rax, rdx
+    mov     rdx, rax
+    shl     rax, 5
+    xor     rax, rdx
     ret

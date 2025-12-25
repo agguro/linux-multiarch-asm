@@ -1,36 +1,35 @@
-;name: printenv.asm
-;
-;description: Another Linux printenv program.
-;             Shows the environment params on stdout.
-;
-;build: nasm -felf64 printenv.asm -o printenv.o
-;       ld -melf_x86_64 printenv.o -o printenv
+; name        : printenv.asm
+; description : Another Linux printenv program.
+; build       : release: nasm -f elf64 -I ../../../includes -o printenv.o printenv.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o printenv *.o
+;               debug  : nasm -f elf64 -I ../../../includes -g -Fdwarf -o printenv.debug.o printenv.asm
+;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o printenv.debug *.o
 
 bits 64
 
-%include "unistd.inc"
-
-global _start
+[list -]
+    %include "unistd.inc"
+[list +]
 
 section .bss
-
     buffer:         resb    1
-    buffer.length:  equ $-buffer
+    buffer.length:  equ $ - buffer
+
+section .data
+    ; Moved to .data because it can be modified by -0 or --null
+    endofline:      db 10
 
 section .rodata
-
-    ;printenv --help
     usage:
     db "Usage: ./printenv [OPTION]... [VARIABLE]...",10
     db "Print the values of the specified environment VARIABLE(s).",10
     db "If no VARIABLE is specified, print name and value pairs for them all.",10
     db 10
-    db "-0, --null     end each output line with 0 byte rather than newline",10
-    db "    --help     display this help and exit",10
-    db "    --version  output version information and exit",10
-    usage.length:   equ $-usage
+    db "-0, --null      end each output line with 0 byte rather than newline",10
+    db "    --help      display this help and exit",10
+    db "    --version   output version information and exit",10
+    usage.length:    equ $ - usage
     
-    ;printenv --version
     version:
     db "printenv (NASM http://www.nasm.us) 0.01",10
     db "Copyright (C) 2011 Free Software Foundation, Inc.",10
@@ -39,167 +38,186 @@ section .rodata
     db "There is NO WARRANTY, to the extent permitted by law.",10
     db 10
     db "Written by David MacKenzie and Richard Mlynarik.", 10
-    db "NASM version written by Agguro (http://www.linuxnasm.be).",10
-    version.length: equ $-version
+    db "NASM version written by agguro (https://gitgub.com/agguro).",10
+    version.length: equ $ - version
     
-    invalid:
-        db "printenv: invalid option '"
-    invalid.length: equ $-invalid 
+    invalid:        db "printenv: invalid option '"
+    invalid.length: equ $ - invalid 
 
-    option:
-        db "'",10
-        db "Try `printenv --help` for more information.",10
-    option.length:  equ $-option
-    
-    ;printenv -0  or printenv --null sets this to 0
-    endofline:
-        db 10
+    option_msg:     db "'",10
+                    db "Try `printenv --help` for more information.",10
+    option.length:  equ $ - option_msg
     
 section .text
-
+    global _start
 _start:
-    pop	    rbx                         ;argc
-    pop     rsi                         ;the command
-    cmp     rbx,1                       ;no options nor variablename
-    je      .GetAllVariables            ;get all variables
-    ;there are options or a variablename
-    pop     rsi                         ;get pointer to string
-    mov	    r15,rsi                     ;save pointer to option
-    ;we got the pointer to the command string
+    pop     rbx                         ; argc
+    pop     rsi                         ; the command name (argv[0])
+    cmp     rbx, 1                      ; No arguments provided
+    je      .GetAllVariables            
+
+    ; Get first argument
+    pop     rsi                         ; argv[1]
+    mov     r15, rsi                    ; Save pointer for potential error msg
+    
     cld
-    lodsb                               ;read byte
-    cmp     al,'-'                      ;if = '-' then we have an option
-    je      .NoVariable
-    dec     rsi                         ;adjust pointer
-    push    rsi                         ;put required variable on stack
+    lodsb                               
+    cmp     al, '-'                     ; Check if it's an option
+    je      .HandleOptions
+    
+    ; If not an option, treat it as a specific variable request
+    dec     rsi                         
+    push    rsi                         ; Variable to look for
     jmp     .GetVariable
-.NoVariable:
+
+.HandleOptions:
     lodsb
-    cmp     al,'0'
+    cmp     al, '0'
     je      .IsNull
-    cmp     al,'-'
-    jne     .InvalidOption              ;not an option -> exit
+    cmp     al, '-'
+    jne     .InvalidOption              
+    
+    ; Parsing long options (--help, --version, --null)
     lodsq
-    rol     rax,32
-    cmp     al,0
-    je      .IsHelpOrNull               ;check if help or null
-    ror     rax,24
-    cmp     al,0
+    rol     rax, 32
+    cmp     al, 0
+    je      .IsHelpOrNull               
+    
+    ror     rax, 24
+    cmp     al, 0
     jne     .InvalidOption
-    ror     rax,8
-    mov     rbx,"version"
-    cmp     rax,rbx
+    
+    ror     rax, 8
+    mov     rbx, "version"
+    cmp     rax, rbx
     je      .IsVersion
     jmp     .Exit
+
 .IsHelpOrNull:
-    rol     rax,32
-    cmp     eax,"help"
+    rol     rax, 32
+    cmp     eax, "help"
     je      .IsHelp
-    cmp     eax,"null"
+    cmp     eax, "null"
     je      .IsNull
-    jmp     .Exit                       ;not 'h' nor 'v' -> just exit
+    jmp     .Exit                       
+
 .IsNull:
-    mov     byte[endofline],0
-    cmp     rbx,2
+    lea     rax, [rel endofline]
+    mov     byte [rax], 0
+    cmp     rbx, 2                      ; If only 'printenv -0', get all
     jne     .GetVariable
     jmp     .GetAllVariables
+
 .IsHelp:
-    mov     rsi,usage
-    mov     rdx,usage.length
+    lea     rsi, [rel usage]
+    mov     rdx, usage.length
     call    Write
     jmp     .Exit
+
 .IsVersion:
-    mov     rsi,version
-    mov     rdx,version.length
+    lea     rsi, [rel version]
+    mov     rdx, version.length
     call    Write
     jmp     .Exit
+
 .InvalidOption:
-    mov     rsi,invalid
-    mov     rdx,invalid.length
+    lea     rsi, [rel invalid]
+    mov     rdx, invalid.length
     call    Write
-    mov	    rsi,r15
+    mov     rsi, r15
     call    PrintVariable
-    mov     rsi,option
-    mov     rdx,option.length
+    lea     rsi, [rel option_msg]
+    mov     rdx, option.length
     call    Write
     jmp     .Exit
+
 .GetAllVariables:
-    pop     rsi
-    ;no additional options,print them all
-    ;rsp points to the first item in the parameterstringlist on stack  
+    ; At this point on the stack, after popping argv, comes the envp list
+    ; The stack looks like: [envp0][envp1]...[NULL]
+    ; Note: The original code skips over the NULL at the end of argv
+    pop     rsi                         ; Skip the NULL terminating argv
 .NextVariable:    
-    pop     rsi                         ;read stringpointer
-    cmp     rsi,0                       ;if zero then end of list
-    je      .Exit
+    pop     rsi                         ; Read environment string pointer
+    test    rsi, rsi                    ; NULL pointer marks end of envp
+    jz      .Exit
     call    PrintVariable
     call    PrintVariable.eol
     jmp     .NextVariable
+
 .GetVariable:
-    ;first calculate the length of the variable including trailing zero
-    pop     rdi                         ;required variable
+    pop     rdi                         ; Target variable name
     push    rdi
-    sub     rcx,rcx
-    not     rcx                         ;RCX = FFFFFFFFFFFFFFFF
-    sub     rax,rax
-    repne   scasb
-    not     rcx                         ;RCX = string length + 1
-    dec     rcx
-    pop     rdi                         ;start of variablename in RDI
-    pop     rsi                         ;end of arguments
-    ;RDI : RCX contains the variablename and length 
-    push    rdi                         ;save required variable pointer
-    push    rcx                         ;save length
+    xor     rcx, rcx
+    not     rcx                         ; RCX = -1
+    xor     rax, rax
+    repne   scasb                       ; Find null terminator
+    not     rcx                         ; RCX = length + 1
+    dec     rcx                         ; RCX = length of search string
+    
+    pop     rdi                         ; Restore target name
+    pop     rsi                         ; Move past end of argv to envp
 .getNV:
-    pop     rcx                         ;restore length
-    pop     rdi                         ;restore required variable pointer
-    pop     rsi                         ;first variable in the list
-    cmp     rsi,0                       ;if zero then end of list
-    je      .Exit
-    push    rdi                         ;restore required variable pointer
-    push    rcx                         ;restore length
-    rep     cmpsb                       ;compare two strings against each other for RCX bytes
-    jne     .getNV                      ;no match,next variable
-    ;we have a match,print the variable
-    inc     rsi                         ;remove '="
+    pop     rsi                         ; Get next env string
+    test    rsi, rsi
+    jz      .Exit                       ; Not found
+    
+    push    rdi                         ; Save target name
+    push    rcx                         ; Save length
+    push    rsi                         ; Save env string start
+    
+    repe    cmpsb                       ; Compare name
+    jne     .noMatch
+    
+    ; Check if match is exact (next char in envp must be '=')
+    cmp     byte [rsi], '='
+    je      .FoundMatch
+
+.noMatch:
+    pop     rsi
+    pop     rcx
+    pop     rdi
+    jmp     .getNV
+
+.FoundMatch:
+    inc     rsi                         ; Skip the '='
     call    PrintVariable
     call    PrintVariable.eol
 .Exit:
-    syscall exit,0
+    syscall exit, 0
+
+; --- Utility Functions ---
 
 PrintVariable:
-    ;now read the bytes from the string pointed by RSI and display them
     cld
 .nextByte:
     lodsb
-    cmp     al,0                        ;if zero then last byte in string 
-    je      .done
-    mov     byte[buffer],al
+    test    al, al
+    jz      .done
+    lea     r8, [rel buffer]
+    mov     [r8], al
     push    rsi
-    push    rdi
-    mov     rsi,buffer
-    mov     rdx,buffer.length
+    mov     rsi, r8
+    mov     rdx, 1
     call    Write
-    pop     rdi
     pop     rsi
     jmp     .nextByte
 .done:    
     ret
+
 .eol:
-    mov     al,byte[endofline]
-    mov     byte[buffer],al        
-    mov     rsi,buffer
-    mov     rdx,buffer.length
+    lea     rax, [rel endofline]
+    mov     al, [rax]
+    lea     r8, [rel buffer]
+    mov     [r8], al        
+    mov     rsi, r8
+    mov     rdx, 1
     call    Write
     ret
+
 Write:
-    push    rsi
-    push    rdi
     push    rcx
-    push    rax
-    ;rsi and rdx are already initialized to the string and the length
-    syscall write,stdout
-    pop     rax
+    push    r11
+    syscall write, stdout, rsi, rdx
+    pop     r11
     pop     rcx
-    pop     rdi
-    pop     rsi
     ret
