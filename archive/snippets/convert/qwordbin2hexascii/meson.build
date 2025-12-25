@@ -13,6 +13,8 @@ obj = custom_target(
   input: asm_file,
   output: name + '.o',
   command: [nasm] + nasm_common_flags + [
+    '-g',
+    '-Fdwarf',
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
