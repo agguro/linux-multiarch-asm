@@ -1,2 +1,0 @@
-# convert.dwordbin2bcd
-

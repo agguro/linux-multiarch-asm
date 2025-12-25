@@ -1,2 +1,0 @@
-# convert.qwordbin2bcd
-

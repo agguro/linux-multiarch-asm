@@ -1,2 +1,0 @@
-# convert.nibblebin2hexascii
-

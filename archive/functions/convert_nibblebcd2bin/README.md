@@ -1,2 +1,0 @@
-# convert.nibblebcd2bin
-
