@@ -6,7 +6,6 @@ nasm_incdir = join_paths(meson.current_source_dir(), 'includes')
 # Default NASM flags
 nasm_common_flags = [
   '-felf64',
-  '-Fdwarf',
   '-I', nasm_incdir,
 ]
 
