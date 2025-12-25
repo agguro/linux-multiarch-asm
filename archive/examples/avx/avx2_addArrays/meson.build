@@ -1,83 +1,32 @@
-# examples/avx/avx2_addArrays/meson.build
+# archive/examples/avx/avx2_addArrays/meson.build
+
+name = 'avx2_addArrays'
 
 asm_file = 'avx2_addArrays.asm'
-name     = asm_file.split('.')[0]
-src      = files(asm_file)
+cpp_file = 'main.cpp'
 
-# -------------------------------
-# NASM flags
-# -------------------------------
-
-nasm_common = [
-  '-felf64',
-  '-I', nasm_incdir,
-]
-
-nasm_debug = nasm_common + [
-  '-g',
-  '-F', 'dwarf',
-]
-
-nasm_release = nasm_common
-
-# -------------------------------
-# Assemble (debug)
-# -------------------------------
-
-obj_debug = custom_target(
-  name + '_obj_debug',
-  input: src,
-  output: name + '.debug.o',
-  command: [nasm] + nasm_debug + [
-    '-l', name + '.debug.lst',
-    '-o', '@OUTPUT@',
-    '@INPUT@',
-  ],
-  build_by_default: true,
-)
-
-# -------------------------------
-# Assemble (release)
-# -------------------------------
-
-obj_release = custom_target(
-  name + '_obj_release',
-  input: src,
+nasm_obj = custom_target(
+  name + '_asm',
+  input: asm_file,
   output: name + '.o',
-  command: [nasm] + nasm_release + [
-    '-l', name + '.lst',
+  command: [nasm,
+    '-felf64',
+    '-g',
+    '-Fdwarf',
     '-o', '@OUTPUT@',
     '@INPUT@',
   ],
   build_by_default: true,
 )
 
-# -------------------------------
-# Link
-# -------------------------------
-
-exe_debug = executable(
-  name + '.debug',
-  obj_debug,
-  link_args: [
-    '-g',
-    '-z', 'noexecstack',
-  ],
-  install: false,
-)
-
-exe_release = executable(
+exe = executable(
   name,
-  obj_release,
-  link_args: [
-    '-s',
-    '-z', 'noexecstack',
-  ],
+  cpp_file,
+  nasm_obj,
+  cpp_args: avx_cpp_args,     # ← inherited
+  link_args: avx_link_args,   # ← inherited
   install: false,
 )
 
-# -------------------------------
-# Tests
-# -------------------------------
+test(name, exe, verbose: true)
 
-test(name, exe_release, verbose: true)
