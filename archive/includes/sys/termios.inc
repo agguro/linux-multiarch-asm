@@ -40,12 +40,6 @@
             at TERMIOS_STRUC.c_line,  db 0
             at TERMIOS_STRUC.c_cc,    times 19 db 0
         IEND
-        %define %1.c_iflag %1+TERMIOS_STRUC.c_iflag
-        %define %1.c_oflag %1+TERMIOS_STRUC.c_oflag
-        %define %1.c_cflag %1+TERMIOS_STRUC.c_cflag
-        %define %1.c_lflag %1+TERMIOS_STRUC.c_lflag
-        %define %1.c_line %1+TERMIOS_STRUC.c_line
-        %define %1.c_cc %1+TERMIOS_STRUC.c_cc
     %endmacro
 
     %macro WINSIZE 1
@@ -55,10 +49,6 @@
                 at WINSIZE_STRUC.xpixels, dq 0
                 at WINSIZE_STRUC.ypixels, dq 0
             IEND
-        %define %1.rows     %1+WINSIZE_STRUC.rows
-        %define %1.cols     %1+WINSIZE_STRUC.cols
-        %define %1.xpixels  %1+WINSIZE_STRUC.xpixels
-        %define %1.ypixels  %1+WINSIZE_STRUC.ypixels 
     %endmacro
 
 %endif  ; _ASM_SYS_TERMIOS_INC_
