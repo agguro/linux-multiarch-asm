@@ -12,8 +12,8 @@ nasm_common_flags = [
 
 # Default ld flags for pure NASM programs
 ld_common_flags = [
-  '-melf_x86_64',
-  '-z', 'noexecstack',
+   '-melf_x86_64',
+   
 ]
 
 # Default dynamic linker
