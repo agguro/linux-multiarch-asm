@@ -8,6 +8,9 @@
 ;   - Removed redundant PUSH/POP operations for better performance.
 ;   - Replaced multi-step arithmetic with SETge/LEA for cleaner branch-less logic.
 ;   - Optimized for modern x86-64 pipelines by reducing instruction dependencies.
+;
+; build: release: nasm -felf64 bytebcd2ascii.asm -o bytebcd2ascii.o
+;      : debug:   nasm -felf64 -g -F dwarf bytebcd2ascii.asm -o bytebcd2ascii.debug.o
 
 bits 64
 
