@@ -1,43 +1,43 @@
-;name: bytebin2hexascii.asm
+; name: bytebin2hexascii.asm
 ;
-;description: branch free conversion of a byte in rdi to ASCII in rax.
-;
-;build: nasm -felf64 bytebin2hexascii.asm -o bytebin2hexascii.o
+; version: 2.0 (Refined & Optimized)
+; description: Further improved branch-free conversion of a byte in RDI to ASCII in RAX.
+; 
+; improvements:
+;   - Fully System V ABI compliant (uses RDI for input, RAX for output).
+;   - Removed redundant PUSH/POP operations for better performance.
+;   - Replaced multi-step arithmetic with SETge/LEA for cleaner branch-less logic.
+;   - Optimized for modern x86-64 pipelines by reducing instruction dependencies.
 
 bits 64
 
 global bytebin2hexascii
 
 bytebin2hexascii:
-    push    rdx
-    xor     rdx,rdx
-    mov     rax,rdi
-    and     rax,0xFF
-    ;4 least significant bits in dl 
-    rol     ax,4
-    mov     dl,al
-    shr     ax,4        ;shift back to least significant positions
-    and     al,0xF0     ;keep 4 most significant bits in al
-    add     ax,0x0060   ;add 0110
-    add     dx,0x0060   ;
-    shr     al,4        ;move back to least significant positions
-    shr     dl,4        ;
-    sub     al,6        ;subtract 6
-    sub     dl,6        ;
-    and     al,0x0F     ;mask bits 7 to 4
-    and     dl,0x0F     ;
-    sub     al,ah       ;subtract ah from al
-    sub     dl,dh       ;and dh from dl
-    shl     ah,3        ;multiplicate ah and dh by 8
-    shl     dh,3        ;
-    sub     al,ah       ;subtract ah from al
-    sub     dl,dh       ;and dh from dl
-    add     ah,0x18     ;add 3 to bits in ah
-    add     dh,0x18     ;and dh
-    shl     ah,1        ;multiply ah by two
-    shl     dh,1        ;and dh
-    or      ah,al       ;make al ASCII
-    or      dh,dl       ;make dl ASCII
-    mov     al,dh       ;least significant digit in al
-    pop     rdx
+    ; Input:  DIL (1st argument per ABI)
+    ; Output: RAX (AH = high nibble char, AL = low nibble char)
+
+    movzx   edx, dil        ; Copy input byte to EDX
+    mov     eax, edx        
+    
+    shr     al, 4           ; Isolate high nibble in AL
+    and     dl, 0x0F        ; Isolate low nibble in DL
+
+    ; --- Process High Nibble ---
+    cmp     al, 10          ; Check if nibble is 0-9 or A-F
+    lea     ecx, [rax + 0x30] ; Base: nibble + '0'
+    setge   al              ; AL = 1 if nibble >= 10, else 0
+    movzx   eax, al
+    lea     eax, [ecx + eax*7] ; If A-F, add 7 to jump from 0x39 to 0x41
+    shl     eax, 8          ; Position high nibble character in AH
+
+    ; --- Process Low Nibble ---
+    cmp     dl, 10          ; Check if nibble is 0-9 or A-F
+    lea     esi, [edx + 0x30] ; Base: nibble + '0'
+    setge   dl              ; DL = 1 if nibble >= 10
+    movzx   edx, dl
+    lea     edx, [esi + edx*7] ; If A-F, add 7
+
+    ; --- Result ---
+    or      al, dl          ; Combine results into EAX
     ret
