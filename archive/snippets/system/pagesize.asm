@@ -1,17 +1,19 @@
-;name: pagesize.asm
-;
-;description: Get the pagesize programmatically of a platform in rax
-;             The function doesn't need input parameters.
-;
-;source: https://stackoverflow.com/questions/3351940/detecting-the-memory-page-size/3351960#3351960
+; name       : pagesize.asm
+; description: Get the pagesize programmatically of a platform in rax
+;              The function doesn't need input parameters.
+; source     : https://stackoverflow.com/questions/3351940/detecting-the-memory-page-size/3351960#3351960
+; build      : release: nasm -f elf64 -I ../../../includes -o pagesize.o pagesize.asm
+;              debug  : nasm -f elf64 -I ../../../includes -g -Fdwarf -o pagesize.debug.o pagesize.asm
 
 bits 64
 
-%include "asm-generic/mman.inc"
-
-section .text
+[list -]
+    %include "asm-generic/mman.inc"
+[list +]
 
 global pagesize
+
+section .text
 
 pagesize:
     push        r15                         ;save help registers
