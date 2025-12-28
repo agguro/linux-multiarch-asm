@@ -1,40 +1,46 @@
-; name: bytebcd2bin.asm
+; name: bytebin2bcd.asm
+; algorithm: Double Dabble (Shift-and-Add-3)
+
+; description: Binary byte to BCD (Packed and Unpacked).;
 ;
-; version: 2.0 (Refined & Optimized)
-; description: Highly efficient packed BCD to Binary conversion.
 ; improvements:
-;   - Branch-free and Loop-free (much faster).
-;   - Follows System V ABI (Input RDI, Output RAX).
-;   - Uses the (Tens * 10 + Units) method which is standard for performance.
+;   - Fully ABI compliant (Input RDI, Output RAX).
+;   - Uses clear masking for better maintainability.
+;   - Clears upper RAX bits to prevent "garbage" data in the return value.
 ;
-; build: release: nasm -felf64 bytebcd2bin.asm -o bytebcd2bin.o
-;      : debug:   nasm -felf64 -g -F dwarf bytebcd2bin.asm -o bytebcd2bin.debug.o
+; build: release: nasm -felf64 bytebin2bcd.asm -o bytebin2bcd.o
+;      : debug:   nasm -felf64 -g -F dwarf bytebin2bcd.asm -o bytebin2bcd.debug.o
 
 bits 64
+global bytebin2bcd_packed
+global bytebin2bcd_unpacked
 
-global bytebcd2bin
+bytebin2bcd_unpacked:
+    call    bytebin2bcd_packed
+    shl     rax, 8              ; Prepare for unpacking
+    ror     ax, 4
+    ror     al, 4               ; RAX now holds unpacked bytes
+    ret
 
-section .text
-
-bytebcd2bin:
-    ; Input:  DIL (e.g., 0x25)
-    ; Output: RAX (e.g., 0x19 which is 25 decimal)
-
-    movzx   eax, dil        ; Move input to EAX, clear upper bits
-    mov     edx, eax        ; Copy to EDX
-    
-    ; 1. Isolate the "Units" (low nibble)
-    and     eax, 0x0F       ; EAX = 0x05
-    
-    ; 2. Isolate the "Tens" (high nibble)
-    shr     edx, 4          ; EDX = 0x02
-    
-    ; 3. Binary = (Tens * 10) + Units
-    ; Using LEA and SHL is faster than the MUL instruction
-    lea     edx, [rdx + rdx*4] ; EDX = Tens * 5
-    shl     edx, 1             ; EDX = Tens * 10
-    
-    add     eax, edx        ; EAX = (Tens * 10) + Units
-    
-    ; Result is now in RAX (specifically AL)
+bytebin2bcd_packed:
+    push    rcx
+    push    rdx
+    mov     rax, rdi
+    and     rax, 0xFF
+    mov     cl, 5               ; Initialization for 8-bit conversion
+    ror     rax, cl
+.repeat:
+    push    rcx
+    mov     rdx, rax
+    add     rdx, 0x33           ; Check if nibble needs adjustment
+    and     rdx, 0x88
+    shr     rdx, 3
+    add     rax, rdx            ; Add 1
+    shl     rdx, 1
+    add     rax, rdx            ; Add 2 (Total 3 if >= 5)
+    pop     rcx
+    rol     rax, 1              ; Shift bit into BCD register
+    loop    .repeat
+    pop     rdx
+    pop     rcx
     ret
