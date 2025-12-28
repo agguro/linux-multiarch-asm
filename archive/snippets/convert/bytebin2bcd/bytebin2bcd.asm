@@ -1,54 +1,41 @@
-;name: bytebin2bcd.asm
+; name: bytebin2bcd.asm
+; version: 2.0 (Refined & Optimized)
+; description: Binary byte to BCD (Packed and Unpacked).
+; algorithm: Double Dabble (Shift-and-Add-3)
 ;
-;description:  bytebin2bcd.packed:   Branch free byte to packed bcd conversion.
-;              bytebin2bcd.unpacked: Byte to unpacked bcd conversion.
-;
-;use:
-;packed bcd:   mov      rdi,hexadecimal
-;              call     bytebin2bcd.packed
-;
-;unpacked bcd: mov      rdi,hexadecimal
-;              call     bytebin2bcd.unpacked
-;
-;build: nasm -felf64 bytebin2bcd.asm -o bytebin2bcd.o
+; build: release: nasm -felf64 bytebin2bcd.asm -o bytebin2bcd.o
+;      : debug:   nasm -felf64 -g -F dwarf bytebin2bcd.asm -o bytebin2bcd.debug.o
 
 bits 64
+global bytebin2bcd_packed
+global bytebin2bcd_unpacked
 
-global bytebin2bcd.packed
-global bytebin2bcd.unpacked
-
-section .text
-
-bytebin2bcd.unpacked:
-    ;convert rdi to packed bcd, result is in rax
-    ;a byte has max 3 bcd digits. [0..255]
-    call    bytebin2bcd.packed
-    ;unpack the digits
-    shl     rax,8
-    ror     ax,4
-    ror     al,4
+bytebin2bcd_unpacked:
+    call    bytebin2bcd_packed
+    shl     rax, 8              ; Prepare for unpacking
+    ror     ax, 4
+    ror     al, 4               ; RAX now holds unpacked bytes
     ret
 
-bytebin2bcd.packed:
-    push    rcx                 ;save used registers
+bytebin2bcd_packed:
+    push    rcx
     push    rdx
-    mov     rax,rdi             ;value in rax
-    and     rax,0xFF            ;only low byte will be converted
-    mov     cl,5                ;bits to shift = 8 - 3
-    ror     rax,cl              ;put 3 most significant bits in al
+    mov     rax, rdi
+    and     rax, 0xFF
+    mov     cl, 5               ; Initialization for 8-bit conversion
+    ror     rax, cl
 .repeat:
-    push    rcx                 ;save bit counter
-    mov     rdx,rax             ;digits in rdx
-    add     rdx,0x33            ;add 3 anyway
-    and     rdx,0x88            ;keep each fourth bit of previous result
-    and     rdx,rcx             ;keep fourth bit 
-    shr     rdx,3               ;we have either 0 or 1
-    add     rax,rdx             ;add 0 or 1 to each digit
-    shl     rdx,1               ;make 0 or 2
-    add     rax,rdx             ;add 0 or 2 to each digit in rax
-    pop     rcx                 ;restore bit counter
-    rol     rax,1               ;shift in next bit left of rax
-    loop    .repeat             ;decrement bit counter and repeat if still not zero
-    pop     rdx                 ;save used registers
+    push    rcx
+    mov     rdx, rax
+    add     rdx, 0x33           ; Check if nibble needs adjustment
+    and     rdx, 0x88
+    shr     rdx, 3
+    add     rax, rdx            ; Add 1
+    shl     rdx, 1
+    add     rax, rdx            ; Add 2 (Total 3 if >= 5)
+    pop     rcx
+    rol     rax, 1              ; Shift bit into BCD register
+    loop    .repeat
+    pop     rdx
     pop     rcx
     ret
