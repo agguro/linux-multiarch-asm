@@ -1,8 +1,7 @@
 ; name: bytebin2hexascii.asm
-;
 ; version: 2.0 (Refined & Optimized)
 ; description: Further improved branch-free conversion of a byte in RDI to ASCII in RAX.
-; 
+; algorithm: Branchless Mapping
 ; improvements:
 ;   - Fully System V ABI compliant (uses RDI for input, RAX for output).
 ;   - Removed redundant PUSH/POP operations for better performance.
