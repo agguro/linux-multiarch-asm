@@ -1,2 +1,0 @@
-subdir('hello')
-subdir('mixed')
