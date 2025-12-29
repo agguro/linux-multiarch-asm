@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Beej's Guide to Interprocess Communication</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet"> 
+
+  <!-- BG custom styling -->
+  <style type="text/css">
+  /* Fix for line numbers not visible */
+  pre.numberSource code > span {
+      left: -1em;
+  }
+  pre.numberSource {
+      margin-left: initial;
+  }
+
+  /* Put some space after the section numbers */
+  span.toc-section-number::after {
+      content: "\a0\a0\a0";  /* non-breaking whitespace */
+  }
+
+  /* Hide underlines on code number links */
+  pre > code.sourceCode > span > a:first-child::before {
+      text-decoration: none;
+  }
+
+  /* Color the source blocks */
+  div.sourceCode {
+      background-color: #f0f0f0;
+  }
+
+  /* Fix iOS big text rendering issue */
+  pre > code.sourceCode > span {
+      display: initial;
+  }
+
+
+  /* Color the inline code */
+  code:not(.sourceCode) {
+      background: #f0f0f0;
+      padding-left: 0.2em;
+      padding-right: 0.2em;
+      border-radius: 0.2em;
+  }
+
+  /* Keep code tags from wrapping in tables */
+  tbody code {
+      white-space: nowrap;
+  }
+
+  td {
+      vertical-align: top;
+  }
+
+  body {
+      font-size: 12pt;
+      max-width: 43em;
+  }
+
+  figure {
+      text-align: center;
+  }
+  </style>
+  <!-- BG custom styling for the wide body variant -->
+  <!-- Gets appended after bg-css.html -->
+
+  <style type="text/css">
+  body {
+      max-width: inherit;
+  }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div style="text-align:center"><span><a href="unixsock.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="footnotes.html">Next</a></span></div><hr>
+<h1 data-number="12" id="references"><span class="header-section-number">12</span> More IPC Resources</h1>
+<h2 data-number="12.1" id="books"><span class="header-section-number">12.1</span> Books</h2>
+<p>Here are some books that describe some of the procedures I’ve discussed in this guide, as well as Unix details in specific:</p>
+<p>Bach, Maurice J. <em>The Design of the UNIX Operating System</em>. Published by Prentice-Hall, 1986. ISBN <a href="https://beej.us/guide/url/unixdesign">0132017997</a><a href="footnotes.html#fn47" class="footnote-ref" id="fnref47" role="doc-noteref"><sup>47</sup></a>.</p>
+<p>W. Richard Stevens. <em>Unix Network Programming, volumes 1-2</em>. Published by Prentice Hall. ISBNs for volumes 1-2: <a href="https://beej.us/guide/url/unixnet1">0131411551</a><a href="footnotes.html#fn48" class="footnote-ref" id="fnref48" role="doc-noteref"><sup>48</sup></a>, <a href="https://beej.us/guide/url/unixnet2">0130810819</a><a href="footnotes.html#fn49" class="footnote-ref" id="fnref49" role="doc-noteref"><sup>49</sup></a>.</p>
+<p>W. Richard Stevens. <em>Advanced Programming in the UNIX Environment</em>. Published by Addison Wesley. ISBN <a href="https://beej.us/guide/url/advunix">0201433079</a><a href="footnotes.html#fn50" class="footnote-ref" id="fnref50" role="doc-noteref"><sup>50</sup></a>.</p>
+<h2 data-number="12.2" id="other-online-documentation"><span class="header-section-number">12.2</span> Other online documentation</h2>
+<p><a href="http://www.kohala.com/start/unpv22e/unpv22e.html"><strong>UNIX Network Programming Volume 2 home page</strong></a><a href="footnotes.html#fn51" class="footnote-ref" id="fnref51" role="doc-noteref"><sup>51</sup></a>—includes source code from Stevens’ superfine book.</p>
+<p><a href="http://tldp.org/LDP/lpg/node7.html"><strong>The Linux Programmer’s Guide</strong></a><a href="footnotes.html#fn52" class="footnote-ref" id="fnref52" role="doc-noteref"><sup>52</sup></a>—in-depth section on IPC.</p>
+<p><a href="https://users.cs.cf.ac.uk/Dave.Marshall/C/"><strong>UNIX System Calls and Subroutines using C</strong></a><a href="footnotes.html#fn53" class="footnote-ref" id="fnref53" role="doc-noteref"><sup>53</sup></a>—contains modest IPC information.</p>
+<p><a href="https://tldp.org/LDP/tlk/ipc/ipc.html"><strong>The Linux Kernel</strong></a><a href="footnotes.html#fn54" class="footnote-ref" id="fnref54" role="doc-noteref"><sup>54</sup></a>—how the Linux kernel implements IPC.</p>
+<!-- ======================================================= -->
+<!-- Linux man pages -->
+<!-- ======================================================= -->
+<h2 data-number="12.3" id="linux-man-pages"><span class="header-section-number">12.3</span> Linux man pages</h2>
+<p>There are Linux manual pages. If you run another flavor of Unix, please look at your own man pages, as these might not work on your system.</p>
+<ul>
+<li><a href="https://man.archlinux.org/man/accept.2"><code>accept()</code></a><a href="footnotes.html#fn55" class="footnote-ref" id="fnref55" role="doc-noteref"><sup>55</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/bind.2"><code>bind()</code></a><a href="footnotes.html#fn56" class="footnote-ref" id="fnref56" role="doc-noteref"><sup>56</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/connect.2"><code>connect()</code></a><a href="footnotes.html#fn57" class="footnote-ref" id="fnref57" role="doc-noteref"><sup>57</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/dup.2"><code>dup()</code></a><a href="footnotes.html#fn58" class="footnote-ref" id="fnref58" role="doc-noteref"><sup>58</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/exec.2"><code>exec()</code></a><a href="footnotes.html#fn59" class="footnote-ref" id="fnref59" role="doc-noteref"><sup>59</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/exit.2"><code>exit()</code></a><a href="footnotes.html#fn60" class="footnote-ref" id="fnref60" role="doc-noteref"><sup>60</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/fcntl.2"><code>fcntl()</code></a><a href="footnotes.html#fn61" class="footnote-ref" id="fnref61" role="doc-noteref"><sup>61</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/fileno.3"><code>fileno()</code></a><a href="footnotes.html#fn62" class="footnote-ref" id="fnref62" role="doc-noteref"><sup>62</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/fork.2"><code>fork()</code></a><a href="footnotes.html#fn63" class="footnote-ref" id="fnref63" role="doc-noteref"><sup>63</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/ftok.3"><code>ftok()</code></a><a href="footnotes.html#fn64" class="footnote-ref" id="fnref64" role="doc-noteref"><sup>64</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/getpagesize.2"><code>getpagesize()</code></a><a href="footnotes.html#fn65" class="footnote-ref" id="fnref65" role="doc-noteref"><sup>65</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/ipcrm.8"><code>ipcrm</code></a><a href="footnotes.html#fn66" class="footnote-ref" id="fnref66" role="doc-noteref"><sup>66</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/ipcs.8"><code>ipcs</code></a><a href="footnotes.html#fn67" class="footnote-ref" id="fnref67" role="doc-noteref"><sup>67</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/kill.1"><code>kill</code></a><a href="footnotes.html#fn68" class="footnote-ref" id="fnref68" role="doc-noteref"><sup>68</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/kill.2"><code>kill()</code></a><a href="footnotes.html#fn69" class="footnote-ref" id="fnref69" role="doc-noteref"><sup>69</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/listen.2"><code>listen()</code></a><a href="footnotes.html#fn70" class="footnote-ref" id="fnref70" role="doc-noteref"><sup>70</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/lockf.2"><code>lockf()</code></a><a href="footnotes.html#fn71" class="footnote-ref" id="fnref71" role="doc-noteref"><sup>71</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/lseek.2"><code>lseek()</code></a><a href="footnotes.html#fn72" class="footnote-ref" id="fnref72" role="doc-noteref"><sup>72</sup></a> (for the <code>l_whence</code> field in <code>struct flock</code>),</li>
+<li><a href="https://man.archlinux.org/man/mknod.1"><code>mknod</code></a><a href="footnotes.html#fn73" class="footnote-ref" id="fnref73" role="doc-noteref"><sup>73</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/mknod.2"><code>mknod()</code></a><a href="footnotes.html#fn74" class="footnote-ref" id="fnref74" role="doc-noteref"><sup>74</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/mmap.2"><code>mmap()</code></a><a href="footnotes.html#fn75" class="footnote-ref" id="fnref75" role="doc-noteref"><sup>75</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/msgctl.2"><code>msgctl()</code></a><a href="footnotes.html#fn76" class="footnote-ref" id="fnref76" role="doc-noteref"><sup>76</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/msgget.2"><code>msgget()</code></a><a href="footnotes.html#fn77" class="footnote-ref" id="fnref77" role="doc-noteref"><sup>77</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/msgsnd.2"><code>msgsnd()</code></a><a href="footnotes.html#fn78" class="footnote-ref" id="fnref78" role="doc-noteref"><sup>78</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/munmap.2"><code>munmap()</code></a><a href="footnotes.html#fn79" class="footnote-ref" id="fnref79" role="doc-noteref"><sup>79</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/open.2"><code>open()</code></a><a href="footnotes.html#fn80" class="footnote-ref" id="fnref80" role="doc-noteref"><sup>80</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/pipe.2"><code>pipe()</code></a><a href="footnotes.html#fn81" class="footnote-ref" id="fnref81" role="doc-noteref"><sup>81</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/ps.1"><code>ps</code></a><a href="footnotes.html#fn82" class="footnote-ref" id="fnref82" role="doc-noteref"><sup>82</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/raise.3"><code>raise()</code></a><a href="footnotes.html#fn83" class="footnote-ref" id="fnref83" role="doc-noteref"><sup>83</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/read.2"><code>read()</code></a><a href="footnotes.html#fn84" class="footnote-ref" id="fnref84" role="doc-noteref"><sup>84</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/recv.2"><code>recv()</code></a><a href="footnotes.html#fn85" class="footnote-ref" id="fnref85" role="doc-noteref"><sup>85</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/semctl.2"><code>semctl()</code></a><a href="footnotes.html#fn86" class="footnote-ref" id="fnref86" role="doc-noteref"><sup>86</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/semget.2"><code>semget()</code></a><a href="footnotes.html#fn87" class="footnote-ref" id="fnref87" role="doc-noteref"><sup>87</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/semop.2"><code>semop()</code></a><a href="footnotes.html#fn88" class="footnote-ref" id="fnref88" role="doc-noteref"><sup>88</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/send.2"><code>send()</code></a><a href="footnotes.html#fn89" class="footnote-ref" id="fnref89" role="doc-noteref"><sup>89</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/shmat.2"><code>shmat()</code></a><a href="footnotes.html#fn90" class="footnote-ref" id="fnref90" role="doc-noteref"><sup>90</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/shmctl.2"><code>shmctl()</code></a><a href="footnotes.html#fn91" class="footnote-ref" id="fnref91" role="doc-noteref"><sup>91</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/shmdt.2"><code>shmdt()</code></a><a href="footnotes.html#fn92" class="footnote-ref" id="fnref92" role="doc-noteref"><sup>92</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/shmget.2"><code>shmget()</code></a><a href="footnotes.html#fn93" class="footnote-ref" id="fnref93" role="doc-noteref"><sup>93</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/sigaction.2"><code>sigaction()</code></a><a href="footnotes.html#fn94" class="footnote-ref" id="fnref94" role="doc-noteref"><sup>94</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/signal.2"><code>signal()</code></a><a href="footnotes.html#fn95" class="footnote-ref" id="fnref95" role="doc-noteref"><sup>95</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/signal.7">signals</a><a href="footnotes.html#fn96" class="footnote-ref" id="fnref96" role="doc-noteref"><sup>96</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/sigpending.2"><code>sigpending()</code></a><a href="footnotes.html#fn97" class="footnote-ref" id="fnref97" role="doc-noteref"><sup>97</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/sigprocmask.2"><code>sigprocmask()</code></a><a href="footnotes.html#fn98" class="footnote-ref" id="fnref98" role="doc-noteref"><sup>98</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/sigsetopts.2">sigsetops</a><a href="footnotes.html#fn99" class="footnote-ref" id="fnref99" role="doc-noteref"><sup>99</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/sigsuspend.2"><code>sigsuspend()</code></a><a href="footnotes.html#fn100" class="footnote-ref" id="fnref100" role="doc-noteref"><sup>100</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/socket.2"><code>socket()</code></a><a href="footnotes.html#fn101" class="footnote-ref" id="fnref101" role="doc-noteref"><sup>101</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/socketpair.2"><code>socketpair()</code></a><a href="footnotes.html#fn102" class="footnote-ref" id="fnref102" role="doc-noteref"><sup>102</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/stat.2"><code>stat()</code></a><a href="footnotes.html#fn103" class="footnote-ref" id="fnref103" role="doc-noteref"><sup>103</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/wait.2"><code>wait()</code></a><a href="footnotes.html#fn104" class="footnote-ref" id="fnref104" role="doc-noteref"><sup>104</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/waitpid.2"><code>waitpid()</code></a><a href="footnotes.html#fn105" class="footnote-ref" id="fnref105" role="doc-noteref"><sup>105</sup></a>,</li>
+<li><a href="https://man.archlinux.org/man/write.2"><code>write()</code></a><a href="footnotes.html#fn106" class="footnote-ref" id="fnref106" role="doc-noteref"><sup>106</sup></a>.</li>
+</ul>
+<hr><div style="text-align:center"><span><a href="unixsock.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="footnotes.html">Next</a></span></div></body>
+</html>

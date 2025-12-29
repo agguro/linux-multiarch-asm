@@ -1,0 +1,942 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+R1: initial release
+R2: added set disassembly-flavor stuff, moved "more" to top of doc,
+    license, DDD link, corefile stuff, stepi
+-->
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Beej's Quick Guide to GDB</title>
+<link rel="stylesheet" href="Beej's%20Quick%20Guide%20to%20GDB_files/bg.css" type="text/css">
+<link rel="icon" type="image/gif" href="https://beej.us/guide/favicon.gif">
+</head>
+
+<body>
+
+<h1 class="guidetitle">Beej's Quick Guide to GDB</h1>
+<i>Release 2 (2009 Jun 14)</i>
+
+<p>Translations:
+</p><ul>
+<li><a href="https://paintingvalley.com/ru-bggdb">Russian</a>
+</li></ul>
+
+<p>This is a very quick-and-dirty guide meant to get you started with
+the GNU Debugger, <b class="command">gdb</b>, from the command line in a
+terminal.  Often times <b class="command">gdb</b> is run via an IDE, but
+many people out there shun IDEs for a variety of reasons, and this
+tutorial is for you!</p>
+
+<p>Again, this is only a getting-started guide.  There's much much MUCH
+more to learn about what the debugger does than is written in these few
+short paragraphs.  Check out your "man" pages or the online resources
+listed below for more info.</p>
+
+<p>This tutorial is meant to be read in order, up to, but not including,
+the "Misc" section.</p>
+
+<!-- ================================================================ -->
+<h2>Contents</h2>
+<ul>
+<li><a href="#compiling">Compiling to use a debugger</a>
+</li><li><a href="#more">More Information</a>
+</li><li><a href="#license">License</a>
+</li><li><a href="#starting">Starting <b class="command">gdb</b> and getting to <tt class="code">main()</tt></a>
+</li><li><a href="#breakpoints">Breakpoints</a>
+</li><li><a href="#stepping">Stepping Around</a>
+</li><li><a href="#exvars">Examining Variables</a>
+</li><li><a href="#misc">Misc Stuff</a>
+	<ul>
+	<li><a href="#stackman">Stack Manipulation</a>
+	</li><li><a href="#morestep">Additional Stepping Methods</a>
+	</li><li><a href="#jump">Jumping to an Arbitrary Section of Code</a>
+	</li><li><a href="#varmod">Changing Variables and Values at Runtime</a>
+	</li><li><a href="#hardwatch">Hardware Watchpoints</a>
+	</li><li><a href="#attach">Attach to a Running Process</a>
+	</li><li><a href="#coredump">Using Coredumps for Postmortem Analysis</a>
+	</li><li><a href="#window">Window Functions</a>
+	</li><li><a href="#regasm">Display Registers and Assembly</a>
+	</li><li><a href="#frontend">Writing a Front-End</a>
+	</li></ul>
+</li><li><a href="#qref">Quick Reference Cheat Sheet</a>
+</li></ul>
+
+<!-- ================================================================ -->
+<a name="compiling"></a>
+<h2 class="pbb">Compiling</h2>
+
+<p>You have to tell your compiler to compile your code with symbolic
+debugging information included.  Here's how to do it with <b class="command">gcc</b>, with the <b class="option">-g</b> switch:</p>
+
+<pre class="screen">
+$ <b class="userinput">gcc -g hello.c -o hello</b>
+
+$ <b class="userinput">g++ -g hello.cpp -o hello</b>
+
+</pre>
+
+<p>Once you've done that, you should be able to view program listings in
+the debugger.</p>
+
+<!-- ================================================================ -->
+<a name="more"></a>
+<h2>More Information</h2>
+
+<p>Check out the <a target="_blank" href="http://www.gnu.org/software/gdb/documentation/">Official GDB
+Documentation</a> for more information than you can shake a stick
+at!</p>
+
+<p>Also, a good GNU GDB front-end is <a target="_blank" href="http://www.gnu.org/software/ddd/">DDD, the
+DataDisplayDebugger</a>.</p>
+
+<!-- ================================================================ -->
+<a name="license"></a>
+<h2>License</h2>
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/" target="_blank"><img alt="Creative Commons License" style="border-width:0;float:right;padding-left:20px;" src="Beej's%20Quick%20Guide%20to%20GDB_files/88x31.png"></a><p><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">Beej's Quick Guide to GDB</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="http://beej.us/guide/bggdb/" property="cc:attributionName" rel="cc:attributionURL">Brian "Beej Jorgensen" Hall</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/" target="_blank">Creative Commons Attribution-Noncommercial-No Derivative Works 3.0 United States License</a>.</p>
+
+<!-- ================================================================ -->
+<a name="starting"></a>
+<h2 class="pbb">Starting The Debugger</h2>
+
+<p>First things first: you can enter <b class="userinput">help</b> at
+any <b class="command">gdb</b> prompt and get more information.  Also,
+you can enter <b class="userinput">quit</b> to quit the debugger.
+Finally, just hitting <b class="userinput">RETURN</b> will repeat the
+last command entered. Now let's fire it up!</p>
+
+<p>There are several ways to start the debugger (e.g. if you were an IDE
+you might start it with a particular mode that's not so human-friendly)
+but I'll mention two of them here: vanilla console mode and curses GUI
+mode.  The GUI is better, but let's quickly cover the simple one, and
+launch a program called <b class="command">hello</b> in the debugger:</p>
+
+<pre class="screen">$ <b class="userinput">gdb hello</b>
+GNU gdb 6.8
+Copyright (C) 2008 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i486-slackware-linux"...
+(gdb) <b class="userinput">run</b>
+Starting program: /home/beej/hello 
+Hello, world!
+
+Program exited normally.
+(gdb) 
+</pre>
+
+<p>The last line is the <b class="command">gdb</b> prompt, waiting for
+you to tell it what to do.  Type <b class="userinput">r</b> or <b class="userinput">run</b> to run the program.  (<b class="command">gdb</b> allows you to abbreviate commands until they
+become ambiguous.)</p>
+
+<p><b>To start in neato and highly-recommended GUI mode</b>, start the
+debugger with <b class="command">gdb -tui</b>.  (For many of the
+examples, below, I show the output of <b class="command">gdb</b>'s dumb
+terminal mode, but in real life I use TUI mode exclusively.)</p>
+
+<p>And here is a screenshot of what you'll see, approximately:</p>
+
+<center><img src="Beej's%20Quick%20Guide%20to%20GDB_files/hellotui.png" class="figureimg" border="0"></center>
+
+<p>All the normal <b class="command">gdb</b> commands will work in GUI
+mode, and additionally the arrow keys and pgup/pgdown keys will scroll
+the source window (when it has focus, which it does by default).  Also,
+you can change which file or function is displayed in the source window
+by giving the command <b class="userinput">list</b> with a location as
+an argument, for example, "<b class="userinput">list hello.c:5</b> to
+bring up the file <tt class="filename">hello.c</tt> on line 5.  (See "<a href="#breakpoints">Breakpoints</a>", below, for sample
+locations—the same locations that work with breakpoints will work
+with the <b class="userinput">list</b> command.)  As a side note, <b class="userinput">list</b> also works in dumb terminal mode.</p>
+
+<p>Now, notice that we passed the name of the executable on the command
+line.  Another option you have is to just start <b class="command">gdb</b> with nothing else on the command line, then give
+it the command <b class="userinput">file hello</b>, and that will cause
+the executable "hello" to be loaded up.</p><p>
+
+</p><p>Command line arguments!  What if you have to get something into <tt class="variable">argv</tt> in your program?  Pass them as arguments to
+the <b class="command">run</b> command when you start execution:</p>
+
+<pre class="screen">$ <b class="userinput">gdb hello</b>
+GNU gdb 6.8
+Copyright (C) 2008 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i486-slackware-linux"...
+(gdb) <b class="userinput">run arg1 arg2</b>
+Starting program: /home/beej/hello arg1 arg2
+Hello, world!
+
+Program exited normally.
+(gdb) 
+</pre>
+
+<p>Notice where it says "Starting Program", above, it shows the
+arguments "arg1" and "arg2" being passed to "hello".</p>
+
+<!-- ================================================================ -->
+<a name="breakpoints"></a>
+<h2 class="pbb">Breakpoints</h2>
+
+<p>Just starting the debugger to run the program straight through isn't
+very useful—we need to stop execution and get into stepping
+mode.
+
+</p><p>First, before you issue the <b class="userinput">run</b> command, you
+need to set a breakpoint someplace you'd like to stop.  You use the <b class="userinput">break</b> or <b class="userinput">b</b> command, and
+specify a location, which can be a function name, a line number, or a
+source file and line number.  These are examples of locations, which are
+used by various other commands as well as <b class="userinput">break</b>:</p>
+
+<center><table border="0" class="singleborder">
+
+<tbody><tr><td class="rightpad" align="left"><b class="userinput">break main</b></td><td align="left">Break at the beginning of the <tt class="function">main()</tt> function</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">break 5</b></td><td align="left">Break at line 5 of the current file</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">break hello.c:5</b></td><td align="left">Break at line 5 of <tt class="filename">hello.c</tt></td></tr>
+
+</tbody></table>
+</center>
+
+<p>So for this test, let's set a breakpoint at <tt class="function">main()</tt>, and start the program:
+
+</p><pre class="screen">$ <b class="userinput">gdb hello</b>
+GNU gdb 6.8
+Copyright (C) 2008 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i486-slackware-linux"...
+(gdb) <b class="userinput">b main</b>
+Breakpoint 1 at 0x8048395: file hello.c, line 5.
+(gdb) <b class="userinput">r</b>
+Starting program: /home/beej/hello 
+
+Breakpoint 1, main () at hello.c:5
+5		printf("Hello, world!\n");
+(gdb)
+</pre>
+
+<p>As you see, we've arrived at <tt class="function">main()</tt> and
+execution has stopped at the breakpoint we set there.  If you're running
+in dumb terminal mode, <b class="command">gdb</b> will print the line it
+will execute next.  If you're running in cool GUI mode, the line it will
+execute next will be highlighted in the source window.</p>
+
+<p>To list the current breakpoints, use the <b class="userinput">info</b> command, like so: "<b class="userinput">info
+breakpoints</b>" (or the shorter "<b class="userinput">i b</b>"):</p>
+
+<pre class="screen">(gdb) <b class="userinput">b main</b>
+Breakpoint 1 at 0x8048395: file hello.c, line 5.
+(gdb) <b class="userinput">i b</b>
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep y   0x08048395 in main at hello.c:5
+</pre>
+
+<p>To clear a breakpoint, use the <b class="userinput">clear</b> command
+with the breakpoint location.  You can also clear a breakpoint by number
+with the <b class="userinput">delete</b> command.</p>
+
+<p>Additionally, you can <b class="userinput">enable</b> or <b class="userinput">disable</b> breakpoints, though these two commands
+take a breakpoint number as an argument, not a location!  The
+enabled/disabled status of a breakpoint is visible under the "Enb"
+column in the breakpoint listing.</p>
+
+<pre class="screen">(gdb) <b class="userinput">i b</b>
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep y   0x08048395 in main at hello.c:5
+(gdb) <b class="userinput">disable 1</b>
+(gdb) <b class="userinput">i b</b>
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep n   0x08048395 in main at hello.c:5
+(gdb) <b class="userinput">clear main</b>
+Deleted breakpoint 1 
+(gdb) <b class="userinput">i b</b>
+No breakpoints or watchpoints.
+</pre>
+
+<!-- ================================================================ -->
+<a name="stepping"></a>
+<h2 class="pbb">Stepping Around</h2>
+
+<p>Once execution stops at a breakpoint, you can tell the debugger to do
+a few things.  Let's start with the <b class="userinput">next</b>
+command (or <b class="userinput">n</b>).  This command moves you to the
+next statement in the current function (or returns to the function's
+caller if you've stepped off the end of the function.)  Here's a sample
+run; remember that <b class="command">gdb</b> is printing the line <i>it
+will execute next</i> just before the "(gdb)" prompt.  Also notice that
+when we run <b class="userinput">next</b> on the <tt class="function">printf()</tt> line, we see the output appear.</p>
+
+<pre class="screen">(gdb) <b class="userinput">b main</b>
+Breakpoint 1 at 0x8048395: file hello.c, line 5.
+(gdb) <b class="userinput">r</b>
+Starting program: /home/beej/hello 
+
+Breakpoint 1, main () at hello.c:5
+5		printf("Hello, world!\n");
+(gdb) <b class="userinput">next</b>
+Hello, world!
+7		return 0;
+(gdb) <b class="userinput">next</b>
+8	}
+(gdb) <b class="userinput">next</b>
+0xb7d6c6a5 in __libc_start_main () from /lib/libc.so.6
+(gdb) <b class="userinput">next</b>
+Single stepping until exit from function __libc_start_main, 
+which has no line number information.
+
+Program exited normally.
+(gdb) 
+</pre>
+
+<p>(That weird stuff at the end about <tt class="function">
+__libc_start_main()</tt> shows you that there was another function that
+called your <tt class="function">main()</tt> function!  It wasn't
+compiled with debugging information so we can't see the source, but we
+can still step through it—which we do—and the program exits
+normally.)</p>
+
+<p>Now, notice that <b class="userinput">next</b> <i>steps over</i>
+function calls. This doesn't mean that function doesn't get called; it
+means that <b class="userinput">next</b> will execute the function until
+it's done, and then return you to the next line in your current
+function.</p>
+
+<p>What if you have a function you want to <i>step into</i> from your
+current function, and trace through that function line-by-line?  Use the
+<b class="userinput">step</b> (or <b class="userinput">s</b>) command to
+do this.  It works just like <b class="userinput">next</b>, except it
+steps into functions.</p>
+
+<p>Let's say you're tired of single stepping, and just want the program
+to run again.  Use the <b class="userinput">continue</b> (or <b class="userinput">c</b>) command to continue execution.</p><p>
+
+</p><p>What if the program is running but you forgot to set breakpoints?
+You can hit <b class="userinput">CTRL-C</b> and that'll stop the program
+wherever it happens to be and return you to a "(gdb)" prompt.  At that
+point, you could set up a proper breakpoint somewhere and <b class="userinput">continue</b> to that breakpoint.</p>
+
+<p>One final shortcut is that just hitting <b class="userinput">RETURN</b> will repeat the last command entered; this
+will save you typing <b class="userinput">next</b> over and over
+again.</p>
+
+<!-- ================================================================ -->
+<a name="exvars"></a>
+<h2 class="pbb">Examining Variables</h2>
+
+<p>If you have some variables you wish to inspect over the course of the
+run, you can <b class="userinput">display</b> them, but only if the
+variable is currently in scope.  Each time you step the code, the value
+of the variable will be displayed (if it's in scope).</p>
+
+<p>(The following output is missing source code output between lines for
+clarity—it's what you'd see in GUI mode.  Imagine you're seeing
+the highlight bar bouncing around the source code while you're running
+this:)</p>
+
+<pre class="screen">(gdb) <b class="userinput">b main</b>
+Breakpoint 1 at 0x8048365: file hello.c, line 5.
+(gdb) <b class="userinput">r</b>
+Starting program: /home/beej/hello 
+
+Breakpoint 1, main () at hello.c:5
+(gdb) <b class="userinput">disp i</b>
+1: i = -1207447872
+(gdb) <b class="userinput">next</b>
+1: i = 1
+(gdb) <b class="userinput">next</b>
+1: i = 1
+(gdb) <b class="userinput">next</b>
+1: i = 2
+(gdb) <b class="userinput">next</b>
+1: i = 2
+(gdb) <b class="userinput">next</b>
+1: i = 4
+(gdb) <b class="userinput">next</b>
+1: i = 4
+(gdb) <b class="userinput">next</b>
+1: i = 4
+(gdb) 
+</pre>
+
+<p>The number to the left of "i", above, is the display number of the
+variable.  Use this number to <b class="userinput">undisplay</b> the
+variable.  If you forget the display numbers, you can type <b class="userinput">info display</b> to get them:</p>
+
+<pre class="screen">(gdb) <b class="userinput">b main</b>
+Breakpoint 1 at 0x8048365: file hello.c, line 5.
+(gdb) <b class="userinput">r</b>
+Starting program: /home/beej/hello 
+
+Breakpoint 1, main () at hello.c:5
+(gdb) <b class="userinput">display i</b>
+1: i = -1207447872
+(gdb) <b class="userinput">info display</b>
+Auto-display expressions now in effect:
+Num Enb Expression
+1:   y  i
+(gdb) <b class="userinput">undisplay 1</b>
+(gdb)
+</pre>
+
+<p>If you just want to one-off know the value of a variable, you can <b class="userinput">print</b> it.  Here we see the value of "i" is 40:</p>
+
+<pre class="screen">(gdb) <b class="userinput">print i</b>
+$1 = 40
+(gdb)
+</pre>
+
+<p>(The "$" with the number after it means something, but it's not
+important for beginners.)</p>
+
+<p>There's also a handy <b class="userinput">printf</b> command that you
+can use to better format your output if you want to:
+
+</p><pre class="screen">(gdb) <b class="userinput">printf "%d\n", i</b>
+40
+(gdb) <b class="userinput">printf "%08X\n", i</b>
+00000028
+(gdb)
+</pre>
+
+<a name="misc"></a>
+
+<!-- ================================================================ -->
+<a name="misc"></a>
+<h2 class="pbb">Misc Stuff</h2>
+
+<p>This is stuff that doesn't really fit in the earlier sections, but it
+fun enough to list somewhere.</p>
+
+<!-- ============================ -->
+<a name="stackman"></a>
+<h3>Stack Manipulation</h3>
+
+<p>The command <b class="userinput">backtrace</b> (or <b class="userinput">bt</b>) will show you the current function call
+stack, with the current function at the top, and the callers in order
+beneath it:</p>
+
+<pre class="screen">(gdb) <b class="userinput">backtrace</b>
+#0  subsubfunction () at hello.c:5
+#1  0x080483a7 in subfunction () at hello.c:10
+#2  0x080483cf in main () at hello.c:16
+(gdb)
+</pre>
+
+<p>Type <b class="userinput">help stack</b> for more info on what you
+can do with this.</p>
+
+<!-- ============================ -->
+<a name="morestep"></a>
+<h3>Additional Stepping Methods</h3>
+
+<p>To exit the current function and return to the calling function, use
+the <b class="userinput">finish</b> command.</p>
+
+<p>To step for a single assembly instruction, use the <b class="userinput">stepi</b> command.</p>
+
+<p>To continue to a specific location, use the <b class="userinput">advance</b> command, specifying a location like those
+shown in the "<a href="#breakpoints">Breakpoints</a>" section, above.
+Here's an example which advances from the current location until the
+function <tt class="function">subsubfunction()</tt> is called:</p>
+
+<pre class="screen">Breakpoint 1, main () at hello.c:15
+15		printf("Hello, world!\n");
+(gdb) <b class="userinput">advance subsubfunction</b>
+Hello, world!
+subsubfunction () at hello.c:5
+5		printf("Deepest!\n");
+(gdb) 
+</pre>
+
+<p><b class="userinput">advance</b> is just shorthand for "continue to
+this temporary breakpoint."</p>
+
+<!-- ============================ -->
+<a name="jump"></a>
+<h3>Jumping to an Arbitrary Section of Code</h3>
+
+<p>The <b class="userinput">jump</b> command works exactly like <b class="userinput">continue</b>, except it takes a location to jump to as
+an argument.  (See the the "<a href="#breakpoints">Breakpoints</a>"
+section, above, for more information on locations.)</p>
+
+<p>If you need to stop at the jump destination, set a breakpoint there
+first.</p>
+
+<!-- ============================ -->
+<a name="varmod"></a>
+<h3>Changing Variables and Values at Runtime</h3>
+
+<p>You can use the <b class="userinput">set variable</b> command with an
+expression to evaluate, and this allows you to change the value of a
+variable during the run.  You can also shorthand this by just using <b class="userinput">set</b> with a parenthesized expression after it:</p>
+
+<pre class="screen">Breakpoint 1, main () at hello.c:15
+15		int i = 10;
+(gdb) <b class="userinput">print i</b>
+$1 = -1208234304
+(gdb) <b class="userinput">set (i = 20)</b>
+(gdb) <b class="userinput">print i</b>
+$2 = 20
+(gdb) <b class="userinput">set variable i = 40</b>
+(gdb) <b class="userinput">print i</b>
+$3 = 40
+(gdb) 
+</pre>
+
+<p>This, along with the <b class="userinput">jump</b> command, can help
+you repeat sections of code without restarting the program.</p>
+
+<!-- ============================ -->
+<a name="hardwatch"></a>
+<h3>Hardware Watchpoints</h3>
+
+<p>Hardware watchpoints are special breakpoints that will trigger
+whenever an expression changes.  Often you just want to know when a
+variable changes (is written to), and for that you can use the <b class="userinput">watch</b> command:</p>
+
+<pre class="screen">Breakpoint 1, main () at hello.c:5
+5		int i = 1;
+(gdb) <b class="userinput">watch i</b>
+Hardware watchpoint 2: i
+(gdb) <b class="userinput">continue</b>
+Continuing.
+Hardware watchpoint 2: i
+
+Old value = -1208361280
+New value = 2
+main () at hello.c:7
+7		while (i &lt; 100) {
+(gdb) <b class="userinput">continue</b>
+Continuing.
+Hardware watchpoint 2: i
+
+Old value = 2
+New value = 3
+main () at hello.c:7
+7		while (i &lt; 100) {
+(gdb)
+</pre>
+
+<p>Note that <b class="userinput">watch</b> takes an expression as an
+argument, so you can put a variable name in there, or something more
+complex like <tt class="code">*(p+5)</tt> or <tt class="code">a[15]</tt>.  I've even tried it with conditional
+expressions like <tt class="code">i&nbsp;&gt;&nbsp;10</tt>, but have had
+mixed results.</p>
+
+<p>You can get a list of watch points with <b class="userinput">info
+break</b> or <b class="userinput">info watch</b>, and you can delete
+them by number with the <b class="userinput">delete</b> command.</p>
+
+<p>Finally, you can use <b class="userinput">rwatch</b> to detect when a
+variable is read, and you can use <b class="userinput">awatch</b> to
+detect when a variable is either read or written.</p>
+
+<!-- ============================ -->
+<a name="attach"></a>
+<h3>Attach to a Running Process</h3>
+
+<p>If your program is already going and you want to stop it and debug,
+first you'll need the process ID (PID), which will be a number.  (Get it
+from Unix's <b class="command">ps</b> command.)  Then you'll use the <b class="userinput">attach</b> command with the PID to attach to (and
+break) the running program.</p>
+
+<p>For this, you can just start <b class="command">gdb</b> with no
+arguments.</p>
+
+<p>In the following complete run, you'll notice a few things.  First I
+attach to the running process, and it tells me it's in some function
+deep down called <tt class="function">__nanosleep_nocancel()</tt>, which
+isn't too surprising since I called <tt class="function">sleep()</tt> in
+my code.  Indeed, asking for a <b class="userinput">backtrace</b> shows
+exactly this call stack.  So I say <b class="userinput">finish</b> a
+couple times to get back up to <tt class="function">main()</tt>.
+
+</p><pre class="screen">$ <b class="command">gdb</b>
+GNU gdb 6.8
+Copyright (C) 2008 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i486-slackware-linux".
+(gdb) <b class="command">attach 3490</b>
+Attaching to process 3490
+Reading symbols from /home/beej/hello...done.
+Reading symbols from /lib/libsafe.so.2...done.
+Loaded symbols for /lib/libsafe.so.2
+Reading symbols from /lib/libc.so.6...done.
+Loaded symbols for /lib/libc.so.6
+Reading symbols from /lib/libdl.so.2...done.
+Loaded symbols for /lib/libdl.so.2
+Reading symbols from /lib/ld-linux.so.2...done.
+Loaded symbols for /lib/ld-linux.so.2
+0xb7eab21b in __nanosleep_nocancel () from /lib/libc.so.6
+(gdb) <b class="command">backtrace </b>
+#0  0xb7eab21b in __nanosleep_nocancel () from /lib/libc.so.6
+#1  0xb7eab05f in sleep () from /lib/libc.so.6
+#2  0x080483ab in main () at hello.c:10
+(gdb) <b class="command">finish</b>
+Run till exit from #0  0xb7eab21b in __nanosleep_nocancel ()
+   from /lib/libc.so.6
+0xb7eab05f in sleep () from /lib/libc.so.6
+(gdb) <b class="command">finish</b>
+Run till exit from #0  0xb7eab05f in sleep () from /lib/libc.so.6
+0x080483ab in main () at hello.c:10
+10			sleep(1);
+(gdb) <b class="command">list</b>
+5	{
+6		int i = 1;
+7	
+8		while (i &lt; 60) {
+9			i++;
+10			sleep(1);
+11		}
+12	
+13		return 0;
+14	}
+(gdb) <b class="command">print i</b>
+$1 = 19
+(gdb) <b class="command">quit</b>
+The program is running.  Quit anyway (and detach it)? (y or n) <b class="command">y</b>
+Detaching from program: /home/beej/hello, process 3490
+</pre>
+
+<p>Notice that when I get back to <tt class="function">main()</tt>, I
+print the value of <tt>i</tt> and it's 19—because in this case the
+program has been running for 19 seconds, and <tt>i</tt> gets incremented
+once per second.</p>
+
+<p>Once we've quit the debugger and detached from the program, the
+program returns to running normally.</p>
+
+<p>Mix this with <b class="userinput">set variable</b>, above, and
+you've got some power!</p>
+
+<!-- ============================ -->
+<a name="coredump"></a>
+<h3>Using Coredumps for Postmortem Analysis</h3>
+
+<p>Let's say you build and run a program, and it dumps core on you for
+some reason or another:</p>
+
+<pre class="screen">$ <b class="userinput">cc -g -o foo foo.c</b>
+$ <b class="userinput">./foo</b>
+Segmentation fault (core dumped)
+</pre>
+
+<p>This means that a core file (with a memory snapshot from the time of
+the crash) has been created with the name "core".  If you're not getting
+a core file (that is, it only says "Segmentation fault" and no core file
+is created), you might have your ulimit set too low; try typing <b class="command">ulimit&nbsp;-c&nbsp;unlimited</b> at your shell
+prompt.</p>
+
+<p>You can fire up <b class="command">gdb</b> with the <b class="option">-c</b> option to specify a core file:</p>
+
+<pre class="screen">$ <b class="userinput">gdb -tui -c core foo</b>
+</pre>
+
+<p>And, if in TUI mode, you'll be greeted with a screen of information,
+telling you why the program exited ("signal 11, Segmentation fault"),
+and the highlight will be on the offending line.  (In dumb terminal
+mode, the offending line is printed out.)</p>
+
+<p>In this example, I print the variable that's causing the problem.
+Indeed it is NULL:</p>
+
+<center><img src="Beej's%20Quick%20Guide%20to%20GDB_files/coredump.png" class="figureimg" border="0"></center>
+
+<p>Even if you don't have all the source code, it's often useful to get
+a <b class="userinput">backtrace</b> from the point the program
+crashed.</p>
+
+<!-- ============================ -->
+<a name="window"></a>
+<h3>Window Functions</h3>
+
+<p>In TUI mode, you can get a list of existing windows with the <b class="userinput">info win</b> command.  You can then change which
+window has focus with the <b class="userinput">focus</b> (or <b class="userinput">fs</b>) command.  <b class="userinput">focus</b> takes
+either a window name, or "prev" or "next" as an argument.  Valid window
+names are "SRC" (source window), "CMD" (command window), "REGS"
+(registers window), and "ASM" (assembly window).  See the next section
+for how to use these other windows.</p>
+
+<p>Note that when the SRC window has focus, the arrow keys will move the
+source code, but when the CMD window has focus, the arrow keys will
+select the previous and next commands in the command history.  (For the
+record, the commands to move the SRC window single lines and single
+pages are <b class="userinput">+</b>, <b class="userinput">-</b>, <b class="userinput">&lt;</b>, and <b class="userinput">&gt;</b>.)</p>
+
+<pre class="screen">(gdb) <b class="userinput">info win</b>
+        SRC     (36 lines)  &lt;has focus&gt;
+        CMD     (18 lines)
+(gdb) <b class="userinput">fs next</b>
+Focus set to CMD window.
+(gdb) <b class="userinput">info win</b>
+        SRC     (36 lines)
+        CMD     (18 lines)  &lt;has focus&gt;
+(gdb) <b class="userinput">fs SRC</b>
+Focus set to SRC window.
+(gdb)
+</pre>
+
+<p>(Window names are case in-sensitive.)</p>
+
+<p>The <b class="userinput">winheight</b> (or <b class="userinput">wh</b>) command sets the height of a particular
+window, but I've had bad luck with this working well.</p>
+
+<!-- ============================ -->
+<a name="regasm"></a>
+<h3>Display Registers and Assembly</h3>
+
+<p>In TUI mode, the <b class="userinput">layout</b> command controls
+which windows you see.  Additionally, the <b class="userinput">tui
+reg</b> allows control of the register window, and will open it if it's
+not already open.</p>
+
+The commands are:<p></p>
+
+<center><table border="0" class="singleborder">
+
+<tbody><tr><td align="left" class="rightpad"><b class="userinput">layout src</b></td><td align="left">Standard layout—source on top, command window on the
+bottom</td></tr>
+
+<tr><td align="left" class="rightpad"><b class="userinput">layout asm</b></td><td align="left">Just like the "src" layout, except it's an assembly window
+on top</td></tr>
+
+<tr><td align="left" class="rightpad"><b class="userinput">layout split</b></td><td align="left">Three windows: source on top, assembly in the middle, and
+command at the bottom</td></tr>
+
+<tr><td align="left" class="rightpad"><b class="userinput">layout reg</b></td><td align="left">Opens the register window on top of either source or
+assembly, whichever was opened last</td></tr>
+
+<tr><td align="left" class="rightpad"><b class="userinput">tui&nbsp;reg&nbsp;general</b></td><td align="left">Show the general registers</td></tr>
+
+<tr><td align="left" class="rightpad"><b class="userinput">tui reg float</b></td><td align="left">Show the floating point registers</td></tr>
+
+<tr><td align="left" class="rightpad"><b class="userinput">tui&nbsp;reg&nbsp;system</b></td><td align="left">Show the "system" registers</td></tr>
+
+<tr><td align="left" class="rightpad"><b class="userinput">tui reg next</b></td><td align="left">Show the next page of registers—this is important
+because there might be pages of registers that aren't in the "general",
+"float", or "system" sets</td></tr>
+
+</tbody></table></center>
+
+<p>Here's a nifty screenshot to whet your appetite, showing source and
+assembly in "split" mode:</p>
+
+<center><img src="Beej's%20Quick%20Guide%20to%20GDB_files/gdbwinss.png" border="0"></center>
+
+<p>Assembly code comes in two flavors on Intel machines: Intel and
+AT&amp;T.  You can set which one appears in the disassembly window with
+<b class="userinput">set disassembly-flavor</b>.  Valid values are
+"intel" and "att".  If you already have the assembly window open, you'll
+have to close it and reopen it (<b class="userinput">layout src</b>
+followed by <b class="userinput">layout split</b>, for example.)</p>
+
+<p>To display registers in dumb terminal mode, type <b class="userinput">info registers</b> for the integer registers, or <b class="userinput">info all-registers</b> for everything.</p>
+
+<!-- ============================ -->
+<a name="frontend"></a>
+<h3>Writing a Front-End</h3>
+
+<p>You're thinking, "Wow, this is pretty cool, but I could write a
+killer front-end for this thing that worked so much better!  How do I do
+it?"</p>
+
+<p>GDB supports what it calls the "machine interface interpreter", or
+GDB/MI.  The interpreter is selected on the <b class="command">gdb</b>
+command line with the <b class="option">--interpreter</b> switch.</p>
+
+<p>Basically you'll launch <b class="command">gdb</b> and read commands
+and results to and from it (probably using pipes).  Pretty
+straightforward.</p>
+
+<p>See the <a target="_blank" href="http://sourceware.org/gdb/current/onlinedocs/gdb_26.html#SEC263">GDB
+documentation for all the details</a>.</p>
+
+
+<!-- ================================================================ -->
+<a name="qref"></a>
+<h2 class="pbb">Quick Reference</h2>
+
+<p>Command parameters are in italics.  Optional parameters are in square
+brackets.  All commands can be abbreviated until they become ambiguous.</p>
+
+<p><i>This list is very very incomplete, and only shows things talked
+about in this tutorial!</i></p>
+
+<center><table border="0" class="singleborder">
+
+<tbody><tr><td align="left" colspan="2"><b class="tableheader">Help Commands</b></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">help
+<i>command</i></b></td><td align="left">Get help on a certain command</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">apropos
+<i>keyword</i></b></td><td align="left">Search help for a particular
+keyword</td></tr>
+
+
+
+<tr><td class="tablespacer" align="left" colspan="2"><b class="tableheader">Starting and Quitting</b></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="command">gdb <i>[-tui]
+[-c core] [exename]</i></b></td><td align="left"><b>(Unix Command)</b>
+Start <b class="command">gdb</b> on an executable or standalone; specify
+"-tui" to start the TUI GUI; specify "-c" with a corefile name to see
+where a crash occurred</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">run <i>[arg1] [arg2]
+[...]</i></b></td><td align="left">Run the currently loaded program with
+the given command line arguments</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">quit</b></td><td align="left">Exit the debugger</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">file
+<i>exename</i></b></td><td align="left">Load an executable file by
+name</td></tr>
+
+
+
+<tr><td class="tablespacer" align="left" colspan="2"><b class="tableheader">Breakpoints and Watchpoints</b></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">break
+<i>location</i></b></td><td align="left">Set a breakpoint at a location,
+line number, or file (e.g. "main", "5", or "hello.c:23")</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">watch
+<i>expression</i></b></td><td align="left">Break when a variable is
+written to</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">rwatch
+<i>expression</i></b></td><td align="left">Break when a variable is
+read from</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">awatch
+<i>expression</i></b></td><td align="left">Break when a variable is
+written to or read from</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">info break</b></td><td align="left">Display breakpoint and watchpoint information and numbers</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">info watch</b></td><td align="left">Same as <b class="userinput">info break</b></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">clear
+<i>location</i></b></td><td align="left">Clear a breakpoint from a
+location</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">delete <i>num</i></b></td><td align="left">Delete a breakpoint or watchpoint by number</td></tr>
+
+
+<tr><td class="tablespacer" align="left" colspan="2"><b class="tableheader">Stepping and Running</b></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">next</b></td><td align="left">Run to the next line of this function</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">step</b></td><td align="left">Step into the function on this line, if possible</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">stepi</b></td><td align="left">Step a single assembly instruction</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">continue</b></td><td align="left">Keep running from here</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">CTRL-C</b></td><td align="left">Stop running, wherever you are</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">finish</b></td><td align="left">Run until the end of the current function</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">advance
+<i>location</i></b></td><td align="left">Advance to a location,
+line number, or file (e.g. "somefunction", "5", or "hello.c:23")</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">jump <i>location</i></b></td><td align="left">Just like <b class="userinput">continue</b>, except jump to
+a particular location first.</td></tr>
+
+
+<tr><td class="tablespacer" align="left" colspan="2"><b class="tableheader">Examining and Modifying Variables</b></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">display
+<i>expression</i></b></td><td align="left">Display the value of a
+variable or expression every step of the program—the expression
+must make sense in the current scope</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">info display</b></td><td align="left">Show a list of expressions currently being displayed and
+their numbers</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">undisplay
+<i>num</i></b></td><td align="left">Stop showing an expression
+identified by its number (see <b class="userinput">info display</b>)</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">print
+<i>expression</i></b></td><td align="left">Print the value of a variable
+or expression</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">printf&nbsp;<i>formatstr</i>&nbsp;<i>expressionlist</i></b></td><td align="left">Do some
+formatted output with <tt class="function">printf()</tt> e.g. <tt class="code">printf&nbsp;"i&nbsp;=&nbsp;%d,&nbsp;p&nbsp;=&nbsp;%s\n",&nbsp;i,&nbsp;p</tt></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">set variable
+<i>expression</i></b></td><td align="left">Set a variable to value, e.g.
+<tt class="code">set&nbsp;variable&nbsp;x=20</tt></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">set
+(<i>expression</i>)</b></td><td align="left">Works like <b class="userinput">set variable</b></td></tr>
+
+
+<tr><td class="tablespacer" align="left" colspan="2"><b class="tableheader">Window Commands</b></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">info win</b></td><td align="left">Shows current window info</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">focus
+<i>winname</i></b></td><td align="left">Set focus to a particular window
+bby name ("SRC", "CMD", "ASM", or "REG") or by position ("next" or
+"prev")</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">fs</b></td><td align="left">Alias for <b class="userinput">focus</b></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">layout <i>type</i></b></td><td align="left">Set the window layout ("src", "asm", "split", or "reg")</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">tui reg <i>type</i></b></td><td align="left">Set the register window layout ("general", "float",
+"system", or "next")</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">winheight <i>val</i></b></td><td align="left">Set the window height (either an absolute value, or a
+relative value prefaced with "+" or "-")</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">wh</b></td><td align="left">Alias for <b class="userinput">winheight</b></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">set&nbsp;disassembly-flavor&nbsp;<i>flavor</i></b></td><td align="left">Set the look-and-feel of the disassembly.  On Intel
+machines, valid flavors are <b class="userinput">intel</b> and <b class="userinput">att</b></td></tr>
+
+
+
+<tr><td class="tablespacer" align="left" colspan="2"><b class="tableheader">Misc Commands</b></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">RETURN</b></td><td align="left">Hit RETURN to repeat the last command</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">backtrace</b></td><td align="left">Show the current stack</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">bt</b></td><td align="left">Alias for <b class="userinput">backtrace</b></td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">attach <i>pid</i></b></td><td align="left">Attach to an already-running process by its PID</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">info registers</b></td><td align="left">Dump integer registers to screen</td></tr>
+
+<tr><td class="rightpad" align="left"><b class="userinput">info all-registers</b></td><td align="left">Dump all registers to screen</td></tr>
+
+<!--
+<tr><td align="left" colspan="2"><b class="tableheader"></b></td></tr>
+<tr><td class="rightpad" align="left"><b class="userinput"></b></td><td align="left"></td></tr>
+-->
+</tbody></table></center>
+
+<hr>
+
+<p class="smalltext">Copyright 2009 Brian "Beej Jorgensen" Hall 
+&lt;<a href="mailto:beej@beej.us">beej@beej.us</a>&gt;</p>
+
+
+
+
+</body></html>

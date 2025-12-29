@@ -1,0 +1,6 @@
+Keygenme_NASM by rezk2ll ( khaled )
+written in assembly
+
+*task = make a keygen for it ! + no patching :p
+*rank = easy :p
+*have fun :) and good luck !

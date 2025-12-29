@@ -1,0 +1,74 @@
+
+../objectfiles/FpuChs.o:     file format pe-i386
+
+
+Disassembly of section .text:
+
+00000000 <_FpuChs@12>:
+   0:	55                   	push   ebp
+   1:	8b ec                	mov    ebp,esp
+   3:	83 c4 88             	add    esp,0xffffff88
+   6:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+   d:	74 0d                	je     1c <_FpuChs@12+0x1c>
+   f:	d9 e5                	fxam   
+  11:	9b df e0             	fstsw  ax
+  14:	9b                   	fwait
+  15:	9e                   	sahf   
+  16:	73 04                	jae    1c <_FpuChs@12+0x1c>
+  18:	7a 02                	jp     1c <_FpuChs@12+0x1c>
+  1a:	74 42                	je     5e <_FpuChs@12+0x5e>
+  1c:	9b dd 75 94          	fsave  [ebp-0x6c]
+  20:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+  27:	74 08                	je     31 <_FpuChs@12+0x31>
+  29:	8d 45 94             	lea    eax,[ebp-0x6c]
+  2c:	db 68 1c             	fld    TBYTE PTR [eax+0x1c]
+  2f:	eb 38                	jmp    69 <_FpuChs@12+0x69>
+  31:	8b 45 08             	mov    eax,DWORD PTR [ebp+0x8]
+  34:	f7 45 10 02 00 00 00 	test   DWORD PTR [ebp+0x10],0x2
+  3b:	74 04                	je     41 <_FpuChs@12+0x41>
+  3d:	db 28                	fld    TBYTE PTR [eax]
+  3f:	eb 28                	jmp    69 <_FpuChs@12+0x69>
+  41:	f7 45 10 00 00 02 00 	test   DWORD PTR [ebp+0x10],0x20000
+  48:	74 04                	je     4e <_FpuChs@12+0x4e>
+  4a:	dd 00                	fld    QWORD PTR [eax]
+  4c:	eb 1b                	jmp    69 <_FpuChs@12+0x69>
+  4e:	f7 45 10 00 00 01 00 	test   DWORD PTR [ebp+0x10],0x10000
+  55:	74 04                	je     5b <_FpuChs@12+0x5b>
+  57:	d9 00                	fld    DWORD PTR [eax]
+  59:	eb 0e                	jmp    69 <_FpuChs@12+0x69>
+  5b:	dd 65 94             	frstor [ebp-0x6c]
+  5e:	33 c0                	xor    eax,eax
+  60:	c9                   	leave  
+  61:	c2 0c 00             	ret    0xc
+  64:	8b 45 08             	mov    eax,DWORD PTR [ebp+0x8]
+  67:	db 28                	fld    TBYTE PTR [eax]
+  69:	d9 e0                	fchs   
+  6b:	9b df e0             	fstsw  ax
+  6e:	9b                   	fwait
+  6f:	d0 e8                	shr    al,1
+  71:	72 e8                	jb     5b <_FpuChs@12+0x5b>
+  73:	f7 45 10 80 00 00 00 	test   DWORD PTR [ebp+0x10],0x80
+  7a:	74 05                	je     81 <_FpuChs@12+0x81>
+  7c:	db 7d 8a             	fstp   TBYTE PTR [ebp-0x76]
+  7f:	eb 1f                	jmp    a0 <_FpuChs@12+0xa0>
+  81:	8b 45 0c             	mov    eax,DWORD PTR [ebp+0xc]
+  84:	f7 45 10 00 00 10 00 	test   DWORD PTR [ebp+0x10],0x100000
+  8b:	74 04                	je     91 <_FpuChs@12+0x91>
+  8d:	d9 18                	fstp   DWORD PTR [eax]
+  8f:	eb 0f                	jmp    a0 <_FpuChs@12+0xa0>
+  91:	f7 45 10 00 00 20 00 	test   DWORD PTR [ebp+0x10],0x200000
+  98:	74 04                	je     9e <_FpuChs@12+0x9e>
+  9a:	dd 18                	fstp   QWORD PTR [eax]
+  9c:	eb 02                	jmp    a0 <_FpuChs@12+0xa0>
+  9e:	db 38                	fstp   TBYTE PTR [eax]
+  a0:	dd 65 94             	frstor [ebp-0x6c]
+  a3:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+  aa:	74 02                	je     ae <_FpuChs@12+0xae>
+  ac:	dd d8                	fstp   st(0)
+  ae:	f7 45 10 80 00 00 00 	test   DWORD PTR [ebp+0x10],0x80
+  b5:	74 05                	je     bc <_FpuChs@12+0xbc>
+  b7:	dd c7                	ffree  st(7)
+  b9:	db 6d 8a             	fld    TBYTE PTR [ebp-0x76]
+  bc:	0c 01                	or     al,0x1
+  be:	c9                   	leave  
+  bf:	c2 0c 00             	ret    0xc

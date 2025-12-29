@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Beej's Guide to Network Programming</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet"> 
+
+  <!-- BG custom styling -->
+  <style type="text/css">
+  /* Fix for line numbers not visible */
+  pre.numberSource code > span {
+      left: -1em;
+  }
+  pre.numberSource {
+      margin-left: initial;
+  }
+
+  /* Put some space after the section numbers */
+  span.toc-section-number::after {
+      content: "\a0\a0\a0";  /* non-breaking whitespace */
+  }
+
+  /* Hide underlines on code number links */
+  pre > code.sourceCode > span > a:first-child::before {
+      text-decoration: none;
+  }
+
+  /* Color the source blocks */
+  div.sourceCode {
+      background-color: #f0f0f0;
+  }
+
+  /* Fix iOS big text rendering issue */
+  pre > code.sourceCode > span {
+      display: initial;
+  }
+
+
+  /* Color the inline code */
+  code:not(.sourceCode) {
+      background: #f0f0f0;
+      padding-left: 0.2em;
+      padding-right: 0.2em;
+      border-radius: 0.2em;
+  }
+
+  /* Keep code tags from wrapping in tables */
+  tbody code {
+      white-space: nowrap;
+  }
+
+  td {
+      vertical-align: top;
+  }
+
+  body {
+      font-size: 12pt;
+      max-width: 43em;
+  }
+
+  figure {
+      text-align: center;
+  }
+  </style>
+  <!-- BG custom styling for the wide body variant -->
+  <!-- Gets appended after bg-css.html -->
+
+  <style type="text/css">
+  body {
+      max-width: inherit;
+  }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div style="text-align:center"><span><a href="what-is-a-socket.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="jumping-from-ipv4-to-ipv6.html">Next</a></span></div><hr>
+<h1 data-number="3" id="ip-addresses-structs-and-data-munging"><span class="header-section-number">3</span> IP Addresses, <code>struct</code>s, and Data Munging</h1>
+<p>Here’s the part of the game where we get to talk code for a change.</p>
+<p>But first, let’s discuss more non-code! Yay! First I want to talk about IP addresses and ports for just a tad so we have that sorted out. Then we’ll talk about how the sockets API stores and manipulates IP addresses and other data.</p>
+<h2 data-number="3.1" id="ip-addresses-versions-4-and-6"><span class="header-section-number">3.1</span> IP Addresses, versions 4 and 6</h2>
+<p>In the good old days back when Ben Kenobi was still called Obi Wan Kenobi, there was a wonderful network routing system called The Internet Protocol Version 4, also called IPv4. It had addresses made up of four bytes (A.K.A. four “octets”), and was commonly written in “dots and numbers” form, like so: <code>192.0.2.111</code>.</p>
+<p>You’ve probably seen it around.</p>
+<p>In fact, as of this writing, virtually every site on the Internet uses IPv4.</p>
+<p>Everyone, including Obi Wan, was happy. Things were great, until some naysayer by the name of Vint Cerf warned everyone that we were about to run out of IPv4 addresses!</p>
+<p>(Besides warning everyone of the Coming IPv4 Apocalypse Of Doom And Gloom, <a href="https://en.wikipedia.org/wiki/Vint_Cerf">Vint Cerf</a><a href="footnotes.html#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a> is also well-known for being The Father Of The Internet. So I really am in no position to second-guess his judgment.)</p>
+<p>Run out of addresses? How could this be? I mean, there are like billions of IP addresses in a 32-bit IPv4 address. Do we really have billions of computers out there?</p>
+<p>Yes.</p>
+<p>Also, in the beginning, when there were only a few computers and everyone thought a billion was an impossibly large number, some big organizations were generously allocated millions of IP addresses for their own use. (Such as Xerox, MIT, Ford, HP, IBM, GE, AT&amp;T, and some little company called Apple, to name a few.)</p>
+<p>In fact, if it weren’t for several stopgap measures, we would have run out a long time ago.</p>
+<p>But now we’re living in an era where we’re talking about every human having an IP address, every computer, every calculator, every phone, every parking meter, and (why not) every puppy dog, as well.</p>
+<p>And so, IPv6 was born. Since Vint Cerf is probably immortal (even if his physical form should pass on, heaven forbid, he is probably already existing as some kind of hyper-intelligent <a href="https://en.wikipedia.org/wiki/ELIZA">ELIZA</a><a href="footnotes.html#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a> program out in the depths of the Internet2), no one wants to have to hear him say again “I told you so” if we don’t have enough addresses in the next version of the Internet Protocol.</p>
+<p>What does this suggest to you?</p>
+<p>That we need a <em>lot</em> more addresses. That we need not just twice as many addresses, not a billion times as many, not a thousand trillion times as many, but <em>79 MILLION BILLION TRILLION times as many possible addresses!</em> That’ll show ’em!</p>
+<p>You’re saying, “Beej, is that true? I have every reason to disbelieve large numbers.” Well, the difference between 32 bits and 128 bits might not sound like a lot; it’s only 96 more bits, right? But remember, we’re talking powers here: 32 bits represents some 4 billion numbers (2<sup>32</sup>), while 128 bits represents about 340 trillion trillion trillion numbers (for real, 2<sup>128</sup>). That’s like a million IPv4 Internets for <em>every single star in the Universe</em>.</p>
+<p>Forget this dots-and-numbers look of IPv4, too; now we’ve got a hexadecimal representation, with each two-byte chunk separated by a colon, like this:</p>
+<pre><code>2001:0db8:c9d2:aee5:73e3:934a:a5ae:9551</code></pre>
+<p>That’s not all! Lots of times, you’ll have an IP address with lots of zeros in it, and you can compress them between two colons. And you can leave off leading zeros for each byte pair. For instance, each of these pairs of addresses are equivalent:</p>
+<pre><code>2001:0db8:c9d2:0012:0000:0000:0000:0051
+2001:db8:c9d2:12::51
+
+2001:0db8:ab00:0000:0000:0000:0000:0000
+2001:db8:ab00::
+
+0000:0000:0000:0000:0000:0000:0000:0001
+::1</code></pre>
+<p>The address <code>::1</code> is the <em>loopback address</em>. It always means “this machine I’m running on now”. In IPv4, the loopback address is <code>127.0.0.1</code>.</p>
+<p>Finally, there’s an IPv4-compatibility mode for IPv6 addresses that you might come across. If you want, for example, to represent the IPv4 address <code>192.0.2.33</code> as an IPv6 address, you use the following notation: “<code>::ffff:192.0.2.33</code>”.</p>
+<p>We’re talking serious fun.</p>
+<p>In fact, it’s such serious fun, that the Creators of IPv6 have quite cavalierly lopped off trillions and trillions of addresses for reserved use, but we have so many, frankly, who’s even counting anymore? There are plenty left over for every man, woman, child, puppy, and parking meter on every planet in the galaxy. And believe me, every planet in the galaxy has parking meters. You know it’s true.</p>
+<h3 data-number="3.1.1" id="subnets"><span class="header-section-number">3.1.1</span> Subnets</h3>
+<p>For organizational reasons, it’s sometimes convenient to declare that “this first part of this IP address up through this bit is the <em>network portion</em> of the IP address, and the remainder is the <em>host portion</em>.</p>
+<p>For instance, with IPv4, you might have <code>192.0.2.12</code>, and we could say that the first three bytes are the network and the last byte was the host. Or, put another way, we’re talking about host <code>12</code> on network <code>192.0.2.0</code> (see how we zero out the byte that was the host).</p>
+<p>And now for more outdated information! Ready? In the Ancient Times, there were “classes” of subnets, where the first one, two, or three bytes of the address was the network part. If you were lucky enough to have one byte for the network and three for the host, you could have 24 bits-worth of hosts on your network (16 million or so). That was a “Class A” network. On the opposite end was a “Class C”, with three bytes of network, and one byte of host (256 hosts, minus a couple that were reserved).</p>
+<p>So as you can see, there were just a few Class As, a huge pile of Class Cs, and some Class Bs in the middle.</p>
+<p>The network portion of the IP address is described by something called the <em>netmask</em>, which you bitwise-AND with the IP address to get the network number out of it. The netmask usually looks something like <code>255.255.255.0</code>. (E.g. with that netmask, if your IP is <code>192.0.2.12</code>, then your network is <code>192.0.2.12</code> AND <code>255.255.255.0</code> which gives <code>192.0.2.0</code>.)</p>
+<p>Unfortunately, it turned out that this wasn’t fine-grained enough for the eventual needs of the Internet; we were running out of Class C networks quite quickly, and we were most definitely out of Class As, so don’t even bother to ask. To remedy this, The Powers That Be allowed for the netmask to be an arbitrary number of bits, not just 8, 16, or 24. So you might have a netmask of, say <code>255.255.255.252</code>, which is 30 bits of network, and 2 bits of host allowing for four hosts on the network. (Note that the netmask is <em>ALWAYS</em> a bunch of 1-bits followed by a bunch of 0-bits.)</p>
+<p>But it’s a bit unwieldy to use a big string of numbers like <code>255.192.0.0</code> as a netmask. First of all, people don’t have an intuitive idea of how many bits that is, and secondly, it’s really not compact. So the New Style came along, and it’s much nicer. You just put a slash after the IP address, and then follow that by the number of network bits in decimal. Like this: <code>192.0.2.12/30</code>.</p>
+<p>Or, for IPv6, something like this: <code>2001:db8::/32</code> or <code>2001:db8:5413:4028::9db9/64</code>.</p>
+<h3 data-number="3.1.2" id="port-numbers"><span class="header-section-number">3.1.2</span> Port Numbers</h3>
+<p>If you’ll kindly remember, I presented you earlier with the <a href="what-is-a-socket.html#lowlevel">Layered Network Model</a> which had the Internet Layer (IP) split off from the Host-to-Host Transport Layer (TCP and UDP). Get up to speed on that before the next paragraph.</p>
+<p>Turns out that besides an IP address (used by the IP layer), there is another address that is used by TCP (stream sockets) and, coincidentally, by UDP (datagram sockets). It is the <em>port number</em>. It’s a 16-bit number that’s like the local address for the connection.</p>
+<p>Think of the IP address as the street address of a hotel, and the port number as the room number. That’s a decent analogy; maybe later I’ll come up with one involving the automobile industry.</p>
+<p>Say you want to have a computer that handles incoming mail AND web services—how do you differentiate between the two on a computer with a single IP address?</p>
+<p>Well, different services on the Internet have different well-known port numbers. You can see them all in <a href="https://www.iana.org/assignments/port-numbers">the Big IANA Port List</a><a href="footnotes.html#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a> or, if you’re on a Unix box, in your <code>/etc/services</code> file. HTTP (the web) is port 80, telnet is port 23, SMTP is port 25, the game <a href="https://en.wikipedia.org/wiki/Doom_(1993_video_game)">DOOM</a><a href="footnotes.html#fn16" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a> used port 666, etc. and so on. Ports under 1024 are often considered special, and usually require special OS privileges to use.</p>
+<p>And that’s about it!</p>
+<h2 data-number="3.2" id="byte-order"><span class="header-section-number">3.2</span> Byte Order</h2>
+<p> By Order of the Realm! There shall be two byte orderings, hereafter to be known as Lame and Magnificent!</p>
+<p>I joke, but one really is better than the other. <code>:-)</code></p>
+<p>There really is no easy way to say this, so I’ll just blurt it out: your computer might have been storing bytes in reverse order behind your back. I know! No one wanted to have to tell you.</p>
+<p>The thing is, everyone in the Internet world has generally agreed that if you want to represent the two-byte hex number, say <code>b34f</code>, you’ll store it in two sequential bytes <code>b3</code> followed by <code>4f</code>. Makes sense, and, as <a href="https://en.wikipedia.org/wiki/Wilford_Brimley">Wilford Brimley</a><a href="footnotes.html#fn17" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>17</sup></a> would tell you, it’s the Right Thing To Do. This number, stored with the big end first, is called <em>Big-Endian</em>.</p>
+<p>Unfortunately, a <em>few</em> computers scattered here and there throughout the world, namely anything with an Intel or Intel-compatible processor, store the bytes reversed, so <code>b34f</code> would be stored in memory as the sequential bytes <code>4f</code> followed by <code>b3</code>. This storage method is called <em>Little-Endian</em>.</p>
+<p>But wait, I’m not done with terminology yet! The more-sane <em>Big-Endian</em> is also called <em>Network Byte Order</em> because that’s the order us network types like.</p>
+<p>Your computer stores numbers in <em>Host Byte Order</em>. If it’s an Intel 80x86, Host Byte Order is Little-Endian. If it’s a Motorola 68k, Host Byte Order is Big-Endian. If it’s a PowerPC, Host Byte Order is… well, it depends!</p>
+<p>A lot of times when you’re building packets or filling out data structures you’ll need to make sure your two- and four-byte numbers are in Network Byte Order. But how can you do this if you don’t know the native Host Byte Order?</p>
+<p>Good news! You just get to assume the Host Byte Order isn’t right, and you always run the value through a function to set it to Network Byte Order. The function will do the magic conversion if it has to, and this way your code is portable to machines of differing endianness.</p>
+<p>All righty. There are two types of numbers that you can convert: <code>short</code> (two bytes) and <code>long</code> (four bytes). These functions work for the <code>unsigned</code> variations as well. Say you want to convert a <code>short</code> from Host Byte Order to Network Byte Order. Start with “h” for “host”, follow it with “to”, then “n” for “network”, and “s” for “short”: h-to-n-s, or <code>htons()</code> (read: “Host to Network Short”).</p>
+<p>It’s almost too easy…</p>
+<p>You can use every combination of “n”, “h”, “s”, and “l” you want, not counting the really stupid ones. For example, there is NOT a <code>stolh()</code> (“Short to Long Host”) function—not at this party, anyway. But there are:</p>
+<table>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 73%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>htons()</code></td>
+<td><code>h</code>ost <code>to</code> <code>n</code>etwork <code>s</code>hort</td>
+</tr>
+<tr class="even">
+<td><code>htonl()</code></td>
+<td><code>h</code>ost <code>to</code> <code>n</code>etwork <code>l</code>ong</td>
+</tr>
+<tr class="odd">
+<td><code>ntohs()</code></td>
+<td><code>n</code>etwork <code>to</code> <code>h</code>ost <code>s</code>hort</td>
+</tr>
+<tr class="even">
+<td><code>ntohl()</code></td>
+<td><code>n</code>etwork <code>to</code> <code>h</code>ost <code>l</code>ong</td>
+</tr>
+</tbody>
+</table>
+<p>Basically, you’ll want to convert the numbers to Network Byte Order before they go out on the wire, and convert them to Host Byte Order as they come in off the wire.</p>
+<p>I don’t know of a 64-bit variant, sorry. And if you want to do floating point, check out the section on <a href="slightly-advanced-techniques.html#serialization">Serialization</a>, far below.</p>
+<p>Assume the numbers in this document are in Host Byte Order unless I say otherwise.</p>
+<h2 data-number="3.3" id="structs"><span class="header-section-number">3.3</span> <code>struct</code>s</h2>
+<p>Well, we’re finally here. It’s time to talk about programming. In this section, I’ll cover various data types used by the sockets interface, since some of them are a real bear to figure out.</p>
+<p>First the easy one: a socket descriptor. A socket descriptor is the following type:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="ip-addresses-structs-and-data-munging.html#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span></span></code></pre></div>
+<p>Just a regular <code>int</code>.</p>
+<p>Things get weird from here, so just read through and bear with me.</p>
+<p>My First Struct™—<code>struct addrinfo</code>. This structure is a more recent invention, and is used to prep the socket address structures for subsequent use. It’s also used in host name lookups, and service name lookups. That’ll make more sense later when we get to actual usage, but just know for now that it’s one of the first things you’ll call when making a connection.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="ip-addresses-structs-and-data-munging.html#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> addrinfo <span class="op">{</span></span>
+<span id="cb10-2"><a href="ip-addresses-structs-and-data-munging.html#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>              ai_flags<span class="op">;</span>     <span class="co">// AI_PASSIVE, AI_CANONNAME, etc.</span></span>
+<span id="cb10-3"><a href="ip-addresses-structs-and-data-munging.html#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>              ai_family<span class="op">;</span>    <span class="co">// AF_INET, AF_INET6, AF_UNSPEC</span></span>
+<span id="cb10-4"><a href="ip-addresses-structs-and-data-munging.html#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>              ai_socktype<span class="op">;</span>  <span class="co">// SOCK_STREAM, SOCK_DGRAM</span></span>
+<span id="cb10-5"><a href="ip-addresses-structs-and-data-munging.html#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>              ai_protocol<span class="op">;</span>  <span class="co">// use 0 for &quot;any&quot;</span></span>
+<span id="cb10-6"><a href="ip-addresses-structs-and-data-munging.html#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span>           ai_addrlen<span class="op">;</span>   <span class="co">// size of ai_addr in bytes</span></span>
+<span id="cb10-7"><a href="ip-addresses-structs-and-data-munging.html#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> sockaddr <span class="op">*</span>ai_addr<span class="op">;</span>      <span class="co">// struct sockaddr_in or _in6</span></span>
+<span id="cb10-8"><a href="ip-addresses-structs-and-data-munging.html#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span>            <span class="op">*</span>ai_canonname<span class="op">;</span> <span class="co">// full canonical hostname</span></span>
+<span id="cb10-9"><a href="ip-addresses-structs-and-data-munging.html#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="ip-addresses-structs-and-data-munging.html#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> addrinfo <span class="op">*</span>ai_next<span class="op">;</span>      <span class="co">// linked list, next node</span></span>
+<span id="cb10-11"><a href="ip-addresses-structs-and-data-munging.html#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>You’ll load this struct up a bit, and then call <code>getaddrinfo()</code>. It’ll return a pointer to a new linked list of these structures filled out with all the goodies you need.</p>
+<p>You can force it to use IPv4 or IPv6 in the <code>ai_family</code> field, or leave it as <code>AF_UNSPEC</code> to use whatever. This is cool because your code can be IP version-agnostic.</p>
+<p>Note that this is a linked list: <code>ai_next</code> points at the next element—there could be several results for you to choose from. I’d use the first result that worked, but you might have different business needs; I don’t know everything, man!</p>
+<p>You’ll see that the <code>ai_addr</code> field in the <code>struct addrinfo</code> is a pointer to a <code>struct sockaddr</code>. This is where we start getting into the nitty-gritty details of what’s inside an IP address structure.</p>
+<p>You might not usually need to write to these structures; oftentimes, a call to <code>getaddrinfo()</code> to fill out your <code>struct addrinfo</code> for you is all you’ll need. You <em>will</em>, however, have to peer inside these <code>struct</code>s to get the values out, so I’m presenting them here.</p>
+<p>(Also, all the code written before <code>struct addrinfo</code> was invented we packed all this stuff by hand, so you’ll see a lot of IPv4 code out in the wild that does exactly that. You know, in old versions of this guide and so on.)</p>
+<p>Some <code>struct</code>s are IPv4, some are IPv6, and some are both. I’ll make notes of which are what.</p>
+<p>Anyway, the <code>struct sockaddr</code> holds socket address information for many types of sockets.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="ip-addresses-structs-and-data-munging.html#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> sockaddr <span class="op">{</span></span>
+<span id="cb11-2"><a href="ip-addresses-structs-and-data-munging.html#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">short</span>    sa_family<span class="op">;</span>    <span class="co">// address family, AF_xxx</span></span>
+<span id="cb11-3"><a href="ip-addresses-structs-and-data-munging.html#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span>              sa_data<span class="op">[</span><span class="dv">14</span><span class="op">];</span>  <span class="co">// 14 bytes of protocol address</span></span>
+<span id="cb11-4"><a href="ip-addresses-structs-and-data-munging.html#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="op">};</span> </span></code></pre></div>
+<p><code>sa_family</code> can be a variety of things, but it’ll be <code>AF_INET</code> (IPv4) or <code>AF_INET6</code> (IPv6) for everything we do in this document. <code>sa_data</code> contains a destination address and port number for the socket. This is rather unwieldy since you don’t want to tediously pack the address in the <code>sa_data</code> by hand.</p>
+<p>To deal with <code>struct sockaddr</code>, programmers created a parallel structure: <code>struct sockaddr_in</code> (“in” for “Internet”) to be used with IPv4.</p>
+<p>And <em>this is the important</em> bit: a pointer to a <code>struct sockaddr_in</code> can be cast to a pointer to a <code>struct sockaddr</code> and vice-versa. So even though <code>connect()</code> wants a <code>struct sockaddr*</code>, you can still use a <code>struct sockaddr_in</code> and cast it at the last minute!</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="ip-addresses-structs-and-data-munging.html#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">// (IPv4 only--see struct sockaddr_in6 for IPv6)</span></span>
+<span id="cb12-2"><a href="ip-addresses-structs-and-data-munging.html#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="ip-addresses-structs-and-data-munging.html#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> sockaddr_in <span class="op">{</span></span>
+<span id="cb12-4"><a href="ip-addresses-structs-and-data-munging.html#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">short</span> <span class="dt">int</span>          sin_family<span class="op">;</span>  <span class="co">// Address family, AF_INET</span></span>
+<span id="cb12-5"><a href="ip-addresses-structs-and-data-munging.html#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">short</span> <span class="dt">int</span> sin_port<span class="op">;</span>    <span class="co">// Port number</span></span>
+<span id="cb12-6"><a href="ip-addresses-structs-and-data-munging.html#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> in_addr     sin_addr<span class="op">;</span>    <span class="co">// Internet address</span></span>
+<span id="cb12-7"><a href="ip-addresses-structs-and-data-munging.html#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">char</span>      sin_zero<span class="op">[</span><span class="dv">8</span><span class="op">];</span> <span class="co">// Same size as struct sockaddr</span></span>
+<span id="cb12-8"><a href="ip-addresses-structs-and-data-munging.html#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>This structure makes it easy to reference elements of the socket address. Note that <code>sin_zero</code> (which is included to pad the structure to the length of a <code>struct sockaddr</code>) should be set to all zeros with the function <code>memset()</code>. Also, notice that <code>sin_family</code> corresponds to <code>sa_family</code> in a <code>struct sockaddr</code> and should be set to “<code>AF_INET</code>”. Finally, the <code>sin_port</code> must be in <em>Network Byte Order</em> (by using <code>htons()</code>!)</p>
+<p>Let’s dig deeper! You see the <code>sin_addr</code> field is a <code>struct in_addr</code>. What is that thing? Well, not to be overly dramatic, but it’s one of the scariest unions of all time:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="ip-addresses-structs-and-data-munging.html#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">// (IPv4 only--see struct in6_addr for IPv6)</span></span>
+<span id="cb13-2"><a href="ip-addresses-structs-and-data-munging.html#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="ip-addresses-structs-and-data-munging.html#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Internet address (a structure for historical reasons)</span></span>
+<span id="cb13-4"><a href="ip-addresses-structs-and-data-munging.html#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> in_addr <span class="op">{</span></span>
+<span id="cb13-5"><a href="ip-addresses-structs-and-data-munging.html#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> s_addr<span class="op">;</span> <span class="co">// that&#39;s a 32-bit int (4 bytes)</span></span>
+<span id="cb13-6"><a href="ip-addresses-structs-and-data-munging.html#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Whoa! Well, it <em>used</em> to be a union, but now those days seem to be gone. Good riddance. So if you have declared <code>ina</code> to be of type <code>struct sockaddr_in</code>, then <code>ina.sin_addr.s_addr</code> references the 4-byte IP address (in Network Byte Order). Note that even if your system still uses the God-awful union for <code>struct in_addr</code>, you can still reference the 4-byte IP address in exactly the same way as I did above (this due to <code>#define</code>s).</p>
+<p>What about IPv6? Similar <code>struct</code>s exist for it, as well:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="ip-addresses-structs-and-data-munging.html#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// (IPv6 only--see struct sockaddr_in and struct in_addr for IPv4)</span></span>
+<span id="cb14-2"><a href="ip-addresses-structs-and-data-munging.html#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="ip-addresses-structs-and-data-munging.html#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> sockaddr_in6 <span class="op">{</span></span>
+<span id="cb14-4"><a href="ip-addresses-structs-and-data-munging.html#cb14-4" aria-hidden="true" tabindex="-1"></a>    u_int16_t       sin6_family<span class="op">;</span>   <span class="co">// address family, AF_INET6</span></span>
+<span id="cb14-5"><a href="ip-addresses-structs-and-data-munging.html#cb14-5" aria-hidden="true" tabindex="-1"></a>    u_int16_t       sin6_port<span class="op">;</span>     <span class="co">// port number, Network Byte Order</span></span>
+<span id="cb14-6"><a href="ip-addresses-structs-and-data-munging.html#cb14-6" aria-hidden="true" tabindex="-1"></a>    u_int32_t       sin6_flowinfo<span class="op">;</span> <span class="co">// IPv6 flow information</span></span>
+<span id="cb14-7"><a href="ip-addresses-structs-and-data-munging.html#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> in6_addr sin6_addr<span class="op">;</span>     <span class="co">// IPv6 address</span></span>
+<span id="cb14-8"><a href="ip-addresses-structs-and-data-munging.html#cb14-8" aria-hidden="true" tabindex="-1"></a>    u_int32_t       sin6_scope_id<span class="op">;</span> <span class="co">// Scope ID</span></span>
+<span id="cb14-9"><a href="ip-addresses-structs-and-data-munging.html#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb14-10"><a href="ip-addresses-structs-and-data-munging.html#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="ip-addresses-structs-and-data-munging.html#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> in6_addr <span class="op">{</span></span>
+<span id="cb14-12"><a href="ip-addresses-structs-and-data-munging.html#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">char</span>   s6_addr<span class="op">[</span><span class="dv">16</span><span class="op">];</span>   <span class="co">// IPv6 address</span></span>
+<span id="cb14-13"><a href="ip-addresses-structs-and-data-munging.html#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Note that IPv6 has an IPv6 address and a port number, just like IPv4 has an IPv4 address and a port number.</p>
+<p>Also note that I’m not going to talk about the IPv6 flow information or Scope ID fields for the moment… this is just a starter guide. <code>:-)</code></p>
+<p>Last but not least, here is another simple structure, <code>struct sockaddr_storage</code> that is designed to be large enough to hold both IPv4 and IPv6 structures. See, for some calls, sometimes you don’t know in advance if it’s going to fill out your <code>struct sockaddr</code> with an IPv4 or IPv6 address. So you pass in this parallel structure, very similar to <code>struct sockaddr</code> except larger, and then cast it to the type you need:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="ip-addresses-structs-and-data-munging.html#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> sockaddr_storage <span class="op">{</span></span>
+<span id="cb15-2"><a href="ip-addresses-structs-and-data-munging.html#cb15-2" aria-hidden="true" tabindex="-1"></a>    sa_family_t  ss_family<span class="op">;</span>     <span class="co">// address family</span></span>
+<span id="cb15-3"><a href="ip-addresses-structs-and-data-munging.html#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="ip-addresses-structs-and-data-munging.html#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// all this is padding, implementation specific, ignore it:</span></span>
+<span id="cb15-5"><a href="ip-addresses-structs-and-data-munging.html#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span>      __ss_pad1<span class="op">[</span>_SS_PAD1SIZE<span class="op">];</span></span>
+<span id="cb15-6"><a href="ip-addresses-structs-and-data-munging.html#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int64_t</span>   __ss_align<span class="op">;</span></span>
+<span id="cb15-7"><a href="ip-addresses-structs-and-data-munging.html#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span>      __ss_pad2<span class="op">[</span>_SS_PAD2SIZE<span class="op">];</span></span>
+<span id="cb15-8"><a href="ip-addresses-structs-and-data-munging.html#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>What’s important is that you can see the address family in the <code>ss_family</code> field—check this to see if it’s <code>AF_INET</code> or <code>AF_INET6</code> (for IPv4 or IPv6). Then you can cast it to a <code>struct sockaddr_in</code> or <code>struct sockaddr_in6</code> if you wanna.</p>
+<h2 data-number="3.4" id="ip-addresses-part-deux"><span class="header-section-number">3.4</span> IP Addresses, Part Deux</h2>
+<p>Fortunately for you, there are a bunch of functions that allow you to manipulate IP addresses. No need to figure them out by hand and stuff them in a <code>long</code> with the <code>&lt;&lt;</code> operator.</p>
+<p>First, let’s say you have a <code>struct sockaddr_in ina</code>, and you have an IP address “<code>10.12.110.57</code>” or “<code>2001:db8:63b3:1::3490</code>” that you want to store into it. The function you want to use, <code>inet_pton()</code>, converts an IP address in numbers-and-dots notation into either a <code>struct in_addr</code> or a <code>struct in6_addr</code> depending on whether you specify <code>AF_INET</code> or <code>AF_INET6</code>. (“<code>pton</code>” stands for “presentation to network”—you can call it “printable to network” if that’s easier to remember.) The conversion can be made as follows:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="ip-addresses-structs-and-data-munging.html#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> sockaddr_in sa<span class="op">;</span> <span class="co">// IPv4</span></span>
+<span id="cb16-2"><a href="ip-addresses-structs-and-data-munging.html#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> sockaddr_in6 sa6<span class="op">;</span> <span class="co">// IPv6</span></span>
+<span id="cb16-3"><a href="ip-addresses-structs-and-data-munging.html#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="ip-addresses-structs-and-data-munging.html#cb16-4" aria-hidden="true" tabindex="-1"></a>inet_pton<span class="op">(</span>AF_INET<span class="op">,</span> <span class="st">&quot;10.12.110.57&quot;</span><span class="op">,</span> <span class="op">&amp;(</span>sa<span class="op">.</span>sin_addr<span class="op">));</span> <span class="co">// IPv4</span></span>
+<span id="cb16-5"><a href="ip-addresses-structs-and-data-munging.html#cb16-5" aria-hidden="true" tabindex="-1"></a>inet_pton<span class="op">(</span>AF_INET6<span class="op">,</span> <span class="st">&quot;2001:db8:63b3:1::3490&quot;</span><span class="op">,</span> <span class="op">&amp;(</span>sa6<span class="op">.</span>sin6_addr<span class="op">));</span> <span class="co">// IPv6</span></span></code></pre></div>
+<p>(Quick note: the old way of doing things used a function called <code>inet_addr()</code> or another function called <code>inet_aton()</code>; these are now obsolete and don’t work with IPv6.)</p>
+<p>Now, the above code snippet isn’t very robust because there is no error checking. See, <code>inet_pton()</code> returns <code>-1</code> on error, or 0 if the address is messed up. So check to make sure the result is greater than 0 before using!</p>
+<p>All right, now you can convert string IP addresses to their binary representations. What about the other way around? What if you have a <code>struct in_addr</code> and you want to print it in numbers-and-dots notation? (Or a <code>struct in6_addr</code> that you want in, uh, “hex-and-colons” notation.) In this case, you’ll want to use the function <code>inet_ntop()</code> (“ntop” means “network to presentation”—you can call it “network to printable” if that’s easier to remember), like this:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb17-1"><a href="ip-addresses-structs-and-data-munging.html#cb17-1"></a><span class="co">// IPv4:</span></span>
+<span id="cb17-2"><a href="ip-addresses-structs-and-data-munging.html#cb17-2"></a></span>
+<span id="cb17-3"><a href="ip-addresses-structs-and-data-munging.html#cb17-3"></a><span class="dt">char</span> ip4<span class="op">[</span>INET_ADDRSTRLEN<span class="op">];</span>  <span class="co">// space to hold the IPv4 string</span></span>
+<span id="cb17-4"><a href="ip-addresses-structs-and-data-munging.html#cb17-4"></a><span class="kw">struct</span> sockaddr_in sa<span class="op">;</span>      <span class="co">// pretend this is loaded with something</span></span>
+<span id="cb17-5"><a href="ip-addresses-structs-and-data-munging.html#cb17-5"></a></span>
+<span id="cb17-6"><a href="ip-addresses-structs-and-data-munging.html#cb17-6"></a>inet_ntop<span class="op">(</span>AF_INET<span class="op">,</span> <span class="op">&amp;(</span>sa<span class="op">.</span>sin_addr<span class="op">),</span> ip4<span class="op">,</span> INET_ADDRSTRLEN<span class="op">);</span></span>
+<span id="cb17-7"><a href="ip-addresses-structs-and-data-munging.html#cb17-7"></a></span>
+<span id="cb17-8"><a href="ip-addresses-structs-and-data-munging.html#cb17-8"></a>printf<span class="op">(</span><span class="st">&quot;The IPv4 address is: </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span> ip4<span class="op">);</span></span>
+<span id="cb17-9"><a href="ip-addresses-structs-and-data-munging.html#cb17-9"></a></span>
+<span id="cb17-10"><a href="ip-addresses-structs-and-data-munging.html#cb17-10"></a></span>
+<span id="cb17-11"><a href="ip-addresses-structs-and-data-munging.html#cb17-11"></a><span class="co">// IPv6:</span></span>
+<span id="cb17-12"><a href="ip-addresses-structs-and-data-munging.html#cb17-12"></a></span>
+<span id="cb17-13"><a href="ip-addresses-structs-and-data-munging.html#cb17-13"></a><span class="dt">char</span> ip6<span class="op">[</span>INET6_ADDRSTRLEN<span class="op">];</span> <span class="co">// space to hold the IPv6 string</span></span>
+<span id="cb17-14"><a href="ip-addresses-structs-and-data-munging.html#cb17-14"></a><span class="kw">struct</span> sockaddr_in6 sa6<span class="op">;</span>    <span class="co">// pretend this is loaded with something</span></span>
+<span id="cb17-15"><a href="ip-addresses-structs-and-data-munging.html#cb17-15"></a></span>
+<span id="cb17-16"><a href="ip-addresses-structs-and-data-munging.html#cb17-16"></a>inet_ntop<span class="op">(</span>AF_INET6<span class="op">,</span> <span class="op">&amp;(</span>sa6<span class="op">.</span>sin6_addr<span class="op">),</span> ip6<span class="op">,</span> INET6_ADDRSTRLEN<span class="op">);</span></span>
+<span id="cb17-17"><a href="ip-addresses-structs-and-data-munging.html#cb17-17"></a></span>
+<span id="cb17-18"><a href="ip-addresses-structs-and-data-munging.html#cb17-18"></a>printf<span class="op">(</span><span class="st">&quot;The address is: </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span> ip6<span class="op">);</span></span></code></pre></div>
+<p>When you call it, you’ll pass the address type (IPv4 or IPv6), the address, a pointer to a string to hold the result, and the maximum length of that string. (Two macros conveniently hold the size of the string you’ll need to hold the largest IPv4 or IPv6 address: <code>INET_ADDRSTRLEN</code> and <code>INET6_ADDRSTRLEN</code>.)</p>
+<p>(Another quick note to mention once again the old way of doing things: the historical function to do this conversion was called <code>inet_ntoa()</code>. It’s also obsolete and won’t work with IPv6.)</p>
+<p>Lastly, these functions only work with numeric IP addresses—they won’t do any nameserver DNS lookup on a hostname, like “<code>www.example.com</code>”. You will use <code>getaddrinfo()</code> to do that, as you’ll see later on.</p>
+<h3 data-number="3.4.1" id="private-or-disconnected-networks"><span class="header-section-number">3.4.1</span> Private (Or Disconnected) Networks</h3>
+<p> Lots of places have a firewall that hides the network from the rest of the world for their own protection. And often times, the firewall translates “internal” IP addresses to “external” (that everyone else in the world knows) IP addresses using a process called <em>Network Address Translation</em>, or NAT.</p>
+<p>Are you getting nervous yet? “Where’s he going with all this weird stuff?”</p>
+<p>Well, relax and buy yourself a non-alcoholic (or alcoholic) drink, because as a beginner, you don’t even have to worry about NAT, since it’s done for you transparently. But I wanted to talk about the network behind the firewall in case you started getting confused by the network numbers you were seeing.</p>
+<p>For instance, I have a firewall at home. I have two static IPv4 addresses allocated to me by the DSL company, and yet I have seven computers on the network. How is this possible? Two computers can’t share the same IP address, or else the data wouldn’t know which one to go to!</p>
+<p>The answer is: they don’t share the same IP addresses. They are on a private network with 24 million IP addresses allocated to it. They are all just for me. Well, all for me as far as anyone else is concerned. Here’s what’s happening:</p>
+<p>If I log into a remote computer, it tells me I’m logged in from 192.0.2.33 which is the public IP address my ISP has provided to me. But if I ask my local computer what its IP address is, it says 10.0.0.5. Who is translating the IP address from one to the other? That’s right, the firewall! It’s doing NAT!</p>
+<p><code>10.x.x.x</code> is one of a few reserved networks that are only to be used either on fully disconnected networks, or on networks that are behind firewalls. The details of which private network numbers are available for you to use are outlined in <a href="https://tools.ietf.org/html/rfc1918">RFC 1918</a><a href="footnotes.html#fn18" class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a>, but some common ones you’ll see are <code>10.x.x.x</code> and <code>192.168.x.x</code>, where <code>x</code> is 0-255, generally. Less common is <code>172.y.x.x</code>, where <code>y</code> goes between 16 and 31.</p>
+<p>Networks behind a NATing firewall don’t <em>need</em> to be on one of these reserved networks, but they commonly are.</p>
+<p>(Fun fact! My external IP address isn’t really <code>192.0.2.33</code>. The <code>192.0.2.x</code> network is reserved for make-believe “real” IP addresses to be used in documentation, just like this guide! Wowzers!)</p>
+<p> IPv6 has private networks, too, in a sense. They’ll start with <code>fdXX:</code> (or maybe in the future <code>fcXX:</code>), as per <a href="https://tools.ietf.org/html/rfc4193">RFC 4193</a><a href="footnotes.html#fn19" class="footnote-ref" id="fnref19" role="doc-noteref"><sup>19</sup></a>. NAT and IPv6 don’t generally mix, however (unless you’re doing the IPv6 to IPv4 gateway thing which is beyond the scope of this document)—in theory you’ll have so many addresses at your disposal that you won’t need to use NAT any longer. But if you want to allocate addresses for yourself on a network that won’t route outside, this is how to do it.</p>
+<hr><div style="text-align:center"><span><a href="what-is-a-socket.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="jumping-from-ipv4-to-ipv6.html">Next</a></span></div></body>
+</html>

@@ -1,0 +1,49 @@
+oxfoo1m3
+--------
+
+
+
+0 intro
+-------
+
+its cool you try this crackme. i am very courious on how 
+hard u find it, and any opinions or feedback!
+
+i hand crafted this binary in asm (NASM) for your pleasure ;]
+
+i have included some anti libbfd-stuff, anti-disassembling,
+and anti-debugging stuff, though it is not so scary you will see.
+
+i have mixed some techniques i saw in a malware and included
+my own special features.
+
+
+
+1 rulez
+-------
+
+use and abuse the binary in any way you want hehe. all tools
+are allowed!
+
+
+
+2 goal
+------
+
+find the correct password
+
+
+3 outro
+-------
+
+thats all about to say. i liked creating this crackme, and 
+I think you can expect more, and harder ones from me ...
+
+g00D 1uCK !!
+
+0xf001
+
+
+
+
+

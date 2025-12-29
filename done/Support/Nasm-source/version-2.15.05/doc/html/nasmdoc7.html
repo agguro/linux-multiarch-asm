@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NASM - The Netwide Assembler</title>
+<link href="nasmdoc.css" rel="stylesheet" type="text/css" />
+<link href="local.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<ul class="navbar">
+<li class="first"><a class="prev" href="nasmdoc6.html">Chapter 6</a></li>
+<li><a class="next" href="nasmdoc8.html">Chapter 8</a></li>
+<li><a class="toc" href="nasmdoc0.html">Contents</a></li>
+<li class="last"><a class="index" href="nasmdoci.html">Index</a></li>
+</ul>
+<div class="title">
+<h1>NASM - The Netwide Assembler</h1>
+<span class="subtitle">version 2.15.05</span>
+</div>
+<div class="contents"
+>
+<h2 id="chapter-7">Chapter 7: Assembler Directives</h2>
+<p>NASM, though it attempts to avoid the bureaucracy of assemblers like
+MASM and TASM, is nevertheless forced to support a <em>few</em> directives.
+These are described in this chapter.</p>
+<p>NASM's directives come in two types: <em>user-level</em> directives and
+<em>primitive</em> directives. Typically, each directive has a user-level
+form and a primitive form. In almost all cases, we recommend that users use
+the user-level forms of the directives, which are implemented as macros
+which call the primitive forms.</p>
+<p>Primitive directives are enclosed in square brackets; user-level
+directives are not.</p>
+<p>In addition to the universal directives described in this chapter, each
+object file format can optionally supply extra directives in order to
+control particular features of that file format. These
+<em>format-specific</em> directives are documented along with the formats
+that implement them, in <a href="nasmdoc8.html">chapter 8</a>.</p>
+<h3 id="section-7.1">7.1 <code>BITS</code>: Specifying Target Processor Mode</h3>
+<p>The <code>BITS</code> directive specifies whether NASM should generate
+code designed to run on a processor operating in 16-bit mode, 32-bit mode
+or 64-bit mode. The syntax is <code>BITS XX</code>, where XX is 16, 32 or
+64.</p>
+<p>In most cases, you should not need to use <code>BITS</code> explicitly.
+The <code>aout</code>, <code>coff</code>, <code>elf*</code>,
+<code>macho</code>, <code>win32</code> and <code>win64</code> object
+formats, which are designed for use in 32-bit or 64-bit operating systems,
+all cause NASM to select 32-bit or 64-bit mode, respectively, by default.
+The <code>obj</code> object format allows you to specify each segment you
+define as either <code>USE16</code> or <code>USE32</code>, and NASM will
+set its operating mode accordingly, so the use of the <code>BITS</code>
+directive is once again unnecessary.</p>
+<p>The most likely reason for using the <code>BITS</code> directive is to
+write 32-bit or 64-bit code in a flat binary file; this is because the
+<code>bin</code> output format defaults to 16-bit mode in anticipation of
+it being used most frequently to write DOS <code>.COM</code> programs, DOS
+<code>.SYS</code> device drivers and boot loader software.</p>
+<p>The <code>BITS</code> directive can also be used to generate code for a
+different mode than the standard one for the output format.</p>
+<p>You do <em>not</em> need to specify <code>BITS 32</code> merely in order
+to use 32-bit instructions in a 16-bit DOS program; if you do, the
+assembler will generate incorrect code because it will be writing code
+targeted at a 32-bit platform, to be run on a 16-bit one.</p>
+<p>When NASM is in <code>BITS 16</code> mode, instructions which use 32-bit
+data are prefixed with an 0x66 byte, and those referring to 32-bit
+addresses have an 0x67 prefix. In <code>BITS 32</code> mode, the reverse is
+true: 32-bit instructions require no prefixes, whereas instructions using
+16-bit data need an 0x66 and those working on 16-bit addresses need an
+0x67.</p>
+<p>When NASM is in <code>BITS 64</code> mode, most instructions operate the
+same as they do for <code>BITS 32</code> mode. However, there are 8 more
+general and SSE registers, and 16-bit addressing is no longer supported.</p>
+<p>The default address size is 64 bits; 32-bit addressing can be selected
+with the 0x67 prefix. The default operand size is still 32 bits, however,
+and the 0x66 prefix selects 16-bit operand size. The <code>REX</code>
+prefix is used both to select 64-bit operand size, and to access the new
+registers. NASM automatically inserts REX prefixes when necessary.</p>
+<p>When the <code>REX</code> prefix is used, the processor does not know
+how to address the AH, BH, CH or DH (high 8-bit legacy) registers. Instead,
+it is possible to access the the low 8-bits of the SP, BP SI and DI
+registers as SPL, BPL, SIL and DIL, respectively; but only when the REX
+prefix is used.</p>
+<p>The <code>BITS</code> directive has an exactly equivalent primitive
+form, <code>[BITS 16]</code>, <code>[BITS 32]</code> and
+<code>[BITS 64]</code>. The user-level form is a macro which has no
+function other than to call the primitive form.</p>
+<p>Note that the space is neccessary, e.g. <code>BITS32</code> will
+<em>not</em> work!</p>
+<h4 id="section-7.1.1">7.1.1 <code>USE16</code> &amp; <code>USE32</code>: Aliases for BITS</h4>
+<p>The `<code>USE16</code>' and `<code>USE32</code>' directives can be used
+in place of `<code>BITS 16</code>' and `<code>BITS 32</code>', for
+compatibility with other assemblers.</p>
+<h3 id="section-7.2">7.2 <code>DEFAULT</code>: Change the assembler defaults</h3>
+<p>The <code>DEFAULT</code> directive changes the assembler defaults.
+Normally, NASM defaults to a mode where the programmer is expected to
+explicitly specify most features directly. However, this is occasionally
+obnoxious, as the explicit form is pretty much the only one one wishes to
+use.</p>
+<p>Currently, <code>DEFAULT</code> can set <code>REL</code> &amp;
+<code>ABS</code> and <code>BND</code> &amp; <code>NOBND</code>.</p>
+<h4 id="section-7.2.1">7.2.1 <code>REL</code> &amp; <code>ABS</code>: RIP-relative addressing</h4>
+<p>This sets whether registerless instructions in 64-bit mode are
+<code>RIP</code>&ndash;relative or not. By default, they are absolute
+unless overridden with the <code>REL</code> specifier (see
+<a href="nasmdoc3.html#section-3.3">section 3.3</a>). However, if
+<code>DEFAULT REL</code> is specified, <code>REL</code> is default, unless
+overridden with the <code>ABS</code> specifier, <em>except when used with
+an FS or GS segment override</em>.</p>
+<p>The special handling of <code>FS</code> and <code>GS</code> overrides
+are due to the fact that these registers are generally used as thread
+pointers or other special functions in 64-bit mode, and generating
+<code>RIP</code>&ndash;relative addresses would be extremely confusing.</p>
+<p><code>DEFAULT REL</code> is disabled with <code>DEFAULT ABS</code>.</p>
+<h4 id="section-7.2.2">7.2.2 <code>BND</code> &amp; <code>NOBND</code>: <code>BND</code> prefix</h4>
+<p>If <code>DEFAULT BND</code> is set, all bnd-prefix available
+instructions following this directive are prefixed with bnd. To override
+it, <code>NOBND</code> prefix can be used.</p>
+<pre>
+ DEFAULT BND 
+     call foo            ; BND will be prefixed 
+     nobnd call foo      ; BND will NOT be prefixed
+</pre>
+<p><code>DEFAULT NOBND</code> can disable <code>DEFAULT BND</code> and then
+<code>BND</code> prefix will be added only when explicitly specified in
+code.</p>
+<p><code>DEFAULT BND</code> is expected to be the normal configuration for
+writing MPX-enabled code.</p>
+<h3 id="section-7.3">7.3 <code>SECTION</code> or <code>SEGMENT</code>: Changing and Defining Sections</h3>
+<p>The <code>SECTION</code> directive (<code>SEGMENT</code> is an exactly
+equivalent synonym) changes which section of the output file the code you
+write will be assembled into. In some object file formats, the number and
+names of sections are fixed; in others, the user may make up as many as
+they wish. Hence <code>SECTION</code> may sometimes give an error message,
+or may define a new section, if you try to switch to a section that does
+not (yet) exist.</p>
+<p>The Unix object formats, and the <code>bin</code> object format (but see
+<a href="nasmdoc8.html#section-8.1.3">section 8.1.3</a>), all support the
+standardized section names <code>.text</code>, <code>.data</code> and
+<code>.bss</code> for the code, data and uninitialized-data sections. The
+<code>obj</code> format, by contrast, does not recognize these section
+names as being special, and indeed will strip off the leading period of any
+section name that has one.</p>
+<h4 id="section-7.3.1">7.3.1 The <code>__?SECT?__</code> Macro</h4>
+<p>The <code>SECTION</code> directive is unusual in that its user-level
+form functions differently from its primitive form. The primitive form,
+<code>[SECTION xyz]</code>, simply switches the current target section to
+the one given. The user-level form, <code>SECTION xyz</code>, however,
+first defines the single-line macro <code>__?SECT?__</code> to be the
+primitive <code>[SECTION]</code> directive which it is about to issue, and
+then issues it. So the user-level directive</p>
+<pre>
+        SECTION .text
+</pre>
+<p>expands to the two lines</p>
+<pre>
+%define __?SECT?__        [SECTION .text] 
+        [SECTION .text]
+</pre>
+<p>Users may find it useful to make use of this in their own macros. For
+example, the <code>writefile</code> macro defined in
+<a href="nasmdoc4.html#section-4.3.3">section 4.3.3</a> can be usefully
+rewritten in the following more sophisticated form:</p>
+<pre>
+%macro  writefile 2+ 
+
+        [section .data] 
+
+  %%str:        db      %2 
+  %%endstr: 
+
+        __?SECT?__ 
+
+        mov     dx,%%str 
+        mov     cx,%%endstr-%%str 
+        mov     bx,%1 
+        mov     ah,0x40 
+        int     0x21 
+
+%endmacro
+</pre>
+<p>This form of the macro, once passed a string to output, first switches
+temporarily to the data section of the file, using the primitive form of
+the <code>SECTION</code> directive so as not to modify
+<code>__?SECT?__</code>. It then declares its string in the data section,
+and then invokes <code>__?SECT?__</code> to switch back to
+<em>whichever</em> section the user was previously working in. It thus
+avoids the need, in the previous version of the macro, to include a
+<code>JMP</code> instruction to jump over the data, and also does not fail
+if, in a complicated <code>OBJ</code> format module, the user could
+potentially be assembling the code in any of several separate code
+sections.</p>
+<h3 id="section-7.4">7.4 <code>ABSOLUTE</code>: Defining Absolute Labels</h3>
+<p>The <code>ABSOLUTE</code> directive can be thought of as an alternative
+form of <code>SECTION</code>: it causes the subsequent code to be directed
+at no physical section, but at the hypothetical section starting at the
+given absolute address. The only instructions you can use in this mode are
+the <code>RESB</code> family.</p>
+<p><code>ABSOLUTE</code> is used as follows:</p>
+<pre>
+absolute 0x1A 
+
+    kbuf_chr    resw    1 
+    kbuf_free   resw    1 
+    kbuf        resw    16
+</pre>
+<p>This example describes a section of the PC BIOS data area, at segment
+address 0x40: the above code defines <code>kbuf_chr</code> to be 0x1A,
+<code>kbuf_free</code> to be 0x1C, and <code>kbuf</code> to be 0x1E.</p>
+<p>The user-level form of <code>ABSOLUTE</code>, like that of
+<code>SECTION</code>, redefines the <code>__?SECT?__</code> macro when it
+is invoked.</p>
+<p><code>STRUC</code> and <code>ENDSTRUC</code> are defined as macros which
+use <code>ABSOLUTE</code> (and also <code>__?SECT?__</code>).</p>
+<p><code>ABSOLUTE</code> doesn't have to take an absolute constant as an
+argument: it can take an expression (actually, a critical expression: see
+<a href="nasmdoc3.html#section-3.8">section 3.8</a>) and it can be a value
+in a segment. For example, a TSR can re-use its setup code as run-time BSS
+like this:</p>
+<pre>
+        org     100h               ; it's a .COM program 
+
+        jmp     setup              ; setup code comes last 
+
+        ; the resident part of the TSR goes here 
+setup: 
+        ; now write the code that installs the TSR here 
+
+absolute setup 
+
+runtimevar1     resw    1 
+runtimevar2     resd    20 
+
+tsr_end:
+</pre>
+<p>This defines some variables `on top of' the setup code, so that after
+the setup has finished running, the space it took up can be re-used as data
+storage for the running TSR. The symbol `tsr_end' can be used to calculate
+the total size of the part of the TSR that needs to be made resident.</p>
+<h3 id="section-7.5">7.5 <code>EXTERN</code>: Importing Symbols from Other Modules</h3>
+<p><code>EXTERN</code> is similar to the MASM directive <code>EXTRN</code>
+and the C keyword <code>extern</code>: it is used to declare a symbol which
+is not defined anywhere in the module being assembled, but is assumed to be
+defined in some other module and needs to be referred to by this one. Not
+every object-file format can support external variables: the
+<code>bin</code> format cannot.</p>
+<p>The <code>EXTERN</code> directive takes as many arguments as you like.
+Each argument is the name of a symbol:</p>
+<pre>
+extern  _printf 
+extern  _sscanf,_fscanf
+</pre>
+<p>Some object-file formats provide extra features to the
+<code>EXTERN</code> directive. In all cases, the extra features are used by
+suffixing a colon to the symbol name followed by object-format specific
+text. For example, the <code>obj</code> format allows you to declare that
+the default segment base of an external should be the group
+<code>dgroup</code> by means of the directive</p>
+<pre>
+extern  _variable:wrt dgroup
+</pre>
+<p>The primitive form of <code>EXTERN</code> differs from the user-level
+form only in that it can take only one argument at a time: the support for
+multiple arguments is implemented at the preprocessor level.</p>
+<p>You can declare the same variable as <code>EXTERN</code> more than once:
+NASM will quietly ignore the second and later redeclarations.</p>
+<p>If a variable is declared both <code>GLOBAL</code> and
+<code>EXTERN</code>, or if it is declared as <code>EXTERN</code> and then
+defined, it will be treated as <code>GLOBAL</code>. If a variable is
+declared both as <code>COMMON</code> and <code>EXTERN</code>, it will be
+treated as <code>COMMON</code>.</p>
+<h3 id="section-7.6">7.6 <code>REQUIRED</code>: Unconditionally Importing Symbols from Other Modules</h3>
+<p>The <code>REQUIRED</code> keyword is similar to <code>EXTERN</code> one.
+The difference is that the <code>EXTERN</code> keyword as of version 2.15
+does not generate unknown symbols as that prevents using common header
+files, as it might cause the linker to pull in a bunch of unnecessary
+modules.</p>
+<p>If the old behavior is required, use <code>REQUIRED</code> keyword
+instead.</p>
+<h3 id="section-7.7">7.7 <code>GLOBAL</code>: Exporting Symbols to Other Modules</h3>
+<p><code>GLOBAL</code> is the other end of <code>EXTERN</code>: if one
+module declares a symbol as <code>EXTERN</code> and refers to it, then in
+order to prevent linker errors, some other module must actually
+<em>define</em> the symbol and declare it as <code>GLOBAL</code>. Some
+assemblers use the name <code>PUBLIC</code> for this purpose.</p>
+<p><code>GLOBAL</code> uses the same syntax as <code>EXTERN</code>, except
+that it must refer to symbols which <em>are</em> defined in the same module
+as the <code>GLOBAL</code> directive. For example:</p>
+<pre>
+global _main 
+_main: 
+        ; some code
+</pre>
+<p><code>GLOBAL</code>, like <code>EXTERN</code>, allows object formats to
+define private extensions by means of a colon. The ELF object format, for
+example, lets you specify whether global data items are functions or data:</p>
+<pre>
+global  hashlookup:function, hashtable:data
+</pre>
+<p>Like <code>EXTERN</code>, the primitive form of <code>GLOBAL</code>
+differs from the user-level form only in that it can take only one argument
+at a time.</p>
+<h3 id="section-7.8">7.8 <code>COMMON</code>: Defining Common Data Areas</h3>
+<p>The <code>COMMON</code> directive is used to declare <em>common
+variables</em>. A common variable is much like a global variable declared
+in the uninitialized data section, so that</p>
+<pre>
+common  intvar  4
+</pre>
+<p>is similar in function to</p>
+<pre>
+global  intvar 
+section .bss 
+
+intvar  resd    1
+</pre>
+<p>The difference is that if more than one module defines the same common
+variable, then at link time those variables will be <em>merged</em>, and
+references to <code>intvar</code> in all modules will point at the same
+piece of memory.</p>
+<p>Like <code>GLOBAL</code> and <code>EXTERN</code>, <code>COMMON</code>
+supports object-format specific extensions. For example, the
+<code>obj</code> format allows common variables to be NEAR or FAR, and the
+ELF format allows you to specify the alignment requirements of a common
+variable:</p>
+<pre>
+common  commvar  4:near  ; works in OBJ 
+common  intarray 100:4   ; works in ELF: 4 byte aligned
+</pre>
+<p>Once again, like <code>EXTERN</code> and <code>GLOBAL</code>, the
+primitive form of <code>COMMON</code> differs from the user-level form only
+in that it can take only one argument at a time.</p>
+<h3 id="section-7.9">7.9 <code>STATIC</code>: Local Symbols within Modules</h3>
+<p>Opposite to <code>EXTERN</code> and <code>GLOBAL</code>,
+<code>STATIC</code> is local symbol, but should be named according to the
+global mangling rules (named by analogy with the C keyword
+<code>static</code> as applied to functions or global variables).</p>
+<pre>
+static foo 
+foo: 
+         ; codes
+</pre>
+<p>Unlike <code>GLOBAL</code>, <code>STATIC</code> does not allow object
+formats to accept private extensions mentioned in
+<a href="#section-7.7">section 7.7</a>.</p>
+<h3 id="section-7.10">7.10 <code>(G|L)PREFIX</code>, <code>(G|L)POSTFIX</code>: Mangling Symbols</h3>
+<p><code>PREFIX</code>, <code>GPREFIX</code>, <code>LPREFIX</code>,
+<code>POSTFIX</code>, <code>GPOSTFIX</code>, and <code>LPOSTFIX</code>
+directives can prepend or append a string to a certain type of symbols,
+normally to fit specific ABI conventions</p>
+<ul>
+<li>
+<p><code>PREFIX</code>|<code>GPREFIX</code>: Prepend the argument to all
+<code>EXTERN</code> <code>COMMON</code>, <code>STATIC</code>, and
+<code>GLOBAL</code> symbols.</p>
+</li>
+<li>
+<p><code>LPREFIX</code>: Prepend the argument to all other symbols such as
+local labels and backend defined symbols.</p>
+</li>
+<li>
+<p><code>POSTFIX</code>|<code>GPOSTFIX</code>: Append the argument to all
+<code>EXTERN</code> <code>COMMON</code>, <code>STATIC</code>, and
+<code>GLOBAL</code> symbols.</p>
+</li>
+<li>
+<p><code>LPOSTFIX</code>: Append the argument to all other symbols such as
+local labels and backend defined symbols.</p>
+</li>
+</ul>
+<p>These a macros implemented as pragmas, and using <code>%pragma</code>
+syntax can be restricted to specific backends (see
+<a href="nasmdoc4.html#section-4.10">section 4.10</a>):</p>
+<pre>
+%pragma macho lprefix L_
+</pre>
+<p>Command line options are also available. See also
+<a href="nasmdoc2.html#section-2.1.28">section 2.1.28</a>.</p>
+<p>One example which supports many ABIs:</p>
+<pre>
+; The most common conventions 
+%pragma output gprefix _ 
+%pragma output lprefix L_ 
+; ELF uses a different convention 
+%pragma elf    gprefix                       ; empty 
+%pragma elf    lprefix .L
+</pre>
+<p>Some toolchains is aware of a particular prefix for its own optimization
+options, such as code elimination. For instance, Mach-O backend has a
+linker that uses a simplistic naming scheme to chunk up sections into a
+meta section. When the <code>subsections_via_symbols</code> directive
+(<a href="nasmdoc8.html#section-8.8.4">section 8.8.4</a>) is declared, each
+symbol is the start of a separate block. The meta section is, then, defined
+to include sections before the one that starts with a 'L'.
+<code>LPREFIX</code> is useful here to mark all local symbols with the 'L'
+prefix to be excluded to the meta section. It converts local symbols
+compatible with the particular toolchain. Note that local symbols declared
+with <code>STATIC</code> (<a href="#section-7.9">section 7.9</a>) are
+excluded from the symbol mangling and also not marked as global.</p>
+<h3 id="section-7.11">7.11 <code>CPU</code>: Defining CPU Dependencies</h3>
+<p>The <code>CPU</code> directive restricts assembly to those instructions
+which are available on the specified CPU.</p>
+<p>Options are:</p>
+<ul>
+<li>
+<p><code>CPU 8086</code> Assemble only 8086 instruction set</p>
+</li>
+<li>
+<p><code>CPU 186</code> Assemble instructions up to the 80186 instruction
+set</p>
+</li>
+<li>
+<p><code>CPU 286</code> Assemble instructions up to the 286 instruction set</p>
+</li>
+<li>
+<p><code>CPU 386</code> Assemble instructions up to the 386 instruction set</p>
+</li>
+<li>
+<p><code>CPU 486</code> 486 instruction set</p>
+</li>
+<li>
+<p><code>CPU 586</code> Pentium instruction set</p>
+</li>
+<li>
+<p><code>CPU PENTIUM</code> Same as 586</p>
+</li>
+<li>
+<p><code>CPU 686</code> P6 instruction set</p>
+</li>
+<li>
+<p><code>CPU PPRO</code> Same as 686</p>
+</li>
+<li>
+<p><code>CPU P2</code> Same as 686</p>
+</li>
+<li>
+<p><code>CPU P3</code> Pentium III (Katmai) instruction sets</p>
+</li>
+<li>
+<p><code>CPU KATMAI</code> Same as P3</p>
+</li>
+<li>
+<p><code>CPU P4</code> Pentium 4 (Willamette) instruction set</p>
+</li>
+<li>
+<p><code>CPU WILLAMETTE</code> Same as P4</p>
+</li>
+<li>
+<p><code>CPU PRESCOTT</code> Prescott instruction set</p>
+</li>
+<li>
+<p><code>CPU X64</code> x86-64 (x64/AMD64/Intel 64) instruction set</p>
+</li>
+<li>
+<p><code>CPU IA64</code> IA64 CPU (in x86 mode) instruction set</p>
+</li>
+</ul>
+<p>All options are case insensitive. All instructions will be selected only
+if they apply to the selected CPU or lower. By default, all instructions
+are available.</p>
+<h3 id="section-7.12">7.12 <code>FLOAT</code>: Handling of floating-point constants</h3>
+<p>By default, floating-point constants are rounded to nearest, and IEEE
+denormals are supported. The following options can be set to alter this
+behaviour:</p>
+<ul>
+<li>
+<p><code>FLOAT DAZ</code> Flush denormals to zero</p>
+</li>
+<li>
+<p><code>FLOAT NODAZ</code> Do not flush denormals to zero (default)</p>
+</li>
+<li>
+<p><code>FLOAT NEAR</code> Round to nearest (default)</p>
+</li>
+<li>
+<p><code>FLOAT UP</code> Round up (toward +Infinity)</p>
+</li>
+<li>
+<p><code>FLOAT DOWN</code> Round down (toward &ndash;Infinity)</p>
+</li>
+<li>
+<p><code>FLOAT ZERO</code> Round toward zero</p>
+</li>
+<li>
+<p><code>FLOAT DEFAULT</code> Restore default settings</p>
+</li>
+</ul>
+<p>The standard macros <code>__?FLOAT_DAZ?__</code>,
+<code>__?FLOAT_ROUND?__</code>, and <code>__?FLOAT?__</code> contain the
+current state, as long as the programmer has avoided the use of the
+brackeded primitive form, (<code>[FLOAT]</code>).</p>
+<p><code>__?FLOAT?__</code> contains the full set of floating-point
+settings; this value can be saved away and invoked later to restore the
+setting.</p>
+<h3 id="section-7.13">7.13 <code>[WARNING]</code>: Enable or disable warnings</h3>
+<p>The <code>[WARNING]</code> directive can be used to enable or disable
+classes of warnings in the same way as the <code>-w</code> option, see
+<a href="nasmdoc2.html#section-2.1.26">section 2.1.26</a> for more details
+about warning classes.</p>
+<ul>
+<li>
+<p><code>[warning +</code><em>warning-class</em><code>]</code> enables
+warnings for <em>warning-class</em>.</p>
+</li>
+<li>
+<p><code>[warning -</code><em>warning-class</em><code>]</code> disables
+warnings for <em>warning-class</em>.</p>
+</li>
+<li>
+<p><code>[warning *</code><em>warning-class</em><code>]</code> restores
+<em>warning-class</em> to the original value, either the default value or
+as specified on the command line.</p>
+</li>
+<li>
+<p><code>[warning push]</code> saves the current warning state on a stack.</p>
+</li>
+<li>
+<p><code>[warning pop]</code> restores the current warning state from the
+stack.</p>
+</li>
+</ul>
+<p>The <code>[WARNING]</code> directive also accepts the <code>all</code>,
+<code>error</code> and <code>error=</code><em>warning-class</em>
+specifiers.</p>
+<p>No "user form" (without the brackets) currently exists.</p>
+</div>
+</body>
+</html>

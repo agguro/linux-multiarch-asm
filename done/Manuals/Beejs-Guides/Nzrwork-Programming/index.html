@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Beej's Guide to Network Programming</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet"> 
+
+  <!-- BG custom styling -->
+  <style type="text/css">
+  /* Fix for line numbers not visible */
+  pre.numberSource code > span {
+      left: -1em;
+  }
+  pre.numberSource {
+      margin-left: initial;
+  }
+
+  /* Put some space after the section numbers */
+  span.toc-section-number::after {
+      content: "\a0\a0\a0";  /* non-breaking whitespace */
+  }
+
+  /* Hide underlines on code number links */
+  pre > code.sourceCode > span > a:first-child::before {
+      text-decoration: none;
+  }
+
+  /* Color the source blocks */
+  div.sourceCode {
+      background-color: #f0f0f0;
+  }
+
+  /* Fix iOS big text rendering issue */
+  pre > code.sourceCode > span {
+      display: initial;
+  }
+
+
+  /* Color the inline code */
+  code:not(.sourceCode) {
+      background: #f0f0f0;
+      padding-left: 0.2em;
+      padding-right: 0.2em;
+      border-radius: 0.2em;
+  }
+
+  /* Keep code tags from wrapping in tables */
+  tbody code {
+      white-space: nowrap;
+  }
+
+  td {
+      vertical-align: top;
+  }
+
+  body {
+      font-size: 12pt;
+      max-width: 43em;
+  }
+
+  figure {
+      text-align: center;
+  }
+  </style>
+  <!-- BG custom styling for the wide body variant -->
+  <!-- Gets appended after bg-css.html -->
+
+  <style type="text/css">
+  body {
+      max-width: inherit;
+  }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div style="text-align:center"><span style="visibility: hidden"><a href="">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="intro.html">Next</a></span></div><hr>
+<header id="title-block-header">
+<h1 class="title">Beej's Guide to Network Programming</h1>
+<p class="subtitle">Using Internet Sockets</p>
+<p class="author">Brian “Beej Jorgensen” Hall</p>
+<p class="date">v3.1.11, Copyright © April 8, 2023</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="intro.html#intro" id="toc-intro"><span class="toc-section-number">1</span> Intro</a>
+<ul>
+<li><a href="intro.html#audience" id="toc-audience"><span class="toc-section-number">1.1</span> Audience</a></li>
+<li><a href="intro.html#platform-and-compiler" id="toc-platform-and-compiler"><span class="toc-section-number">1.2</span> Platform and Compiler</a></li>
+<li><a href="intro.html#official-homepage-and-books-for-sale" id="toc-official-homepage-and-books-for-sale"><span class="toc-section-number">1.3</span> Official Homepage and Books For Sale</a></li>
+<li><a href="intro.html#solaris" id="toc-solaris"><span class="toc-section-number">1.4</span> Note for Solaris/SunOS Programmers</a></li>
+<li><a href="intro.html#windows" id="toc-windows"><span class="toc-section-number">1.5</span> Note for Windows Programmers</a></li>
+<li><a href="intro.html#email-policy" id="toc-email-policy"><span class="toc-section-number">1.6</span> Email Policy</a></li>
+<li><a href="intro.html#mirroring" id="toc-mirroring"><span class="toc-section-number">1.7</span> Mirroring</a></li>
+<li><a href="intro.html#note-for-translators" id="toc-note-for-translators"><span class="toc-section-number">1.8</span> Note for Translators</a></li>
+<li><a href="intro.html#legal" id="toc-legal"><span class="toc-section-number">1.9</span> Copyright, Distribution, and Legal</a></li>
+<li><a href="intro.html#dedication" id="toc-dedication"><span class="toc-section-number">1.10</span> Dedication</a></li>
+<li><a href="intro.html#publishing-information" id="toc-publishing-information"><span class="toc-section-number">1.11</span> Publishing Information</a></li>
+</ul></li>
+<li><a href="what-is-a-socket.html#what-is-a-socket" id="toc-what-is-a-socket"><span class="toc-section-number">2</span> What is a socket?</a>
+<ul>
+<li><a href="what-is-a-socket.html#two-types-of-internet-sockets" id="toc-two-types-of-internet-sockets"><span class="toc-section-number">2.1</span> Two Types of Internet Sockets</a></li>
+<li><a href="what-is-a-socket.html#lowlevel" id="toc-lowlevel"><span class="toc-section-number">2.2</span> Low level Nonsense and Network Theory</a></li>
+</ul></li>
+<li><a href="ip-addresses-structs-and-data-munging.html#ip-addresses-structs-and-data-munging" id="toc-ip-addresses-structs-and-data-munging"><span class="toc-section-number">3</span> IP Addresses, <code>struct</code>s, and Data Munging</a>
+<ul>
+<li><a href="ip-addresses-structs-and-data-munging.html#ip-addresses-versions-4-and-6" id="toc-ip-addresses-versions-4-and-6"><span class="toc-section-number">3.1</span> IP Addresses, versions 4 and 6</a>
+<ul>
+<li><a href="ip-addresses-structs-and-data-munging.html#subnets" id="toc-subnets"><span class="toc-section-number">3.1.1</span> Subnets</a></li>
+<li><a href="ip-addresses-structs-and-data-munging.html#port-numbers" id="toc-port-numbers"><span class="toc-section-number">3.1.2</span> Port Numbers</a></li>
+</ul></li>
+<li><a href="ip-addresses-structs-and-data-munging.html#byte-order" id="toc-byte-order"><span class="toc-section-number">3.2</span> Byte Order</a></li>
+<li><a href="ip-addresses-structs-and-data-munging.html#structs" id="toc-structs"><span class="toc-section-number">3.3</span> <code>struct</code>s</a></li>
+<li><a href="ip-addresses-structs-and-data-munging.html#ip-addresses-part-deux" id="toc-ip-addresses-part-deux"><span class="toc-section-number">3.4</span> IP Addresses, Part Deux</a>
+<ul>
+<li><a href="ip-addresses-structs-and-data-munging.html#private-or-disconnected-networks" id="toc-private-or-disconnected-networks"><span class="toc-section-number">3.4.1</span> Private (Or Disconnected) Networks</a></li>
+</ul></li>
+</ul></li>
+<li><a href="jumping-from-ipv4-to-ipv6.html#jumping-from-ipv4-to-ipv6" id="toc-jumping-from-ipv4-to-ipv6"><span class="toc-section-number">4</span> Jumping from IPv4 to IPv6</a></li>
+<li><a href="system-calls-or-bust.html#system-calls-or-bust" id="toc-system-calls-or-bust"><span class="toc-section-number">5</span> System Calls or Bust</a>
+<ul>
+<li><a href="system-calls-or-bust.html#getaddrinfoprepare-to-launch" id="toc-getaddrinfoprepare-to-launch"><span class="toc-section-number">5.1</span> <code>getaddrinfo()</code>—Prepare to launch!</a></li>
+<li><a href="system-calls-or-bust.html#socket" id="toc-socket"><span class="toc-section-number">5.2</span> <code>socket()</code>—Get the File Descriptor!</a></li>
+<li><a href="system-calls-or-bust.html#bind" id="toc-bind"><span class="toc-section-number">5.3</span> <code>bind()</code>—What port am I on?</a></li>
+<li><a href="system-calls-or-bust.html#connect" id="toc-connect"><span class="toc-section-number">5.4</span> <code>connect()</code>—Hey, you!</a></li>
+<li><a href="system-calls-or-bust.html#listen" id="toc-listen"><span class="toc-section-number">5.5</span> <code>listen()</code>—Will somebody please call me?</a></li>
+<li><a href="system-calls-or-bust.html#acceptthank-you-for-calling-port-3490." id="toc-acceptthank-you-for-calling-port-3490."><span class="toc-section-number">5.6</span> <code>accept()</code>—“Thank you for calling port 3490.”</a></li>
+<li><a href="system-calls-or-bust.html#sendrecv" id="toc-sendrecv"><span class="toc-section-number">5.7</span> <code>send()</code> and <code>recv()</code>—Talk to me, baby!</a></li>
+<li><a href="system-calls-or-bust.html#sendtorecv" id="toc-sendtorecv"><span class="toc-section-number">5.8</span> <code>sendto()</code> and <code>recvfrom()</code>—Talk to me, DGRAM-style</a></li>
+<li><a href="system-calls-or-bust.html#close-and-shutdownget-outta-my-face" id="toc-close-and-shutdownget-outta-my-face"><span class="toc-section-number">5.9</span> <code>close()</code> and <code>shutdown()</code>—Get outta my face!</a></li>
+<li><a href="system-calls-or-bust.html#getpeernamewho-are-you" id="toc-getpeernamewho-are-you"><span class="toc-section-number">5.10</span> <code>getpeername()</code>—Who are you?</a></li>
+<li><a href="system-calls-or-bust.html#gethostnamewho-am-i" id="toc-gethostnamewho-am-i"><span class="toc-section-number">5.11</span> <code>gethostname()</code>—Who am I?</a></li>
+</ul></li>
+<li><a href="client-server-background.html#client-server-background" id="toc-client-server-background"><span class="toc-section-number">6</span> Client-Server Background</a>
+<ul>
+<li><a href="client-server-background.html#a-simple-stream-server" id="toc-a-simple-stream-server"><span class="toc-section-number">6.1</span> A Simple Stream Server</a></li>
+<li><a href="client-server-background.html#a-simple-stream-client" id="toc-a-simple-stream-client"><span class="toc-section-number">6.2</span> A Simple Stream Client</a></li>
+<li><a href="client-server-background.html#datagram" id="toc-datagram"><span class="toc-section-number">6.3</span> Datagram Sockets</a></li>
+</ul></li>
+<li><a href="slightly-advanced-techniques.html#slightly-advanced-techniques" id="toc-slightly-advanced-techniques"><span class="toc-section-number">7</span> Slightly Advanced Techniques</a>
+<ul>
+<li><a href="slightly-advanced-techniques.html#blocking" id="toc-blocking"><span class="toc-section-number">7.1</span> Blocking</a></li>
+<li><a href="slightly-advanced-techniques.html#poll" id="toc-poll"><span class="toc-section-number">7.2</span> <code>poll()</code>—Synchronous I/O Multiplexing</a></li>
+<li><a href="slightly-advanced-techniques.html#select" id="toc-select"><span class="toc-section-number">7.3</span> <code>select()</code>—Synchronous I/O Multiplexing, Old School</a></li>
+<li><a href="slightly-advanced-techniques.html#sendall" id="toc-sendall"><span class="toc-section-number">7.4</span> Handling Partial <code>send()</code>s</a></li>
+<li><a href="slightly-advanced-techniques.html#serialization" id="toc-serialization"><span class="toc-section-number">7.5</span> Serialization—How to Pack Data</a></li>
+<li><a href="slightly-advanced-techniques.html#sonofdataencap" id="toc-sonofdataencap"><span class="toc-section-number">7.6</span> Son of Data Encapsulation</a></li>
+<li><a href="slightly-advanced-techniques.html#broadcast-packetshello-world" id="toc-broadcast-packetshello-world"><span class="toc-section-number">7.7</span> Broadcast Packets—Hello, World!</a></li>
+</ul></li>
+<li><a href="common-questions.html#common-questions" id="toc-common-questions"><span class="toc-section-number">8</span> Common Questions</a></li>
+<li><a href="man-pages.html#man-pages" id="toc-man-pages"><span class="toc-section-number">9</span> Man Pages</a>
+<ul>
+<li><a href="man-pages.html#acceptman" id="toc-acceptman"><span class="toc-section-number">9.1</span> <code>accept()</code></a></li>
+<li><a href="man-pages.html#bindman" id="toc-bindman"><span class="toc-section-number">9.2</span> <code>bind()</code></a></li>
+<li><a href="man-pages.html#connectman" id="toc-connectman"><span class="toc-section-number">9.3</span> <code>connect()</code></a></li>
+<li><a href="man-pages.html#closeman" id="toc-closeman"><span class="toc-section-number">9.4</span> <code>close()</code></a></li>
+<li><a href="man-pages.html#getaddrinfoman" id="toc-getaddrinfoman"><span class="toc-section-number">9.5</span> <code>getaddrinfo()</code>, <code>freeaddrinfo()</code>, <code>gai_strerror()</code></a></li>
+<li><a href="man-pages.html#gethostnameman" id="toc-gethostnameman"><span class="toc-section-number">9.6</span> <code>gethostname()</code></a></li>
+<li><a href="man-pages.html#gethostbynameman" id="toc-gethostbynameman"><span class="toc-section-number">9.7</span> <code>gethostbyname()</code>, <code>gethostbyaddr()</code></a></li>
+<li><a href="man-pages.html#getnameinfoman" id="toc-getnameinfoman"><span class="toc-section-number">9.8</span> <code>getnameinfo()</code></a></li>
+<li><a href="man-pages.html#getpeernameman" id="toc-getpeernameman"><span class="toc-section-number">9.9</span> <code>getpeername()</code></a></li>
+<li><a href="man-pages.html#errnoman" id="toc-errnoman"><span class="toc-section-number">9.10</span> <code>errno</code></a></li>
+<li><a href="man-pages.html#fcntlman" id="toc-fcntlman"><span class="toc-section-number">9.11</span> <code>fcntl()</code></a></li>
+<li><a href="man-pages.html#htonsman" id="toc-htonsman"><span class="toc-section-number">9.12</span> <code>htons()</code>, <code>htonl()</code>, <code>ntohs()</code>, <code>ntohl()</code></a></li>
+<li><a href="man-pages.html#inet_ntoaman" id="toc-inet_ntoaman"><span class="toc-section-number">9.13</span> <code>inet_ntoa()</code>, <code>inet_aton()</code>, <code>inet_addr</code></a></li>
+<li><a href="man-pages.html#inet_ntopman" id="toc-inet_ntopman"><span class="toc-section-number">9.14</span> <code>inet_ntop()</code>, <code>inet_pton()</code></a></li>
+<li><a href="man-pages.html#listenman" id="toc-listenman"><span class="toc-section-number">9.15</span> <code>listen()</code></a></li>
+<li><a href="man-pages.html#perrorman" id="toc-perrorman"><span class="toc-section-number">9.16</span> <code>perror()</code>, <code>strerror()</code></a></li>
+<li><a href="man-pages.html#pollman" id="toc-pollman"><span class="toc-section-number">9.17</span> <code>poll()</code></a></li>
+<li><a href="man-pages.html#recvman" id="toc-recvman"><span class="toc-section-number">9.18</span> <code>recv()</code>, <code>recvfrom()</code></a></li>
+<li><a href="man-pages.html#selectman" id="toc-selectman"><span class="toc-section-number">9.19</span> <code>select()</code></a></li>
+<li><a href="man-pages.html#setsockoptman" id="toc-setsockoptman"><span class="toc-section-number">9.20</span> <code>setsockopt()</code>, <code>getsockopt()</code></a></li>
+<li><a href="man-pages.html#sendman" id="toc-sendman"><span class="toc-section-number">9.21</span> <code>send()</code>, <code>sendto()</code></a></li>
+<li><a href="man-pages.html#shutdownman" id="toc-shutdownman"><span class="toc-section-number">9.22</span> <code>shutdown()</code></a></li>
+<li><a href="man-pages.html#socketman" id="toc-socketman"><span class="toc-section-number">9.23</span> <code>socket()</code></a></li>
+<li><a href="man-pages.html#structsockaddrman" id="toc-structsockaddrman"><span class="toc-section-number">9.24</span> <code>struct sockaddr</code> and pals</a></li>
+</ul></li>
+<li><a href="more-references.html#more-references" id="toc-more-references"><span class="toc-section-number">10</span> More References</a>
+<ul>
+<li><a href="more-references.html#books" id="toc-books"><span class="toc-section-number">10.1</span> Books</a></li>
+<li><a href="more-references.html#web-references" id="toc-web-references"><span class="toc-section-number">10.2</span> Web References</a></li>
+<li><a href="more-references.html#rfcs" id="toc-rfcs"><span class="toc-section-number">10.3</span> RFCs</a></li>
+</ul></li>
+</ul>
+</nav>
+<!--
+Beej's Guide to Network Programming book source
+
+# vim: ts=4:sw=4:nosi:et:tw=72
+-->
+<!--
+    History:
+
+    2.3.2:        socket man page
+    2.3.3:        sockaddr_in man page
+    2.3.4:        bind, listen man page
+    2.3.5:        connect man page
+    2.3.6:        listen, perror man page
+    2.3.7:        errno man page
+    2.3.8:        htonl etc man page
+    2.3.9:        close man page, expanded man page leader
+    2.3.10:        inet_ntoa, setsockopt man pages
+    2.3.11:        getpeername man page
+    2.3.12:        send/sendto man pages
+    2.3.13:        shutdown man pages
+    2.3.14:        gethostname man pages, fix inet_aton links
+    2.3.15:        fcntl man page
+    2.3.16:        recv/recvfrom man page
+    2.3.17:        gethostbyname/gethostbyaddr man page
+    2.3.18:        changed GET / to GET / HTTP/1.0
+    2.3.19:        added select() man page
+    2.3.20:        added poll() man page
+    2.3.21:        section on NAT and reserved networks
+    2.3.22:        typo fixes in sects "man" and "privnet"
+    2.3.23:        added broadcast packets section
+    2.3.24:        manpage prototype changed to code, subtitle moved out of title
+    2.4.0:        big overhaul, serialization stuff
+    2.4.1:        minor text changes in intro
+    2.4.2:        changed all sizeofs to use variable names instead of types
+    2.4.3:        fix myaddr->my_addr in listener.c, sockaddr_inman example
+    2.4.4:        fix myaddr->my_addr in server.c
+    2.4.5:        fix 14->18 in son of data encap
+    3.0.0:        IPv6 overhaul
+    3.0.1:        sa-to-sa6 typo fix
+    3.0.2:        typo fixes
+    3.0.3:        typo fixes
+    3.0.4:        cut-n-paste errors, selectserver hints fix
+    3.0.5:        typo fixes
+    3.0.6:        typo fixes
+    3.0.7:        typo fixes, added front matter
+    3.0.8:        getpeername() code fixes
+    3.0.9:        getpeername() code fixes, this time fer sure
+    3.0.10:        bind() man page code fix, comment changes
+    3.0.11:        socket syscall section code fix, comment changes
+    3.0.12:        typos in "IP Addresses, structs, and Data Munging"
+    3.0.13:        amp removals, note about errno and multithreading
+    3.0.14:        type changes to listener.c, pack2.c
+    3.0.15:        fix inet_pton example
+    3.0.16:        fix simple server output, optlen in getsockopt man page
+    3.0.17:        fix small typo
+    3.0.18:        reverse perror and close calls in getaddrinfo
+    3.0.19:        add notes about O_NONBLOCK with select() under Linux
+    3.0.20:        fix missing .fd in poll() example
+    3.0.21:        change sizeof(int) to sizeof yes
+    3.0.22:     C99 updates, bug fixes, markdown
+    3.0.23:     Book reference and URL updates
+    3.1.0:      Section on poll()
+    3.1.1:      Add WSL note, telnot
+    3.1.2:      pollserver.c bugfix
+    3.1.3:      Fix freeaddrinfo memleak
+    3.1.4:      Fix accept example header files
+    3.1.5:      Fix dgram AF_UNSPEC
+-->
+<!-- prevent hyphenation of the following words: -->
+<!--
+Don't know how to make this work with underscores. I love
+you, Knuth, but... daaahm.
+
+\hyphenation{gai_strerr}
+-->
+<!--
+\hyphenation{inet_ntoa}
+\hyphenation{inet_aton}
+\hyphenation{inet_addr}
+\hyphenation{inet_ntop}
+\hyphenation{inet_pton}
+-->
+<!--
+\hyphenation{sockaddr_in}
+\hyphenation{in_addr}
+\hyphenation{sockaddr_in6}
+\hyphenation{in6_addr}
+-->
+<hr><div style="text-align:center"><span style="visibility: hidden"><a href="">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="intro.html">Next</a></span></div></body>
+</html>

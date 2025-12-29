@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Beej's Guide to Network Programming</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet"> 
+
+  <!-- BG custom styling -->
+  <style type="text/css">
+  /* Fix for line numbers not visible */
+  pre.numberSource code > span {
+      left: -1em;
+  }
+  pre.numberSource {
+      margin-left: initial;
+  }
+
+  /* Put some space after the section numbers */
+  span.toc-section-number::after {
+      content: "\a0\a0\a0";  /* non-breaking whitespace */
+  }
+
+  /* Hide underlines on code number links */
+  pre > code.sourceCode > span > a:first-child::before {
+      text-decoration: none;
+  }
+
+  /* Color the source blocks */
+  div.sourceCode {
+      background-color: #f0f0f0;
+  }
+
+  /* Fix iOS big text rendering issue */
+  pre > code.sourceCode > span {
+      display: initial;
+  }
+
+
+  /* Color the inline code */
+  code:not(.sourceCode) {
+      background: #f0f0f0;
+      padding-left: 0.2em;
+      padding-right: 0.2em;
+      border-radius: 0.2em;
+  }
+
+  /* Keep code tags from wrapping in tables */
+  tbody code {
+      white-space: nowrap;
+  }
+
+  td {
+      vertical-align: top;
+  }
+
+  body {
+      font-size: 12pt;
+      max-width: 43em;
+  }
+
+  figure {
+      text-align: center;
+  }
+  </style>
+  <!-- BG custom styling for the wide body variant -->
+  <!-- Gets appended after bg-css.html -->
+
+  <style type="text/css">
+  body {
+      max-width: inherit;
+  }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div style="text-align:center"><span><a href="index.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="what-is-a-socket.html">Next</a></span></div><hr>
+<h1 data-number="1" id="intro"><span class="header-section-number">1</span> Intro</h1>
+<p>Hey! Socket programming got you down? Is this stuff just a little too difficult to figure out from the <code>man</code> pages? You want to do cool Internet programming, but you don’t have time to wade through a gob of <code>struct</code>s trying to figure out if you have to call <code>bind()</code> before you <code>connect()</code>, etc., etc.</p>
+<p>Well, guess what! I’ve already done this nasty business, and I’m dying to share the information with everyone! You’ve come to the right place. This document should give the average competent C programmer the edge s/he needs to get a grip on this networking noise.</p>
+<p>And check it out: I’ve finally caught up with the future (just in the nick of time, too!) and have updated the Guide for IPv6! Enjoy!</p>
+<h2 data-number="1.1" id="audience"><span class="header-section-number">1.1</span> Audience</h2>
+<p>This document has been written as a tutorial, not a complete reference. It is probably at its best when read by individuals who are just starting out with socket programming and are looking for a foothold. It is certainly not the <em>complete and total</em> guide to sockets programming, by any means.</p>
+<p>Hopefully, though, it’ll be just enough for those man pages to start making sense… <code>:-)</code></p>
+<h2 data-number="1.2" id="platform-and-compiler"><span class="header-section-number">1.2</span> Platform and Compiler</h2>
+<p>The code contained within this document was compiled on a Linux PC using Gnu’s <code>gcc</code> compiler. It should, however, build on just about any platform that uses <code>gcc</code>. Naturally, this doesn’t apply if you’re programming for Windows—see the <a href="intro.html#windows">section on Windows programming</a>, below.</p>
+<h2 data-number="1.3" id="official-homepage-and-books-for-sale"><span class="header-section-number">1.3</span> Official Homepage and Books For Sale</h2>
+<p>This official location of this document is:</p>
+<ul>
+<li><a href="https://beej.us/guide/bgnet/"><code>https://beej.us/guide/bgnet/</code></a></li>
+</ul>
+<p>There you will also find example code and translations of the guide into various languages.</p>
+<p>To buy nicely bound print copies (some call them “books”), visit:</p>
+<ul>
+<li><a href="https://beej.us/guide/url/bgbuy"><code>https://beej.us/guide/url/bgbuy</code></a></li>
+</ul>
+<p>I’ll appreciate the purchase because it helps sustain my document-writing lifestyle!</p>
+<h2 data-number="1.4" id="solaris"><span class="header-section-number">1.4</span> Note for Solaris/SunOS Programmers</h2>
+<p>When compiling for Solaris or SunOS, you need to specify some extra command-line switches for linking in the proper libraries. In order to do this, simply add “<code>-lnsl -lsocket -lresolv</code>” to the end of the compile command, like so:</p>
+<pre><code>$ cc -o server server.c -lnsl -lsocket -lresolv</code></pre>
+<p>If you still get errors, you could try further adding a <code>-lxnet</code> to the end of that command line. I don’t know what that does, exactly, but some people seem to need it.</p>
+<p>Another place that you might find problems is in the call to <code>setsockopt()</code>. The prototype differs from that on my Linux box, so instead of:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="intro.html#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> yes<span class="op">=</span><span class="dv">1</span><span class="op">;</span></span></code></pre></div>
+<p>enter this:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="intro.html#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> yes<span class="op">=</span><span class="ch">&#39;1&#39;</span><span class="op">;</span></span></code></pre></div>
+<p>As I don’t have a Sun box, I haven’t tested any of the above information—it’s just what people have told me through email.</p>
+<h2 data-number="1.5" id="windows"><span class="header-section-number">1.5</span> Note for Windows Programmers</h2>
+<p>At this point in the guide, historically, I’ve done a bit of bagging on Windows, simply due to the fact that I don’t like it very much. But I should really be fair and tell you that Windows has a huge install base and is obviously a perfectly fine operating system.</p>
+<p>They say absence makes the heart grow fonder, and in this case, I believe it to be true. (Or maybe it’s age.) But what I can say is that after a decade-plus of not using Microsoft OSes for my personal work, I’m much happier! As such, I can sit back and safely say, “Sure, feel free to use Windows!” …OK yes, it does make me grit my teeth to say that.</p>
+<p>So I still encourage you to try <a href="https://www.linux.com/">Linux</a><a href="footnotes.html#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, <a href="https://bsd.org/">BSD</a><a href="footnotes.html#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>, or some flavor of Unix, instead.</p>
+<p>But people like what they like, and you Windows folk will be pleased to know that this information is generally applicable to you guys, with a few minor changes, if any.</p>
+<p>Another thing that you should strongly consider is the <a href="https://learn.microsoft.com/en-us/windows/wsl/">Windows Subsystem for Linux</a><a href="footnotes.html#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>. This basically allows you to install a Linux VM-ish thing on Windows 10. That will also definitely get you situated, and you’ll be able to build and run these programs as is.</p>
+<p>One cool thing you can do is install <a href="https://cygwin.com/">Cygwin</a><a href="footnotes.html#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>, which is a collection of Unix tools for Windows. I’ve heard on the grapevine that doing so allows all these programs to compile unmodified, but I’ve never tried it.</p>
+<p>But some of you might want to do things the Pure Windows Way. That’s very gutsy of you, and this is what you have to do: run out and get Unix immediately! No, no—I’m kidding. I’m supposed to be Windows-friendly(er) these days…</p>
+<p></p>
+<p>This is what you’ll have to do: first, ignore pretty much all of the system header files I mention in here. Instead, include:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="intro.html#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;winsock2.h&gt;</span></span>
+<span id="cb4-2"><a href="intro.html#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;ws2tcpip.h&gt;</span></span></code></pre></div>
+<p><code>winsock2</code> is the “new” (circa 1994) version of the Windows socket library.</p>
+<p>Unfortunately, if you include <code>windows.h</code>, it automatically pulls in the older <code>winsock.h</code> (version 1) header file which conflicts with <code>winsock2.h</code>! Fun times.</p>
+<p>So if you have to include <code>windows.h</code>, you need to define a macro to get it to <em>not</em> include the older header:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="intro.html#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define WIN32_LEAN_AND_MEAN  </span><span class="co">// Say this...</span></span>
+<span id="cb5-2"><a href="intro.html#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="intro.html#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;windows.h&gt;</span><span class="pp">         </span><span class="co">// And now we can include that.</span></span>
+<span id="cb5-4"><a href="intro.html#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;winsock2.h&gt;</span><span class="pp">        </span><span class="co">// And this.</span></span></code></pre></div>
+<p>Wait! You also have to make a call to <code>WSAStartup()</code> before doing anything else with the sockets library. You pass in the Winsock version you desire to this function (e.g. version 2.2). And then you can check the result to make sure that version is available.</p>
+<p>The code to do that looks something like this:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb6-1"><a href="intro.html#cb6-1"></a><span class="pp">#include </span><span class="im">&lt;winsock2.h&gt;</span></span>
+<span id="cb6-2"><a href="intro.html#cb6-2"></a></span>
+<span id="cb6-3"><a href="intro.html#cb6-3"></a><span class="op">{</span></span>
+<span id="cb6-4"><a href="intro.html#cb6-4"></a>    WSADATA wsaData<span class="op">;</span></span>
+<span id="cb6-5"><a href="intro.html#cb6-5"></a></span>
+<span id="cb6-6"><a href="intro.html#cb6-6"></a>    <span class="cf">if</span> <span class="op">(</span>WSAStartup<span class="op">(</span>MAKEWORD<span class="op">(</span><span class="dv">2</span><span class="op">,</span> <span class="dv">2</span><span class="op">),</span> <span class="op">&amp;</span>wsaData<span class="op">)</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-7"><a href="intro.html#cb6-7"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;WSAStartup failed.</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb6-8"><a href="intro.html#cb6-8"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb6-9"><a href="intro.html#cb6-9"></a>    <span class="op">}</span></span>
+<span id="cb6-10"><a href="intro.html#cb6-10"></a></span>
+<span id="cb6-11"><a href="intro.html#cb6-11"></a>    <span class="cf">if</span> <span class="op">(</span>LOBYTE<span class="op">(</span>wsaData<span class="op">.</span>wVersion<span class="op">)</span> <span class="op">!=</span> <span class="dv">2</span> <span class="op">||</span></span>
+<span id="cb6-12"><a href="intro.html#cb6-12"></a>        HIBYTE<span class="op">(</span>wsaData<span class="op">.</span>wVersion<span class="op">)</span> <span class="op">!=</span> <span class="dv">2</span><span class="op">)</span></span>
+<span id="cb6-13"><a href="intro.html#cb6-13"></a>    <span class="op">{</span></span>
+<span id="cb6-14"><a href="intro.html#cb6-14"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span><span class="st">&quot;Versiion 2.2 of Winsock is not available.</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb6-15"><a href="intro.html#cb6-15"></a>        WSACleanup<span class="op">();</span></span>
+<span id="cb6-16"><a href="intro.html#cb6-16"></a>        exit<span class="op">(</span><span class="dv">2</span><span class="op">);</span></span>
+<span id="cb6-17"><a href="intro.html#cb6-17"></a>    <span class="op">}</span></span></code></pre></div>
+<p>Note that call to <code>WSACleanup()</code> in there. That’s what you want to call when you’re done with the Winsock library.</p>
+<p>You also have to tell your compiler to link in the Winsock library, called <code>ws2_32.lib</code> for Winsock 2. Under VC++, this can be done through the <code>Project</code> menu, under <code>Settings...</code>. Click the <code>Link</code> tab, and look for the box titled “Object/library modules”. Add “ws2_32.lib” (or whichever lib is your preference) to that list.</p>
+<p>Or so I hear.</p>
+<p>Once you do that, the rest of the examples in this tutorial should generally apply, with a few exceptions. For one thing, you can’t use <code>close()</code> to close a socket—you need to use <code>closesocket()</code>, instead. Also, <code>select()</code> only works with socket descriptors, not file descriptors (like <code>0</code> for <code>stdin</code>).</p>
+<p>There is also a socket class that you can use, <a href="https://learn.microsoft.com/en-us/cpp/mfc/reference/csocket-class?view=msvc-170"><code>CSocket</code></a> Check your compiler’s help pages for more information.</p>
+<p>To get more information about Winsock, <a href="https://learn.microsoft.com/en-us/windows/win32/winsock/windows-sockets-start-page-2">check out the official page at Microsoft</a>.</p>
+<p>Finally, I hear that Windows has no <code>fork()</code> system call which is, unfortunately, used in some of my examples. Maybe you have to link in a POSIX library or something to get it to work, or you can use <code>CreateProcess()</code> instead. <code>fork()</code> takes no arguments, and <code>CreateProcess()</code> takes about 48 billion arguments. If you’re not up to that, the <code>CreateThread()</code> is a little easier to digest…unfortunately a discussion about multithreading is beyond the scope of this document. I can only talk about so much, you know!</p>
+<p>Extra finally, Steven Mitchell has <a href="https://www.tallyhawk.net/WinsockExamples/">ported a number of the examples</a><a href="footnotes.html#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> to Winsock. Check that stuff out.</p>
+<h2 data-number="1.6" id="email-policy"><span class="header-section-number">1.6</span> Email Policy</h2>
+<p>I’m generally available to help out with email questions so feel free to write in, but I can’t guarantee a response. I lead a pretty busy life and there are times when I just can’t answer a question you have. When that’s the case, I usually just delete the message. It’s nothing personal; I just won’t ever have the time to give the detailed answer you require.</p>
+<p>As a rule, the more complex the question, the less likely I am to respond. If you can narrow down your question before mailing it and be sure to include any pertinent information (like platform, compiler, error messages you’re getting, and anything else you think might help me troubleshoot), you’re much more likely to get a response. For more pointers, read ESR’s document, <a href="http://www.catb.org/~esr/faqs/smart-questions.html">How To Ask Questions The Smart Way</a><a href="footnotes.html#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>.</p>
+<p>If you don’t get a response, hack on it some more, try to find the answer, and if it’s still elusive, then write me again with the information you’ve found and hopefully it will be enough for me to help out.</p>
+<p>Now that I’ve badgered you about how to write and not write me, I’d just like to let you know that I <em>fully</em> appreciate all the praise the guide has received over the years. It’s a real morale boost, and it gladdens me to hear that it is being used for good! <code>:-)</code> Thank you!</p>
+<h2 data-number="1.7" id="mirroring"><span class="header-section-number">1.7</span> Mirroring</h2>
+<p> You are more than welcome to mirror this site, whether publicly or privately. If you publicly mirror the site and want me to link to it from the main page, drop me a line at <a href="beej@beej.us"><code>beej@beej.us</code></a>.</p>
+<h2 data-number="1.8" id="note-for-translators"><span class="header-section-number">1.8</span> Note for Translators</h2>
+<p> If you want to translate the guide into another language, write me at <a href="beej@beej.us"><code>beej@beej.us</code></a> and I’ll link to your translation from the main page. Feel free to add your name and contact info to the translation.</p>
+<p>This source markdown document uses UTF-8 encoding.</p>
+<p>Please note the license restrictions in the <a href="intro.html#legal">Copyright, Distribution, and Legal</a> section, below.</p>
+<p>If you want me to host the translation, just ask. I’ll also link to it if you want to host it; either way is fine.</p>
+<h2 data-number="1.9" id="legal"><span class="header-section-number">1.9</span> Copyright, Distribution, and Legal</h2>
+<p>Beej’s Guide to Network Programming is Copyright © 2019 Brian “Beej Jorgensen” Hall.</p>
+<p>With specific exceptions for source code and translations, below, this work is licensed under the Creative Commons Attribution- Noncommercial- No Derivative Works 3.0 License. To view a copy of this license, visit</p>
+<p><a href="https://creativecommons.org/licenses/by-nc-nd/3.0/"><code>https://creativecommons.org/licenses/by-nc-nd/3.0/</code></a></p>
+<p>or send a letter to Creative Commons, 171 Second Street, Suite 300, San Francisco, California, 94105, USA.</p>
+<p>One specific exception to the “No Derivative Works” portion of the license is as follows: this guide may be freely translated into any language, provided the translation is accurate, and the guide is reprinted in its entirety. The same license restrictions apply to the translation as to the original guide. The translation may also include the name and contact information for the translator.</p>
+<p>The C source code presented in this document is hereby granted to the public domain, and is completely free of any license restriction.</p>
+<p>Educators are freely encouraged to recommend or supply copies of this guide to their students.</p>
+<p>Unless otherwise mutually agreed by the parties in writing, the author offers the work as-is and makes no representations or warranties of any kind concerning the work, express, implied, statutory or otherwise, including, without limitation, warranties of title, merchantability, fitness for a particular purpose, noninfringement, or the absence of latent or other defects, accuracy, or the presence of absence of errors, whether or not discoverable.</p>
+<p>Except to the extent required by applicable law, in no event will the author be liable to you on any legal theory for any special, incidental, consequential, punitive or exemplary damages arising out of the use of the work, even if the author has been advised of the possibility of such damages.</p>
+<p>Contact <a href="mailto:beej@beej.us"><code>beej@beej.us</code></a> for more information.</p>
+<h2 data-number="1.10" id="dedication"><span class="header-section-number">1.10</span> Dedication</h2>
+<p>Thanks to everyone who has helped in the past and future with me getting this guide written. And thank you to all the people who produce the Free software and packages that I use to make the Guide: GNU, Linux, Slackware, vim, Python, Inkscape, pandoc, many others. And finally a big thank-you to the literally thousands of you who have written in with suggestions for improvements and words of encouragement.</p>
+<p>I dedicate this guide to some of my biggest heroes and inpirators in the world of computers: Donald Knuth, Bruce Schneier, W. Richard Stevens, and The Woz, my Readership, and the entire Free and Open Source Software Community.</p>
+<h2 data-number="1.11" id="publishing-information"><span class="header-section-number">1.11</span> Publishing Information</h2>
+<p>This book is written in Markdown using the vim editor on an Arch Linux box loaded with GNU tools. The cover “art” and diagrams are produced with Inkscape. The Markdown is converted to HTML and LaTex/PDF by Python, Pandoc and XeLaTeX, using Liberation fonts. The toolchain is composed of 100% Free and Open Source Software.</p>
+<hr><div style="text-align:center"><span><a href="index.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="what-is-a-socket.html">Next</a></span></div></body>
+</html>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NASM - The Netwide Assembler</title>
+<link href="nasmdoc.css" rel="stylesheet" type="text/css" />
+<link href="local.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<ul class="navbar">
+<li class="first"><a class="prev" href="nasmdo12.html">Chapter 12</a></li>
+<li><a class="next" href="nasmdoca.html">Appendix A</a></li>
+<li><a class="toc" href="nasmdoc0.html">Contents</a></li>
+<li class="last"><a class="index" href="nasmdoci.html">Index</a></li>
+</ul>
+<div class="title">
+<h1>NASM - The Netwide Assembler</h1>
+<span class="subtitle">version 2.15.05</span>
+</div>
+<div class="contents"
+>
+<h2 id="chapter-13">Chapter 13: Troubleshooting</h2>
+<p>This chapter describes some of the common problems that users have been
+known to encounter with NASM, and answers them. If you think you have found
+a bug in NASM, please see <a href="nasmdoce.html#section-E.2">section
+E.2</a>.</p>
+<h3 id="section-13.1">13.1 Common Problems</h3>
+<h4 id="section-13.1.1">13.1.1 NASM Generates Inefficient Code</h4>
+<p>We sometimes get `bug' reports about NASM generating inefficient, or
+even `wrong', code on instructions such as <code>ADD ESP,8</code>. This is
+a deliberate design feature, connected to predictability of output: NASM,
+on seeing <code>ADD ESP,8</code>, will generate the form of the instruction
+which leaves room for a 32-bit offset. You need to code
+<code>ADD ESP,BYTE 8</code> if you want the space-efficient form of the
+instruction. This isn't a bug, it's user error: if you prefer to have NASM
+produce the more efficient code automatically enable optimization with the
+<code>-O</code> option (see <a href="nasmdoc2.html#section-2.1.24">section
+2.1.24</a>).</p>
+<h4 id="section-13.1.2">13.1.2 My Jumps are Out of Range</h4>
+<p>Similarly, people complain that when they issue conditional jumps (which
+are <code>SHORT</code> by default) that try to jump too far, NASM reports
+`short jump out of range' instead of making the jumps longer.</p>
+<p>This, again, is partly a predictability issue, but in fact has a more
+practical reason as well. NASM has no means of being told what type of
+processor the code it is generating will be run on; so it cannot decide for
+itself that it should generate <code>Jcc NEAR</code> type instructions,
+because it doesn't know that it's working for a 386 or above.
+Alternatively, it could replace the out-of-range short <code>JNE</code>
+instruction with a very short <code>JE</code> instruction that jumps over a
+<code>JMP NEAR</code>; this is a sensible solution for processors below a
+386, but hardly efficient on processors which have good branch prediction
+<em>and</em> could have used <code>JNE NEAR</code> instead. So, once again,
+it's up to the user, not the assembler, to decide what instructions should
+be generated. See <a href="nasmdoc2.html#section-2.1.24">section
+2.1.24</a>.</p>
+<h4 id="section-13.1.3">13.1.3 <code>ORG</code> Doesn't Work</h4>
+<p>People writing boot sector programs in the <code>bin</code> format often
+complain that <code>ORG</code> doesn't work the way they'd like: in order
+to place the <code>0xAA55</code> signature word at the end of a 512-byte
+boot sector, people who are used to MASM tend to code</p>
+<pre>
+        ORG 0 
+
+        ; some boot sector code 
+
+        ORG 510 
+        DW 0xAA55
+</pre>
+<p>This is not the intended use of the <code>ORG</code> directive in NASM,
+and will not work. The correct way to solve this problem in NASM is to use
+the <code>TIMES</code> directive, like this:</p>
+<pre>
+        ORG 0 
+
+        ; some boot sector code 
+
+        TIMES 510-($-$$) DB 0 
+        DW 0xAA55
+</pre>
+<p>The <code>TIMES</code> directive will insert exactly enough zero bytes
+into the output to move the assembly point up to 510. This method also has
+the advantage that if you accidentally fill your boot sector too full, NASM
+will catch the problem at assembly time and report it, so you won't end up
+with a boot sector that you have to disassemble to find out what's wrong
+with it.</p>
+<h4 id="section-13.1.4">13.1.4 <code>TIMES</code> Doesn't Work</h4>
+<p>The other common problem with the above code is people who write the
+<code>TIMES</code> line as</p>
+<pre>
+        TIMES 510-$ DB 0
+</pre>
+<p>by reasoning that <code>$</code> should be a pure number, just like 510,
+so the difference between them is also a pure number and can happily be fed
+to <code>TIMES</code>.</p>
+<p>NASM is a <em>modular</em> assembler: the various component parts are
+designed to be easily separable for re-use, so they don't exchange
+information unnecessarily. In consequence, the <code>bin</code> output
+format, even though it has been told by the <code>ORG</code> directive that
+the <code>.text</code> section should start at 0, does not pass that
+information back to the expression evaluator. So from the evaluator's point
+of view, <code>$</code> isn't a pure number: it's an offset from a section
+base. Therefore the difference between <code>$</code> and 510 is also not a
+pure number, but involves a section base. Values involving section bases
+cannot be passed as arguments to <code>TIMES</code>.</p>
+<p>The solution, as in the previous section, is to code the
+<code>TIMES</code> line in the form</p>
+<pre>
+        TIMES 510-($-$$) DB 0
+</pre>
+<p>in which <code>$</code> and <code>$$</code> are offsets from the same
+section base, and so their difference is a pure number. This will solve the
+problem and generate sensible code.</p>
+</div>
+</body>
+</html>

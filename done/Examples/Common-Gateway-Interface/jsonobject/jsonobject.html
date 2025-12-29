@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>get JSON object</title>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script type="text/javascript">
+        $(document).ready(function(){
+            $(".button").click(function(){
+                $.post("/bin/jsonobject",
+                {
+                    /* you cannot post values this way */
+                },
+                    function(data,status){
+                        var result=JSON.parse(data);       
+                        $('#name').text(result.name);
+                        $('#website').text(result.website);
+                        $('#email').text(result.email);
+                        $('#value').text(result.value);
+                        $("#data").html(data);
+                        $("#status").html(status);
+                    }
+                );    
+            });
+        });
+        </script>
+    </head>
+    <body><pre><h1>Get data with JSON</h1>
+name            : <b><span id="name"></span></b>
+website         : <b><span id="website"></span></b>
+email           : <b><span id="email"></span></b>
+a value         : <b><span id="value"></span></b>
+the JSON object : <span id="data"></span>
+the status      : <span id="status"></span>
+
+<button class="button" type="submit">Get the object</button></pre>
+    </body>
+</html>

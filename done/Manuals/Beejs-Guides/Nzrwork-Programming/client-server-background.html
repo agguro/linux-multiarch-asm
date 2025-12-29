@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Beej's Guide to Network Programming</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet"> 
+
+  <!-- BG custom styling -->
+  <style type="text/css">
+  /* Fix for line numbers not visible */
+  pre.numberSource code > span {
+      left: -1em;
+  }
+  pre.numberSource {
+      margin-left: initial;
+  }
+
+  /* Put some space after the section numbers */
+  span.toc-section-number::after {
+      content: "\a0\a0\a0";  /* non-breaking whitespace */
+  }
+
+  /* Hide underlines on code number links */
+  pre > code.sourceCode > span > a:first-child::before {
+      text-decoration: none;
+  }
+
+  /* Color the source blocks */
+  div.sourceCode {
+      background-color: #f0f0f0;
+  }
+
+  /* Fix iOS big text rendering issue */
+  pre > code.sourceCode > span {
+      display: initial;
+  }
+
+
+  /* Color the inline code */
+  code:not(.sourceCode) {
+      background: #f0f0f0;
+      padding-left: 0.2em;
+      padding-right: 0.2em;
+      border-radius: 0.2em;
+  }
+
+  /* Keep code tags from wrapping in tables */
+  tbody code {
+      white-space: nowrap;
+  }
+
+  td {
+      vertical-align: top;
+  }
+
+  body {
+      font-size: 12pt;
+      max-width: 43em;
+  }
+
+  figure {
+      text-align: center;
+  }
+  </style>
+  <!-- BG custom styling for the wide body variant -->
+  <!-- Gets appended after bg-css.html -->
+
+  <style type="text/css">
+  body {
+      max-width: inherit;
+  }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div style="text-align:center"><span><a href="system-calls-or-bust.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="slightly-advanced-techniques.html">Next</a></span></div><hr>
+<h1 data-number="6" id="client-server-background"><span class="header-section-number">6</span> Client-Server Background</h1>
+<p></p>
+<p>It’s a client-server world, baby. Just about everything on the network deals with client processes talking to server processes and vice-versa. Take <code>telnet</code>, for instance. When you connect to a remote host on port 23 with telnet (the client), a program on that host (called <code>telnetd</code>, the server) springs to life. It handles the incoming telnet connection, sets you up with a login prompt, etc.</p>
+<figure>
+<embed src="cs.svg" title="[Client-Server Interaction Diagram]" />
+<figcaption aria-hidden="true">Client-Server Interaction.</figcaption>
+</figure>
+<p>The exchange of information between client and server is summarized in the above diagram.</p>
+<p>Note that the client-server pair can speak <code>SOCK_STREAM</code>, <code>SOCK_DGRAM</code>, or anything else (as long as they’re speaking the same thing). Some good examples of client-server pairs are <code>telnet</code>/<code>telnetd</code>, <code>ftp</code>/<code>ftpd</code>, or <code>Firefox</code>/<code>Apache</code>. Every time you use <code>ftp</code>, there’s a remote program, <code>ftpd</code>, that serves you.</p>
+<p>Often, there will only be one server on a machine, and that server will handle multiple clients using <code>fork()</code>. The basic routine is: server will wait for a connection, <code>accept()</code> it, and <code>fork()</code> a child process to handle it. This is what our sample server does in the next section.</p>
+<h2 data-number="6.1" id="a-simple-stream-server"><span class="header-section-number">6.1</span> A Simple Stream Server</h2>
+<p></p>
+<p>All this server does is send the string “<code>Hello, world!</code>” out over a stream connection. All you need to do to test this server is run it in one window, and telnet to it from another with:</p>
+<pre><code>$ telnet remotehostname 3490</code></pre>
+<p>where <code>remotehostname</code> is the name of the machine you’re running it on.</p>
+<p><a href="https://beej.us/guide/bgnet/examples/server.c">The server code</a><a href="footnotes.html#fn23" class="footnote-ref" id="fnref23" role="doc-noteref"><sup>23</sup></a>:</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb47-1"><a href="client-server-background.html#cb47-1"></a><span class="co">/*</span></span>
+<span id="cb47-2"><a href="client-server-background.html#cb47-2"></a><span class="co">** server.c -- a stream socket server demo</span></span>
+<span id="cb47-3"><a href="client-server-background.html#cb47-3"></a><span class="co">*/</span></span>
+<span id="cb47-4"><a href="client-server-background.html#cb47-4"></a></span>
+<span id="cb47-5"><a href="client-server-background.html#cb47-5"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb47-6"><a href="client-server-background.html#cb47-6"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb47-7"><a href="client-server-background.html#cb47-7"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb47-8"><a href="client-server-background.html#cb47-8"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
+<span id="cb47-9"><a href="client-server-background.html#cb47-9"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb47-10"><a href="client-server-background.html#cb47-10"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb47-11"><a href="client-server-background.html#cb47-11"></a><span class="pp">#include </span><span class="im">&lt;sys/socket.h&gt;</span></span>
+<span id="cb47-12"><a href="client-server-background.html#cb47-12"></a><span class="pp">#include </span><span class="im">&lt;netinet/in.h&gt;</span></span>
+<span id="cb47-13"><a href="client-server-background.html#cb47-13"></a><span class="pp">#include </span><span class="im">&lt;netdb.h&gt;</span></span>
+<span id="cb47-14"><a href="client-server-background.html#cb47-14"></a><span class="pp">#include </span><span class="im">&lt;arpa/inet.h&gt;</span></span>
+<span id="cb47-15"><a href="client-server-background.html#cb47-15"></a><span class="pp">#include </span><span class="im">&lt;sys/wait.h&gt;</span></span>
+<span id="cb47-16"><a href="client-server-background.html#cb47-16"></a><span class="pp">#include </span><span class="im">&lt;signal.h&gt;</span></span>
+<span id="cb47-17"><a href="client-server-background.html#cb47-17"></a></span>
+<span id="cb47-18"><a href="client-server-background.html#cb47-18"></a><span class="pp">#define PORT </span><span class="st">&quot;3490&quot;</span><span class="pp">  </span><span class="co">// the port users will be connecting to</span></span>
+<span id="cb47-19"><a href="client-server-background.html#cb47-19"></a></span>
+<span id="cb47-20"><a href="client-server-background.html#cb47-20"></a><span class="pp">#define BACKLOG </span><span class="dv">10</span><span class="pp">   </span><span class="co">// how many pending connections queue will hold</span></span>
+<span id="cb47-21"><a href="client-server-background.html#cb47-21"></a></span>
+<span id="cb47-22"><a href="client-server-background.html#cb47-22"></a><span class="dt">void</span> sigchld_handler<span class="op">(</span><span class="dt">int</span> s<span class="op">)</span></span>
+<span id="cb47-23"><a href="client-server-background.html#cb47-23"></a><span class="op">{</span></span>
+<span id="cb47-24"><a href="client-server-background.html#cb47-24"></a>    <span class="co">// waitpid() might overwrite errno, so we save and restore it:</span></span>
+<span id="cb47-25"><a href="client-server-background.html#cb47-25"></a>    <span class="dt">int</span> saved_errno <span class="op">=</span> errno<span class="op">;</span></span>
+<span id="cb47-26"><a href="client-server-background.html#cb47-26"></a></span>
+<span id="cb47-27"><a href="client-server-background.html#cb47-27"></a>    <span class="cf">while</span><span class="op">(</span>waitpid<span class="op">(-</span><span class="dv">1</span><span class="op">,</span> NULL<span class="op">,</span> WNOHANG<span class="op">)</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb47-28"><a href="client-server-background.html#cb47-28"></a></span>
+<span id="cb47-29"><a href="client-server-background.html#cb47-29"></a>    errno <span class="op">=</span> saved_errno<span class="op">;</span></span>
+<span id="cb47-30"><a href="client-server-background.html#cb47-30"></a><span class="op">}</span></span>
+<span id="cb47-31"><a href="client-server-background.html#cb47-31"></a></span>
+<span id="cb47-32"><a href="client-server-background.html#cb47-32"></a></span>
+<span id="cb47-33"><a href="client-server-background.html#cb47-33"></a><span class="co">// get sockaddr, IPv4 or IPv6:</span></span>
+<span id="cb47-34"><a href="client-server-background.html#cb47-34"></a><span class="dt">void</span> <span class="op">*</span>get_in_addr<span class="op">(</span><span class="kw">struct</span> sockaddr <span class="op">*</span>sa<span class="op">)</span></span>
+<span id="cb47-35"><a href="client-server-background.html#cb47-35"></a><span class="op">{</span></span>
+<span id="cb47-36"><a href="client-server-background.html#cb47-36"></a>    <span class="cf">if</span> <span class="op">(</span>sa<span class="op">-&gt;</span>sa_family <span class="op">==</span> AF_INET<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb47-37"><a href="client-server-background.html#cb47-37"></a>        <span class="cf">return</span> <span class="op">&amp;(((</span><span class="kw">struct</span> sockaddr_in<span class="op">*)</span>sa<span class="op">)-&gt;</span>sin_addr<span class="op">);</span></span>
+<span id="cb47-38"><a href="client-server-background.html#cb47-38"></a>    <span class="op">}</span></span>
+<span id="cb47-39"><a href="client-server-background.html#cb47-39"></a></span>
+<span id="cb47-40"><a href="client-server-background.html#cb47-40"></a>    <span class="cf">return</span> <span class="op">&amp;(((</span><span class="kw">struct</span> sockaddr_in6<span class="op">*)</span>sa<span class="op">)-&gt;</span>sin6_addr<span class="op">);</span></span>
+<span id="cb47-41"><a href="client-server-background.html#cb47-41"></a><span class="op">}</span></span>
+<span id="cb47-42"><a href="client-server-background.html#cb47-42"></a></span>
+<span id="cb47-43"><a href="client-server-background.html#cb47-43"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb47-44"><a href="client-server-background.html#cb47-44"></a><span class="op">{</span></span>
+<span id="cb47-45"><a href="client-server-background.html#cb47-45"></a>    <span class="dt">int</span> sockfd<span class="op">,</span> new_fd<span class="op">;</span>  <span class="co">// listen on sock_fd, new connection on new_fd</span></span>
+<span id="cb47-46"><a href="client-server-background.html#cb47-46"></a>    <span class="kw">struct</span> addrinfo hints<span class="op">,</span> <span class="op">*</span>servinfo<span class="op">,</span> <span class="op">*</span>p<span class="op">;</span></span>
+<span id="cb47-47"><a href="client-server-background.html#cb47-47"></a>    <span class="kw">struct</span> sockaddr_storage their_addr<span class="op">;</span> <span class="co">// connector&#39;s address information</span></span>
+<span id="cb47-48"><a href="client-server-background.html#cb47-48"></a>    socklen_t sin_size<span class="op">;</span></span>
+<span id="cb47-49"><a href="client-server-background.html#cb47-49"></a>    <span class="kw">struct</span> sigaction sa<span class="op">;</span></span>
+<span id="cb47-50"><a href="client-server-background.html#cb47-50"></a>    <span class="dt">int</span> yes<span class="op">=</span><span class="dv">1</span><span class="op">;</span></span>
+<span id="cb47-51"><a href="client-server-background.html#cb47-51"></a>    <span class="dt">char</span> s<span class="op">[</span>INET6_ADDRSTRLEN<span class="op">];</span></span>
+<span id="cb47-52"><a href="client-server-background.html#cb47-52"></a>    <span class="dt">int</span> rv<span class="op">;</span></span>
+<span id="cb47-53"><a href="client-server-background.html#cb47-53"></a></span>
+<span id="cb47-54"><a href="client-server-background.html#cb47-54"></a>    memset<span class="op">(&amp;</span>hints<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">sizeof</span> hints<span class="op">);</span></span>
+<span id="cb47-55"><a href="client-server-background.html#cb47-55"></a>    hints<span class="op">.</span>ai_family <span class="op">=</span> AF_UNSPEC<span class="op">;</span></span>
+<span id="cb47-56"><a href="client-server-background.html#cb47-56"></a>    hints<span class="op">.</span>ai_socktype <span class="op">=</span> SOCK_STREAM<span class="op">;</span></span>
+<span id="cb47-57"><a href="client-server-background.html#cb47-57"></a>    hints<span class="op">.</span>ai_flags <span class="op">=</span> AI_PASSIVE<span class="op">;</span> <span class="co">// use my IP</span></span>
+<span id="cb47-58"><a href="client-server-background.html#cb47-58"></a></span>
+<span id="cb47-59"><a href="client-server-background.html#cb47-59"></a>    <span class="cf">if</span> <span class="op">((</span>rv <span class="op">=</span> getaddrinfo<span class="op">(</span>NULL<span class="op">,</span> PORT<span class="op">,</span> <span class="op">&amp;</span>hints<span class="op">,</span> <span class="op">&amp;</span>servinfo<span class="op">))</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb47-60"><a href="client-server-background.html#cb47-60"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;getaddrinfo: </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span> gai_strerror<span class="op">(</span>rv<span class="op">));</span></span>
+<span id="cb47-61"><a href="client-server-background.html#cb47-61"></a>        <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb47-62"><a href="client-server-background.html#cb47-62"></a>    <span class="op">}</span></span>
+<span id="cb47-63"><a href="client-server-background.html#cb47-63"></a></span>
+<span id="cb47-64"><a href="client-server-background.html#cb47-64"></a>    <span class="co">// loop through all the results and bind to the first we can</span></span>
+<span id="cb47-65"><a href="client-server-background.html#cb47-65"></a>    <span class="cf">for</span><span class="op">(</span>p <span class="op">=</span> servinfo<span class="op">;</span> p <span class="op">!=</span> NULL<span class="op">;</span> p <span class="op">=</span> p<span class="op">-&gt;</span>ai_next<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb47-66"><a href="client-server-background.html#cb47-66"></a>        <span class="cf">if</span> <span class="op">((</span>sockfd <span class="op">=</span> socket<span class="op">(</span>p<span class="op">-&gt;</span>ai_family<span class="op">,</span> p<span class="op">-&gt;</span>ai_socktype<span class="op">,</span></span>
+<span id="cb47-67"><a href="client-server-background.html#cb47-67"></a>                p<span class="op">-&gt;</span>ai_protocol<span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb47-68"><a href="client-server-background.html#cb47-68"></a>            perror<span class="op">(</span><span class="st">&quot;server: socket&quot;</span><span class="op">);</span></span>
+<span id="cb47-69"><a href="client-server-background.html#cb47-69"></a>            <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb47-70"><a href="client-server-background.html#cb47-70"></a>        <span class="op">}</span></span>
+<span id="cb47-71"><a href="client-server-background.html#cb47-71"></a></span>
+<span id="cb47-72"><a href="client-server-background.html#cb47-72"></a>        <span class="cf">if</span> <span class="op">(</span>setsockopt<span class="op">(</span>sockfd<span class="op">,</span> SOL_SOCKET<span class="op">,</span> SO_REUSEADDR<span class="op">,</span> <span class="op">&amp;</span>yes<span class="op">,</span></span>
+<span id="cb47-73"><a href="client-server-background.html#cb47-73"></a>                <span class="kw">sizeof</span><span class="op">(</span><span class="dt">int</span><span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb47-74"><a href="client-server-background.html#cb47-74"></a>            perror<span class="op">(</span><span class="st">&quot;setsockopt&quot;</span><span class="op">);</span></span>
+<span id="cb47-75"><a href="client-server-background.html#cb47-75"></a>            exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb47-76"><a href="client-server-background.html#cb47-76"></a>        <span class="op">}</span></span>
+<span id="cb47-77"><a href="client-server-background.html#cb47-77"></a></span>
+<span id="cb47-78"><a href="client-server-background.html#cb47-78"></a>        <span class="cf">if</span> <span class="op">(</span>bind<span class="op">(</span>sockfd<span class="op">,</span> p<span class="op">-&gt;</span>ai_addr<span class="op">,</span> p<span class="op">-&gt;</span>ai_addrlen<span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb47-79"><a href="client-server-background.html#cb47-79"></a>            close<span class="op">(</span>sockfd<span class="op">);</span></span>
+<span id="cb47-80"><a href="client-server-background.html#cb47-80"></a>            perror<span class="op">(</span><span class="st">&quot;server: bind&quot;</span><span class="op">);</span></span>
+<span id="cb47-81"><a href="client-server-background.html#cb47-81"></a>            <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb47-82"><a href="client-server-background.html#cb47-82"></a>        <span class="op">}</span></span>
+<span id="cb47-83"><a href="client-server-background.html#cb47-83"></a></span>
+<span id="cb47-84"><a href="client-server-background.html#cb47-84"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb47-85"><a href="client-server-background.html#cb47-85"></a>    <span class="op">}</span></span>
+<span id="cb47-86"><a href="client-server-background.html#cb47-86"></a></span>
+<span id="cb47-87"><a href="client-server-background.html#cb47-87"></a>    freeaddrinfo<span class="op">(</span>servinfo<span class="op">);</span> <span class="co">// all done with this structure</span></span>
+<span id="cb47-88"><a href="client-server-background.html#cb47-88"></a></span>
+<span id="cb47-89"><a href="client-server-background.html#cb47-89"></a>    <span class="cf">if</span> <span class="op">(</span>p <span class="op">==</span> NULL<span class="op">)</span>  <span class="op">{</span></span>
+<span id="cb47-90"><a href="client-server-background.html#cb47-90"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;server: failed to bind</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb47-91"><a href="client-server-background.html#cb47-91"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb47-92"><a href="client-server-background.html#cb47-92"></a>    <span class="op">}</span></span>
+<span id="cb47-93"><a href="client-server-background.html#cb47-93"></a></span>
+<span id="cb47-94"><a href="client-server-background.html#cb47-94"></a>    <span class="cf">if</span> <span class="op">(</span>listen<span class="op">(</span>sockfd<span class="op">,</span> BACKLOG<span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb47-95"><a href="client-server-background.html#cb47-95"></a>        perror<span class="op">(</span><span class="st">&quot;listen&quot;</span><span class="op">);</span></span>
+<span id="cb47-96"><a href="client-server-background.html#cb47-96"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb47-97"><a href="client-server-background.html#cb47-97"></a>    <span class="op">}</span></span>
+<span id="cb47-98"><a href="client-server-background.html#cb47-98"></a></span>
+<span id="cb47-99"><a href="client-server-background.html#cb47-99"></a>    sa<span class="op">.</span>sa_handler <span class="op">=</span> sigchld_handler<span class="op">;</span> <span class="co">// reap all dead processes</span></span>
+<span id="cb47-100"><a href="client-server-background.html#cb47-100"></a>    sigemptyset<span class="op">(&amp;</span>sa<span class="op">.</span>sa_mask<span class="op">);</span></span>
+<span id="cb47-101"><a href="client-server-background.html#cb47-101"></a>    sa<span class="op">.</span>sa_flags <span class="op">=</span> SA_RESTART<span class="op">;</span></span>
+<span id="cb47-102"><a href="client-server-background.html#cb47-102"></a>    <span class="cf">if</span> <span class="op">(</span>sigaction<span class="op">(</span>SIGCHLD<span class="op">,</span> <span class="op">&amp;</span>sa<span class="op">,</span> NULL<span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb47-103"><a href="client-server-background.html#cb47-103"></a>        perror<span class="op">(</span><span class="st">&quot;sigaction&quot;</span><span class="op">);</span></span>
+<span id="cb47-104"><a href="client-server-background.html#cb47-104"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb47-105"><a href="client-server-background.html#cb47-105"></a>    <span class="op">}</span></span>
+<span id="cb47-106"><a href="client-server-background.html#cb47-106"></a></span>
+<span id="cb47-107"><a href="client-server-background.html#cb47-107"></a>    printf<span class="op">(</span><span class="st">&quot;server: waiting for connections...</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb47-108"><a href="client-server-background.html#cb47-108"></a></span>
+<span id="cb47-109"><a href="client-server-background.html#cb47-109"></a>    <span class="cf">while</span><span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span>  <span class="co">// main accept() loop</span></span>
+<span id="cb47-110"><a href="client-server-background.html#cb47-110"></a>        sin_size <span class="op">=</span> <span class="kw">sizeof</span> their_addr<span class="op">;</span></span>
+<span id="cb47-111"><a href="client-server-background.html#cb47-111"></a>        new_fd <span class="op">=</span> accept<span class="op">(</span>sockfd<span class="op">,</span> <span class="op">(</span><span class="kw">struct</span> sockaddr <span class="op">*)&amp;</span>their_addr<span class="op">,</span> <span class="op">&amp;</span>sin_size<span class="op">);</span></span>
+<span id="cb47-112"><a href="client-server-background.html#cb47-112"></a>        <span class="cf">if</span> <span class="op">(</span>new_fd <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb47-113"><a href="client-server-background.html#cb47-113"></a>            perror<span class="op">(</span><span class="st">&quot;accept&quot;</span><span class="op">);</span></span>
+<span id="cb47-114"><a href="client-server-background.html#cb47-114"></a>            <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb47-115"><a href="client-server-background.html#cb47-115"></a>        <span class="op">}</span></span>
+<span id="cb47-116"><a href="client-server-background.html#cb47-116"></a></span>
+<span id="cb47-117"><a href="client-server-background.html#cb47-117"></a>        inet_ntop<span class="op">(</span>their_addr<span class="op">.</span>ss_family<span class="op">,</span></span>
+<span id="cb47-118"><a href="client-server-background.html#cb47-118"></a>            get_in_addr<span class="op">((</span><span class="kw">struct</span> sockaddr <span class="op">*)&amp;</span>their_addr<span class="op">),</span></span>
+<span id="cb47-119"><a href="client-server-background.html#cb47-119"></a>            s<span class="op">,</span> <span class="kw">sizeof</span> s<span class="op">);</span></span>
+<span id="cb47-120"><a href="client-server-background.html#cb47-120"></a>        printf<span class="op">(</span><span class="st">&quot;server: got connection from </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span> s<span class="op">);</span></span>
+<span id="cb47-121"><a href="client-server-background.html#cb47-121"></a></span>
+<span id="cb47-122"><a href="client-server-background.html#cb47-122"></a>        <span class="cf">if</span> <span class="op">(!</span>fork<span class="op">())</span> <span class="op">{</span> <span class="co">// this is the child process</span></span>
+<span id="cb47-123"><a href="client-server-background.html#cb47-123"></a>            close<span class="op">(</span>sockfd<span class="op">);</span> <span class="co">// child doesn&#39;t need the listener</span></span>
+<span id="cb47-124"><a href="client-server-background.html#cb47-124"></a>            <span class="cf">if</span> <span class="op">(</span>send<span class="op">(</span>new_fd<span class="op">,</span> <span class="st">&quot;Hello, world!&quot;</span><span class="op">,</span> <span class="dv">13</span><span class="op">,</span> <span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb47-125"><a href="client-server-background.html#cb47-125"></a>                perror<span class="op">(</span><span class="st">&quot;send&quot;</span><span class="op">);</span></span>
+<span id="cb47-126"><a href="client-server-background.html#cb47-126"></a>            close<span class="op">(</span>new_fd<span class="op">);</span></span>
+<span id="cb47-127"><a href="client-server-background.html#cb47-127"></a>            exit<span class="op">(</span><span class="dv">0</span><span class="op">);</span></span>
+<span id="cb47-128"><a href="client-server-background.html#cb47-128"></a>        <span class="op">}</span></span>
+<span id="cb47-129"><a href="client-server-background.html#cb47-129"></a>        close<span class="op">(</span>new_fd<span class="op">);</span>  <span class="co">// parent doesn&#39;t need this</span></span>
+<span id="cb47-130"><a href="client-server-background.html#cb47-130"></a>    <span class="op">}</span></span>
+<span id="cb47-131"><a href="client-server-background.html#cb47-131"></a></span>
+<span id="cb47-132"><a href="client-server-background.html#cb47-132"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb47-133"><a href="client-server-background.html#cb47-133"></a><span class="op">}</span></span></code></pre></div>
+<p>In case you’re curious, I have the code in one big <code>main()</code> function for (I feel) syntactic clarity. Feel free to split it into smaller functions if it makes you feel better.</p>
+<p>(Also, this whole <code>sigaction()</code> thing might be new to you—that’s OK. The code that’s there is responsible for reaping zombie processes that appear as the <code>fork()</code>ed child processes exit. If you make lots of zombies and don’t reap them, your system administrator will become agitated.)</p>
+<p>You can get the data from this server by using the client listed in the next section.</p>
+<p></p>
+<h2 data-number="6.2" id="a-simple-stream-client"><span class="header-section-number">6.2</span> A Simple Stream Client</h2>
+<p></p>
+<p>This guy’s even easier than the server. All this client does is connect to the host you specify on the command line, port 3490. It gets the string that the server sends.</p>
+<p><a href="https://beej.us/guide/bgnet/examples/client.c">The client source</a><a href="footnotes.html#fn24" class="footnote-ref" id="fnref24" role="doc-noteref"><sup>24</sup></a>:</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb48-1"><a href="client-server-background.html#cb48-1"></a><span class="co">/*</span></span>
+<span id="cb48-2"><a href="client-server-background.html#cb48-2"></a><span class="co">** client.c -- a stream socket client demo</span></span>
+<span id="cb48-3"><a href="client-server-background.html#cb48-3"></a><span class="co">*/</span></span>
+<span id="cb48-4"><a href="client-server-background.html#cb48-4"></a></span>
+<span id="cb48-5"><a href="client-server-background.html#cb48-5"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb48-6"><a href="client-server-background.html#cb48-6"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb48-7"><a href="client-server-background.html#cb48-7"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb48-8"><a href="client-server-background.html#cb48-8"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
+<span id="cb48-9"><a href="client-server-background.html#cb48-9"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb48-10"><a href="client-server-background.html#cb48-10"></a><span class="pp">#include </span><span class="im">&lt;netdb.h&gt;</span></span>
+<span id="cb48-11"><a href="client-server-background.html#cb48-11"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb48-12"><a href="client-server-background.html#cb48-12"></a><span class="pp">#include </span><span class="im">&lt;netinet/in.h&gt;</span></span>
+<span id="cb48-13"><a href="client-server-background.html#cb48-13"></a><span class="pp">#include </span><span class="im">&lt;sys/socket.h&gt;</span></span>
+<span id="cb48-14"><a href="client-server-background.html#cb48-14"></a></span>
+<span id="cb48-15"><a href="client-server-background.html#cb48-15"></a><span class="pp">#include </span><span class="im">&lt;arpa/inet.h&gt;</span></span>
+<span id="cb48-16"><a href="client-server-background.html#cb48-16"></a></span>
+<span id="cb48-17"><a href="client-server-background.html#cb48-17"></a><span class="pp">#define PORT </span><span class="st">&quot;3490&quot;</span><span class="pp"> </span><span class="co">// the port client will be connecting to </span></span>
+<span id="cb48-18"><a href="client-server-background.html#cb48-18"></a></span>
+<span id="cb48-19"><a href="client-server-background.html#cb48-19"></a><span class="pp">#define MAXDATASIZE </span><span class="dv">100</span><span class="pp"> </span><span class="co">// max number of bytes we can get at once </span></span>
+<span id="cb48-20"><a href="client-server-background.html#cb48-20"></a></span>
+<span id="cb48-21"><a href="client-server-background.html#cb48-21"></a><span class="co">// get sockaddr, IPv4 or IPv6:</span></span>
+<span id="cb48-22"><a href="client-server-background.html#cb48-22"></a><span class="dt">void</span> <span class="op">*</span>get_in_addr<span class="op">(</span><span class="kw">struct</span> sockaddr <span class="op">*</span>sa<span class="op">)</span></span>
+<span id="cb48-23"><a href="client-server-background.html#cb48-23"></a><span class="op">{</span></span>
+<span id="cb48-24"><a href="client-server-background.html#cb48-24"></a>    <span class="cf">if</span> <span class="op">(</span>sa<span class="op">-&gt;</span>sa_family <span class="op">==</span> AF_INET<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb48-25"><a href="client-server-background.html#cb48-25"></a>        <span class="cf">return</span> <span class="op">&amp;(((</span><span class="kw">struct</span> sockaddr_in<span class="op">*)</span>sa<span class="op">)-&gt;</span>sin_addr<span class="op">);</span></span>
+<span id="cb48-26"><a href="client-server-background.html#cb48-26"></a>    <span class="op">}</span></span>
+<span id="cb48-27"><a href="client-server-background.html#cb48-27"></a></span>
+<span id="cb48-28"><a href="client-server-background.html#cb48-28"></a>    <span class="cf">return</span> <span class="op">&amp;(((</span><span class="kw">struct</span> sockaddr_in6<span class="op">*)</span>sa<span class="op">)-&gt;</span>sin6_addr<span class="op">);</span></span>
+<span id="cb48-29"><a href="client-server-background.html#cb48-29"></a><span class="op">}</span></span>
+<span id="cb48-30"><a href="client-server-background.html#cb48-30"></a></span>
+<span id="cb48-31"><a href="client-server-background.html#cb48-31"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span>argv<span class="op">[])</span></span>
+<span id="cb48-32"><a href="client-server-background.html#cb48-32"></a><span class="op">{</span></span>
+<span id="cb48-33"><a href="client-server-background.html#cb48-33"></a>    <span class="dt">int</span> sockfd<span class="op">,</span> numbytes<span class="op">;</span>  </span>
+<span id="cb48-34"><a href="client-server-background.html#cb48-34"></a>    <span class="dt">char</span> buf<span class="op">[</span>MAXDATASIZE<span class="op">];</span></span>
+<span id="cb48-35"><a href="client-server-background.html#cb48-35"></a>    <span class="kw">struct</span> addrinfo hints<span class="op">,</span> <span class="op">*</span>servinfo<span class="op">,</span> <span class="op">*</span>p<span class="op">;</span></span>
+<span id="cb48-36"><a href="client-server-background.html#cb48-36"></a>    <span class="dt">int</span> rv<span class="op">;</span></span>
+<span id="cb48-37"><a href="client-server-background.html#cb48-37"></a>    <span class="dt">char</span> s<span class="op">[</span>INET6_ADDRSTRLEN<span class="op">];</span></span>
+<span id="cb48-38"><a href="client-server-background.html#cb48-38"></a></span>
+<span id="cb48-39"><a href="client-server-background.html#cb48-39"></a>    <span class="cf">if</span> <span class="op">(</span>argc <span class="op">!=</span> <span class="dv">2</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb48-40"><a href="client-server-background.html#cb48-40"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span><span class="st">&quot;usage: client hostname</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb48-41"><a href="client-server-background.html#cb48-41"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb48-42"><a href="client-server-background.html#cb48-42"></a>    <span class="op">}</span></span>
+<span id="cb48-43"><a href="client-server-background.html#cb48-43"></a></span>
+<span id="cb48-44"><a href="client-server-background.html#cb48-44"></a>    memset<span class="op">(&amp;</span>hints<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">sizeof</span> hints<span class="op">);</span></span>
+<span id="cb48-45"><a href="client-server-background.html#cb48-45"></a>    hints<span class="op">.</span>ai_family <span class="op">=</span> AF_UNSPEC<span class="op">;</span></span>
+<span id="cb48-46"><a href="client-server-background.html#cb48-46"></a>    hints<span class="op">.</span>ai_socktype <span class="op">=</span> SOCK_STREAM<span class="op">;</span></span>
+<span id="cb48-47"><a href="client-server-background.html#cb48-47"></a></span>
+<span id="cb48-48"><a href="client-server-background.html#cb48-48"></a>    <span class="cf">if</span> <span class="op">((</span>rv <span class="op">=</span> getaddrinfo<span class="op">(</span>argv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> PORT<span class="op">,</span> <span class="op">&amp;</span>hints<span class="op">,</span> <span class="op">&amp;</span>servinfo<span class="op">))</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb48-49"><a href="client-server-background.html#cb48-49"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;getaddrinfo: </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span> gai_strerror<span class="op">(</span>rv<span class="op">));</span></span>
+<span id="cb48-50"><a href="client-server-background.html#cb48-50"></a>        <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb48-51"><a href="client-server-background.html#cb48-51"></a>    <span class="op">}</span></span>
+<span id="cb48-52"><a href="client-server-background.html#cb48-52"></a></span>
+<span id="cb48-53"><a href="client-server-background.html#cb48-53"></a>    <span class="co">// loop through all the results and connect to the first we can</span></span>
+<span id="cb48-54"><a href="client-server-background.html#cb48-54"></a>    <span class="cf">for</span><span class="op">(</span>p <span class="op">=</span> servinfo<span class="op">;</span> p <span class="op">!=</span> NULL<span class="op">;</span> p <span class="op">=</span> p<span class="op">-&gt;</span>ai_next<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb48-55"><a href="client-server-background.html#cb48-55"></a>        <span class="cf">if</span> <span class="op">((</span>sockfd <span class="op">=</span> socket<span class="op">(</span>p<span class="op">-&gt;</span>ai_family<span class="op">,</span> p<span class="op">-&gt;</span>ai_socktype<span class="op">,</span></span>
+<span id="cb48-56"><a href="client-server-background.html#cb48-56"></a>                p<span class="op">-&gt;</span>ai_protocol<span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb48-57"><a href="client-server-background.html#cb48-57"></a>            perror<span class="op">(</span><span class="st">&quot;client: socket&quot;</span><span class="op">);</span></span>
+<span id="cb48-58"><a href="client-server-background.html#cb48-58"></a>            <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb48-59"><a href="client-server-background.html#cb48-59"></a>        <span class="op">}</span></span>
+<span id="cb48-60"><a href="client-server-background.html#cb48-60"></a></span>
+<span id="cb48-61"><a href="client-server-background.html#cb48-61"></a>        <span class="cf">if</span> <span class="op">(</span>connect<span class="op">(</span>sockfd<span class="op">,</span> p<span class="op">-&gt;</span>ai_addr<span class="op">,</span> p<span class="op">-&gt;</span>ai_addrlen<span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb48-62"><a href="client-server-background.html#cb48-62"></a>            close<span class="op">(</span>sockfd<span class="op">);</span></span>
+<span id="cb48-63"><a href="client-server-background.html#cb48-63"></a>            perror<span class="op">(</span><span class="st">&quot;client: connect&quot;</span><span class="op">);</span></span>
+<span id="cb48-64"><a href="client-server-background.html#cb48-64"></a>            <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb48-65"><a href="client-server-background.html#cb48-65"></a>        <span class="op">}</span></span>
+<span id="cb48-66"><a href="client-server-background.html#cb48-66"></a></span>
+<span id="cb48-67"><a href="client-server-background.html#cb48-67"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb48-68"><a href="client-server-background.html#cb48-68"></a>    <span class="op">}</span></span>
+<span id="cb48-69"><a href="client-server-background.html#cb48-69"></a></span>
+<span id="cb48-70"><a href="client-server-background.html#cb48-70"></a>    <span class="cf">if</span> <span class="op">(</span>p <span class="op">==</span> NULL<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb48-71"><a href="client-server-background.html#cb48-71"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;client: failed to connect</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb48-72"><a href="client-server-background.html#cb48-72"></a>        <span class="cf">return</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb48-73"><a href="client-server-background.html#cb48-73"></a>    <span class="op">}</span></span>
+<span id="cb48-74"><a href="client-server-background.html#cb48-74"></a></span>
+<span id="cb48-75"><a href="client-server-background.html#cb48-75"></a>    inet_ntop<span class="op">(</span>p<span class="op">-&gt;</span>ai_family<span class="op">,</span> get_in_addr<span class="op">((</span><span class="kw">struct</span> sockaddr <span class="op">*)</span>p<span class="op">-&gt;</span>ai_addr<span class="op">),</span></span>
+<span id="cb48-76"><a href="client-server-background.html#cb48-76"></a>            s<span class="op">,</span> <span class="kw">sizeof</span> s<span class="op">);</span></span>
+<span id="cb48-77"><a href="client-server-background.html#cb48-77"></a>    printf<span class="op">(</span><span class="st">&quot;client: connecting to </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span> s<span class="op">);</span></span>
+<span id="cb48-78"><a href="client-server-background.html#cb48-78"></a></span>
+<span id="cb48-79"><a href="client-server-background.html#cb48-79"></a>    freeaddrinfo<span class="op">(</span>servinfo<span class="op">);</span> <span class="co">// all done with this structure</span></span>
+<span id="cb48-80"><a href="client-server-background.html#cb48-80"></a></span>
+<span id="cb48-81"><a href="client-server-background.html#cb48-81"></a>    <span class="cf">if</span> <span class="op">((</span>numbytes <span class="op">=</span> recv<span class="op">(</span>sockfd<span class="op">,</span> buf<span class="op">,</span> MAXDATASIZE<span class="op">-</span><span class="dv">1</span><span class="op">,</span> <span class="dv">0</span><span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb48-82"><a href="client-server-background.html#cb48-82"></a>        perror<span class="op">(</span><span class="st">&quot;recv&quot;</span><span class="op">);</span></span>
+<span id="cb48-83"><a href="client-server-background.html#cb48-83"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb48-84"><a href="client-server-background.html#cb48-84"></a>    <span class="op">}</span></span>
+<span id="cb48-85"><a href="client-server-background.html#cb48-85"></a></span>
+<span id="cb48-86"><a href="client-server-background.html#cb48-86"></a>    buf<span class="op">[</span>numbytes<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span><span class="op">;</span></span>
+<span id="cb48-87"><a href="client-server-background.html#cb48-87"></a></span>
+<span id="cb48-88"><a href="client-server-background.html#cb48-88"></a>    printf<span class="op">(</span><span class="st">&quot;client: received &#39;</span><span class="sc">%s</span><span class="st">&#39;</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span>buf<span class="op">);</span></span>
+<span id="cb48-89"><a href="client-server-background.html#cb48-89"></a></span>
+<span id="cb48-90"><a href="client-server-background.html#cb48-90"></a>    close<span class="op">(</span>sockfd<span class="op">);</span></span>
+<span id="cb48-91"><a href="client-server-background.html#cb48-91"></a></span>
+<span id="cb48-92"><a href="client-server-background.html#cb48-92"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb48-93"><a href="client-server-background.html#cb48-93"></a><span class="op">}</span></span></code></pre></div>
+<p>Notice that if you don’t run the server before you run the client, <code>connect()</code> returns “Connection refused”. Very useful.</p>
+<p></p>
+<h2 data-number="6.3" id="datagram"><span class="header-section-number">6.3</span> Datagram Sockets</h2>
+<p></p>
+<p>We’ve already covered the basics of UDP datagram sockets with our discussion of <code>sendto()</code> and <code>recvfrom()</code>, above, so I’ll just present a couple of sample programs: <code>talker.c</code> and <code>listener.c</code>.</p>
+<p><code>listener</code> sits on a machine waiting for an incoming packet on port 4950. <code>talker</code> sends a packet to that port, on the specified machine, that contains whatever the user enters on the command line.</p>
+<p>Because datagram sockets are connectionless and just fire packets off into the ether with callous disregard for success, we are going to tell the client and server to use specifically IPv6. This way we avoid the situation where the server is listening on IPv6 and the client sends on IPv4; the data simply would not be received. (In our connected TCP stream sockets world, we might still have the mismatch, but the error on <code>connect()</code> for one address family would cause us to retry for the other.)</p>
+<p>Here is the <a href="https://beej.us/guide/bgnet/examples/listener.c">source for <code>listener.c</code></a><a href="footnotes.html#fn25" class="footnote-ref" id="fnref25" role="doc-noteref"><sup>25</sup></a>:</p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb49-1"><a href="client-server-background.html#cb49-1"></a><span class="co">/*</span></span>
+<span id="cb49-2"><a href="client-server-background.html#cb49-2"></a><span class="co">** listener.c -- a datagram sockets &quot;server&quot; demo</span></span>
+<span id="cb49-3"><a href="client-server-background.html#cb49-3"></a><span class="co">*/</span></span>
+<span id="cb49-4"><a href="client-server-background.html#cb49-4"></a></span>
+<span id="cb49-5"><a href="client-server-background.html#cb49-5"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb49-6"><a href="client-server-background.html#cb49-6"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb49-7"><a href="client-server-background.html#cb49-7"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb49-8"><a href="client-server-background.html#cb49-8"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
+<span id="cb49-9"><a href="client-server-background.html#cb49-9"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb49-10"><a href="client-server-background.html#cb49-10"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb49-11"><a href="client-server-background.html#cb49-11"></a><span class="pp">#include </span><span class="im">&lt;sys/socket.h&gt;</span></span>
+<span id="cb49-12"><a href="client-server-background.html#cb49-12"></a><span class="pp">#include </span><span class="im">&lt;netinet/in.h&gt;</span></span>
+<span id="cb49-13"><a href="client-server-background.html#cb49-13"></a><span class="pp">#include </span><span class="im">&lt;arpa/inet.h&gt;</span></span>
+<span id="cb49-14"><a href="client-server-background.html#cb49-14"></a><span class="pp">#include </span><span class="im">&lt;netdb.h&gt;</span></span>
+<span id="cb49-15"><a href="client-server-background.html#cb49-15"></a></span>
+<span id="cb49-16"><a href="client-server-background.html#cb49-16"></a><span class="pp">#define MYPORT </span><span class="st">&quot;4950&quot;</span><span class="pp">    </span><span class="co">// the port users will be connecting to</span></span>
+<span id="cb49-17"><a href="client-server-background.html#cb49-17"></a></span>
+<span id="cb49-18"><a href="client-server-background.html#cb49-18"></a><span class="pp">#define MAXBUFLEN </span><span class="dv">100</span></span>
+<span id="cb49-19"><a href="client-server-background.html#cb49-19"></a></span>
+<span id="cb49-20"><a href="client-server-background.html#cb49-20"></a><span class="co">// get sockaddr, IPv4 or IPv6:</span></span>
+<span id="cb49-21"><a href="client-server-background.html#cb49-21"></a><span class="dt">void</span> <span class="op">*</span>get_in_addr<span class="op">(</span><span class="kw">struct</span> sockaddr <span class="op">*</span>sa<span class="op">)</span></span>
+<span id="cb49-22"><a href="client-server-background.html#cb49-22"></a><span class="op">{</span></span>
+<span id="cb49-23"><a href="client-server-background.html#cb49-23"></a>    <span class="cf">if</span> <span class="op">(</span>sa<span class="op">-&gt;</span>sa_family <span class="op">==</span> AF_INET<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb49-24"><a href="client-server-background.html#cb49-24"></a>        <span class="cf">return</span> <span class="op">&amp;(((</span><span class="kw">struct</span> sockaddr_in<span class="op">*)</span>sa<span class="op">)-&gt;</span>sin_addr<span class="op">);</span></span>
+<span id="cb49-25"><a href="client-server-background.html#cb49-25"></a>    <span class="op">}</span></span>
+<span id="cb49-26"><a href="client-server-background.html#cb49-26"></a></span>
+<span id="cb49-27"><a href="client-server-background.html#cb49-27"></a>    <span class="cf">return</span> <span class="op">&amp;(((</span><span class="kw">struct</span> sockaddr_in6<span class="op">*)</span>sa<span class="op">)-&gt;</span>sin6_addr<span class="op">);</span></span>
+<span id="cb49-28"><a href="client-server-background.html#cb49-28"></a><span class="op">}</span></span>
+<span id="cb49-29"><a href="client-server-background.html#cb49-29"></a></span>
+<span id="cb49-30"><a href="client-server-background.html#cb49-30"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb49-31"><a href="client-server-background.html#cb49-31"></a><span class="op">{</span></span>
+<span id="cb49-32"><a href="client-server-background.html#cb49-32"></a>    <span class="dt">int</span> sockfd<span class="op">;</span></span>
+<span id="cb49-33"><a href="client-server-background.html#cb49-33"></a>    <span class="kw">struct</span> addrinfo hints<span class="op">,</span> <span class="op">*</span>servinfo<span class="op">,</span> <span class="op">*</span>p<span class="op">;</span></span>
+<span id="cb49-34"><a href="client-server-background.html#cb49-34"></a>    <span class="dt">int</span> rv<span class="op">;</span></span>
+<span id="cb49-35"><a href="client-server-background.html#cb49-35"></a>    <span class="dt">int</span> numbytes<span class="op">;</span></span>
+<span id="cb49-36"><a href="client-server-background.html#cb49-36"></a>    <span class="kw">struct</span> sockaddr_storage their_addr<span class="op">;</span></span>
+<span id="cb49-37"><a href="client-server-background.html#cb49-37"></a>    <span class="dt">char</span> buf<span class="op">[</span>MAXBUFLEN<span class="op">];</span></span>
+<span id="cb49-38"><a href="client-server-background.html#cb49-38"></a>    socklen_t addr_len<span class="op">;</span></span>
+<span id="cb49-39"><a href="client-server-background.html#cb49-39"></a>    <span class="dt">char</span> s<span class="op">[</span>INET6_ADDRSTRLEN<span class="op">];</span></span>
+<span id="cb49-40"><a href="client-server-background.html#cb49-40"></a></span>
+<span id="cb49-41"><a href="client-server-background.html#cb49-41"></a>    memset<span class="op">(&amp;</span>hints<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">sizeof</span> hints<span class="op">);</span></span>
+<span id="cb49-42"><a href="client-server-background.html#cb49-42"></a>    hints<span class="op">.</span>ai_family <span class="op">=</span> AF_INET6<span class="op">;</span> <span class="co">// set to AF_INET to use IPv4</span></span>
+<span id="cb49-43"><a href="client-server-background.html#cb49-43"></a>    hints<span class="op">.</span>ai_socktype <span class="op">=</span> SOCK_DGRAM<span class="op">;</span></span>
+<span id="cb49-44"><a href="client-server-background.html#cb49-44"></a>    hints<span class="op">.</span>ai_flags <span class="op">=</span> AI_PASSIVE<span class="op">;</span> <span class="co">// use my IP</span></span>
+<span id="cb49-45"><a href="client-server-background.html#cb49-45"></a></span>
+<span id="cb49-46"><a href="client-server-background.html#cb49-46"></a>    <span class="cf">if</span> <span class="op">((</span>rv <span class="op">=</span> getaddrinfo<span class="op">(</span>NULL<span class="op">,</span> MYPORT<span class="op">,</span> <span class="op">&amp;</span>hints<span class="op">,</span> <span class="op">&amp;</span>servinfo<span class="op">))</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb49-47"><a href="client-server-background.html#cb49-47"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;getaddrinfo: </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span> gai_strerror<span class="op">(</span>rv<span class="op">));</span></span>
+<span id="cb49-48"><a href="client-server-background.html#cb49-48"></a>        <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb49-49"><a href="client-server-background.html#cb49-49"></a>    <span class="op">}</span></span>
+<span id="cb49-50"><a href="client-server-background.html#cb49-50"></a></span>
+<span id="cb49-51"><a href="client-server-background.html#cb49-51"></a>    <span class="co">// loop through all the results and bind to the first we can</span></span>
+<span id="cb49-52"><a href="client-server-background.html#cb49-52"></a>    <span class="cf">for</span><span class="op">(</span>p <span class="op">=</span> servinfo<span class="op">;</span> p <span class="op">!=</span> NULL<span class="op">;</span> p <span class="op">=</span> p<span class="op">-&gt;</span>ai_next<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb49-53"><a href="client-server-background.html#cb49-53"></a>        <span class="cf">if</span> <span class="op">((</span>sockfd <span class="op">=</span> socket<span class="op">(</span>p<span class="op">-&gt;</span>ai_family<span class="op">,</span> p<span class="op">-&gt;</span>ai_socktype<span class="op">,</span></span>
+<span id="cb49-54"><a href="client-server-background.html#cb49-54"></a>                p<span class="op">-&gt;</span>ai_protocol<span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb49-55"><a href="client-server-background.html#cb49-55"></a>            perror<span class="op">(</span><span class="st">&quot;listener: socket&quot;</span><span class="op">);</span></span>
+<span id="cb49-56"><a href="client-server-background.html#cb49-56"></a>            <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb49-57"><a href="client-server-background.html#cb49-57"></a>        <span class="op">}</span></span>
+<span id="cb49-58"><a href="client-server-background.html#cb49-58"></a></span>
+<span id="cb49-59"><a href="client-server-background.html#cb49-59"></a>        <span class="cf">if</span> <span class="op">(</span>bind<span class="op">(</span>sockfd<span class="op">,</span> p<span class="op">-&gt;</span>ai_addr<span class="op">,</span> p<span class="op">-&gt;</span>ai_addrlen<span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb49-60"><a href="client-server-background.html#cb49-60"></a>            close<span class="op">(</span>sockfd<span class="op">);</span></span>
+<span id="cb49-61"><a href="client-server-background.html#cb49-61"></a>            perror<span class="op">(</span><span class="st">&quot;listener: bind&quot;</span><span class="op">);</span></span>
+<span id="cb49-62"><a href="client-server-background.html#cb49-62"></a>            <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb49-63"><a href="client-server-background.html#cb49-63"></a>        <span class="op">}</span></span>
+<span id="cb49-64"><a href="client-server-background.html#cb49-64"></a></span>
+<span id="cb49-65"><a href="client-server-background.html#cb49-65"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb49-66"><a href="client-server-background.html#cb49-66"></a>    <span class="op">}</span></span>
+<span id="cb49-67"><a href="client-server-background.html#cb49-67"></a></span>
+<span id="cb49-68"><a href="client-server-background.html#cb49-68"></a>    <span class="cf">if</span> <span class="op">(</span>p <span class="op">==</span> NULL<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb49-69"><a href="client-server-background.html#cb49-69"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;listener: failed to bind socket</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb49-70"><a href="client-server-background.html#cb49-70"></a>        <span class="cf">return</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb49-71"><a href="client-server-background.html#cb49-71"></a>    <span class="op">}</span></span>
+<span id="cb49-72"><a href="client-server-background.html#cb49-72"></a></span>
+<span id="cb49-73"><a href="client-server-background.html#cb49-73"></a>    freeaddrinfo<span class="op">(</span>servinfo<span class="op">);</span></span>
+<span id="cb49-74"><a href="client-server-background.html#cb49-74"></a></span>
+<span id="cb49-75"><a href="client-server-background.html#cb49-75"></a>    printf<span class="op">(</span><span class="st">&quot;listener: waiting to recvfrom...</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb49-76"><a href="client-server-background.html#cb49-76"></a></span>
+<span id="cb49-77"><a href="client-server-background.html#cb49-77"></a>    addr_len <span class="op">=</span> <span class="kw">sizeof</span> their_addr<span class="op">;</span></span>
+<span id="cb49-78"><a href="client-server-background.html#cb49-78"></a>    <span class="cf">if</span> <span class="op">((</span>numbytes <span class="op">=</span> recvfrom<span class="op">(</span>sockfd<span class="op">,</span> buf<span class="op">,</span> MAXBUFLEN<span class="op">-</span><span class="dv">1</span> <span class="op">,</span> <span class="dv">0</span><span class="op">,</span></span>
+<span id="cb49-79"><a href="client-server-background.html#cb49-79"></a>        <span class="op">(</span><span class="kw">struct</span> sockaddr <span class="op">*)&amp;</span>their_addr<span class="op">,</span> <span class="op">&amp;</span>addr_len<span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb49-80"><a href="client-server-background.html#cb49-80"></a>        perror<span class="op">(</span><span class="st">&quot;recvfrom&quot;</span><span class="op">);</span></span>
+<span id="cb49-81"><a href="client-server-background.html#cb49-81"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb49-82"><a href="client-server-background.html#cb49-82"></a>    <span class="op">}</span></span>
+<span id="cb49-83"><a href="client-server-background.html#cb49-83"></a></span>
+<span id="cb49-84"><a href="client-server-background.html#cb49-84"></a>    printf<span class="op">(</span><span class="st">&quot;listener: got packet from </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span></span>
+<span id="cb49-85"><a href="client-server-background.html#cb49-85"></a>        inet_ntop<span class="op">(</span>their_addr<span class="op">.</span>ss_family<span class="op">,</span></span>
+<span id="cb49-86"><a href="client-server-background.html#cb49-86"></a>            get_in_addr<span class="op">((</span><span class="kw">struct</span> sockaddr <span class="op">*)&amp;</span>their_addr<span class="op">),</span></span>
+<span id="cb49-87"><a href="client-server-background.html#cb49-87"></a>            s<span class="op">,</span> <span class="kw">sizeof</span> s<span class="op">));</span></span>
+<span id="cb49-88"><a href="client-server-background.html#cb49-88"></a>    printf<span class="op">(</span><span class="st">&quot;listener: packet is </span><span class="sc">%d</span><span class="st"> bytes long</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> numbytes<span class="op">);</span></span>
+<span id="cb49-89"><a href="client-server-background.html#cb49-89"></a>    buf<span class="op">[</span>numbytes<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span><span class="op">;</span></span>
+<span id="cb49-90"><a href="client-server-background.html#cb49-90"></a>    printf<span class="op">(</span><span class="st">&quot;listener: packet contains </span><span class="sc">\&quot;%s\&quot;\n</span><span class="st">&quot;</span><span class="op">,</span> buf<span class="op">);</span></span>
+<span id="cb49-91"><a href="client-server-background.html#cb49-91"></a></span>
+<span id="cb49-92"><a href="client-server-background.html#cb49-92"></a>    close<span class="op">(</span>sockfd<span class="op">);</span></span>
+<span id="cb49-93"><a href="client-server-background.html#cb49-93"></a></span>
+<span id="cb49-94"><a href="client-server-background.html#cb49-94"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb49-95"><a href="client-server-background.html#cb49-95"></a><span class="op">}</span></span></code></pre></div>
+<p>Notice that in our call to <code>getaddrinfo()</code> we’re finally using <code>SOCK_DGRAM</code>. Also, note that there’s no need to <code>listen()</code> or <code>accept()</code>. This is one of the perks of using unconnected datagram sockets!</p>
+<p></p>
+<p></p>
+<p>Next comes the <a href="https://beej.us/guide/bgnet/examples/talker.c">source for <code>talker.c</code></a><a href="footnotes.html#fn26" class="footnote-ref" id="fnref26" role="doc-noteref"><sup>26</sup></a>:</p>
+<div class="sourceCode" id="cb50"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb50-1"><a href="client-server-background.html#cb50-1"></a><span class="co">/*</span></span>
+<span id="cb50-2"><a href="client-server-background.html#cb50-2"></a><span class="co">** talker.c -- a datagram &quot;client&quot; demo</span></span>
+<span id="cb50-3"><a href="client-server-background.html#cb50-3"></a><span class="co">*/</span></span>
+<span id="cb50-4"><a href="client-server-background.html#cb50-4"></a></span>
+<span id="cb50-5"><a href="client-server-background.html#cb50-5"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb50-6"><a href="client-server-background.html#cb50-6"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb50-7"><a href="client-server-background.html#cb50-7"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb50-8"><a href="client-server-background.html#cb50-8"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
+<span id="cb50-9"><a href="client-server-background.html#cb50-9"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb50-10"><a href="client-server-background.html#cb50-10"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb50-11"><a href="client-server-background.html#cb50-11"></a><span class="pp">#include </span><span class="im">&lt;sys/socket.h&gt;</span></span>
+<span id="cb50-12"><a href="client-server-background.html#cb50-12"></a><span class="pp">#include </span><span class="im">&lt;netinet/in.h&gt;</span></span>
+<span id="cb50-13"><a href="client-server-background.html#cb50-13"></a><span class="pp">#include </span><span class="im">&lt;arpa/inet.h&gt;</span></span>
+<span id="cb50-14"><a href="client-server-background.html#cb50-14"></a><span class="pp">#include </span><span class="im">&lt;netdb.h&gt;</span></span>
+<span id="cb50-15"><a href="client-server-background.html#cb50-15"></a></span>
+<span id="cb50-16"><a href="client-server-background.html#cb50-16"></a><span class="pp">#define SERVERPORT </span><span class="st">&quot;4950&quot;</span><span class="pp">    </span><span class="co">// the port users will be connecting to</span></span>
+<span id="cb50-17"><a href="client-server-background.html#cb50-17"></a></span>
+<span id="cb50-18"><a href="client-server-background.html#cb50-18"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span>argv<span class="op">[])</span></span>
+<span id="cb50-19"><a href="client-server-background.html#cb50-19"></a><span class="op">{</span></span>
+<span id="cb50-20"><a href="client-server-background.html#cb50-20"></a>    <span class="dt">int</span> sockfd<span class="op">;</span></span>
+<span id="cb50-21"><a href="client-server-background.html#cb50-21"></a>    <span class="kw">struct</span> addrinfo hints<span class="op">,</span> <span class="op">*</span>servinfo<span class="op">,</span> <span class="op">*</span>p<span class="op">;</span></span>
+<span id="cb50-22"><a href="client-server-background.html#cb50-22"></a>    <span class="dt">int</span> rv<span class="op">;</span></span>
+<span id="cb50-23"><a href="client-server-background.html#cb50-23"></a>    <span class="dt">int</span> numbytes<span class="op">;</span></span>
+<span id="cb50-24"><a href="client-server-background.html#cb50-24"></a></span>
+<span id="cb50-25"><a href="client-server-background.html#cb50-25"></a>    <span class="cf">if</span> <span class="op">(</span>argc <span class="op">!=</span> <span class="dv">3</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb50-26"><a href="client-server-background.html#cb50-26"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span><span class="st">&quot;usage: talker hostname message</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb50-27"><a href="client-server-background.html#cb50-27"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb50-28"><a href="client-server-background.html#cb50-28"></a>    <span class="op">}</span></span>
+<span id="cb50-29"><a href="client-server-background.html#cb50-29"></a></span>
+<span id="cb50-30"><a href="client-server-background.html#cb50-30"></a>    memset<span class="op">(&amp;</span>hints<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">sizeof</span> hints<span class="op">);</span></span>
+<span id="cb50-31"><a href="client-server-background.html#cb50-31"></a>    hints<span class="op">.</span>ai_family <span class="op">=</span> AF_INET6<span class="op">;</span> <span class="co">// set to AF_INET to use IPv4</span></span>
+<span id="cb50-32"><a href="client-server-background.html#cb50-32"></a>    hints<span class="op">.</span>ai_socktype <span class="op">=</span> SOCK_DGRAM<span class="op">;</span></span>
+<span id="cb50-33"><a href="client-server-background.html#cb50-33"></a></span>
+<span id="cb50-34"><a href="client-server-background.html#cb50-34"></a>    <span class="cf">if</span> <span class="op">((</span>rv <span class="op">=</span> getaddrinfo<span class="op">(</span>argv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> SERVERPORT<span class="op">,</span> <span class="op">&amp;</span>hints<span class="op">,</span> <span class="op">&amp;</span>servinfo<span class="op">))</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb50-35"><a href="client-server-background.html#cb50-35"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;getaddrinfo: </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span> gai_strerror<span class="op">(</span>rv<span class="op">));</span></span>
+<span id="cb50-36"><a href="client-server-background.html#cb50-36"></a>        <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb50-37"><a href="client-server-background.html#cb50-37"></a>    <span class="op">}</span></span>
+<span id="cb50-38"><a href="client-server-background.html#cb50-38"></a></span>
+<span id="cb50-39"><a href="client-server-background.html#cb50-39"></a>    <span class="co">// loop through all the results and make a socket</span></span>
+<span id="cb50-40"><a href="client-server-background.html#cb50-40"></a>    <span class="cf">for</span><span class="op">(</span>p <span class="op">=</span> servinfo<span class="op">;</span> p <span class="op">!=</span> NULL<span class="op">;</span> p <span class="op">=</span> p<span class="op">-&gt;</span>ai_next<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb50-41"><a href="client-server-background.html#cb50-41"></a>        <span class="cf">if</span> <span class="op">((</span>sockfd <span class="op">=</span> socket<span class="op">(</span>p<span class="op">-&gt;</span>ai_family<span class="op">,</span> p<span class="op">-&gt;</span>ai_socktype<span class="op">,</span></span>
+<span id="cb50-42"><a href="client-server-background.html#cb50-42"></a>                p<span class="op">-&gt;</span>ai_protocol<span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb50-43"><a href="client-server-background.html#cb50-43"></a>            perror<span class="op">(</span><span class="st">&quot;talker: socket&quot;</span><span class="op">);</span></span>
+<span id="cb50-44"><a href="client-server-background.html#cb50-44"></a>            <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb50-45"><a href="client-server-background.html#cb50-45"></a>        <span class="op">}</span></span>
+<span id="cb50-46"><a href="client-server-background.html#cb50-46"></a></span>
+<span id="cb50-47"><a href="client-server-background.html#cb50-47"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb50-48"><a href="client-server-background.html#cb50-48"></a>    <span class="op">}</span></span>
+<span id="cb50-49"><a href="client-server-background.html#cb50-49"></a></span>
+<span id="cb50-50"><a href="client-server-background.html#cb50-50"></a>    <span class="cf">if</span> <span class="op">(</span>p <span class="op">==</span> NULL<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb50-51"><a href="client-server-background.html#cb50-51"></a>        fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;talker: failed to create socket</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb50-52"><a href="client-server-background.html#cb50-52"></a>        <span class="cf">return</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb50-53"><a href="client-server-background.html#cb50-53"></a>    <span class="op">}</span></span>
+<span id="cb50-54"><a href="client-server-background.html#cb50-54"></a></span>
+<span id="cb50-55"><a href="client-server-background.html#cb50-55"></a>    <span class="cf">if</span> <span class="op">((</span>numbytes <span class="op">=</span> sendto<span class="op">(</span>sockfd<span class="op">,</span> argv<span class="op">[</span><span class="dv">2</span><span class="op">],</span> strlen<span class="op">(</span>argv<span class="op">[</span><span class="dv">2</span><span class="op">]),</span> <span class="dv">0</span><span class="op">,</span></span>
+<span id="cb50-56"><a href="client-server-background.html#cb50-56"></a>             p<span class="op">-&gt;</span>ai_addr<span class="op">,</span> p<span class="op">-&gt;</span>ai_addrlen<span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb50-57"><a href="client-server-background.html#cb50-57"></a>        perror<span class="op">(</span><span class="st">&quot;talker: sendto&quot;</span><span class="op">);</span></span>
+<span id="cb50-58"><a href="client-server-background.html#cb50-58"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb50-59"><a href="client-server-background.html#cb50-59"></a>    <span class="op">}</span></span>
+<span id="cb50-60"><a href="client-server-background.html#cb50-60"></a></span>
+<span id="cb50-61"><a href="client-server-background.html#cb50-61"></a>    freeaddrinfo<span class="op">(</span>servinfo<span class="op">);</span></span>
+<span id="cb50-62"><a href="client-server-background.html#cb50-62"></a></span>
+<span id="cb50-63"><a href="client-server-background.html#cb50-63"></a>    printf<span class="op">(</span><span class="st">&quot;talker: sent </span><span class="sc">%d</span><span class="st"> bytes to </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span> numbytes<span class="op">,</span> argv<span class="op">[</span><span class="dv">1</span><span class="op">]);</span></span>
+<span id="cb50-64"><a href="client-server-background.html#cb50-64"></a>    close<span class="op">(</span>sockfd<span class="op">);</span></span>
+<span id="cb50-65"><a href="client-server-background.html#cb50-65"></a></span>
+<span id="cb50-66"><a href="client-server-background.html#cb50-66"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb50-67"><a href="client-server-background.html#cb50-67"></a><span class="op">}</span></span></code></pre></div>
+<p>And that’s all there is to it! Run <code>listener</code> on some machine, then run <code>talker</code> on another. Watch them communicate! Fun G-rated excitement for the entire nuclear family!</p>
+<p>You don’t even have to run the server this time! You can run <code>talker</code> by itself, and it just happily fires packets off into the ether where they disappear if no one is ready with a <code>recvfrom()</code> on the other side. Remember: data sent using UDP datagram sockets isn’t guaranteed to arrive!</p>
+<p></p>
+<p>Except for one more tiny detail that I’ve mentioned many times in the past: connected datagram sockets. I need to talk about this here, since we’re in the datagram section of the document. Let’s say that <code>talker</code> calls <code>connect()</code> and specifies the <code>listener</code>’s address. From that point on, <code>talker</code> may only send to and receive from the address specified by <code>connect()</code>. For this reason, you don’t have to use <code>sendto()</code> and <code>recvfrom()</code>; you can simply use <code>send()</code> and <code>recv()</code>.</p>
+<p></p>
+<hr><div style="text-align:center"><span><a href="system-calls-or-bust.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="slightly-advanced-techniques.html">Next</a></span></div></body>
+</html>

@@ -1,0 +1,101 @@
+
+../objectfiles/FpuLnx.o:     file format pe-i386
+
+
+Disassembly of section .text:
+
+00000000 <_FpuLnx@12>:
+   0:	55                   	push   ebp
+   1:	8b ec                	mov    ebp,esp
+   3:	83 c4 88             	add    esp,0xffffff88
+   6:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+   d:	74 0d                	je     1c <_FpuLnx@12+0x1c>
+   f:	d9 e5                	fxam   
+  11:	9b df e0             	fstsw  ax
+  14:	9b                   	fwait
+  15:	9e                   	sahf   
+  16:	73 04                	jae    1c <_FpuLnx@12+0x1c>
+  18:	7a 02                	jp     1c <_FpuLnx@12+0x1c>
+  1a:	74 76                	je     92 <_FpuLnx@12+0x92>
+  1c:	9b dd 75 94          	fsave  [ebp-0x6c]
+  20:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+  27:	74 0b                	je     34 <_FpuLnx@12+0x34>
+  29:	8d 45 94             	lea    eax,[ebp-0x6c]
+  2c:	db 68 1c             	fld    TBYTE PTR [eax+0x1c]
+  2f:	e9 80 00 00 00       	jmp    b4 <_FpuLnx@12+0xb4>
+  34:	8b 45 08             	mov    eax,DWORD PTR [ebp+0x8]
+  37:	f7 45 10 10 00 00 00 	test   DWORD PTR [ebp+0x10],0x10
+  3e:	75 58                	jne    98 <_FpuLnx@12+0x98>
+  40:	f7 45 10 02 00 00 00 	test   DWORD PTR [ebp+0x10],0x2
+  47:	74 04                	je     4d <_FpuLnx@12+0x4d>
+  49:	db 28                	fld    TBYTE PTR [eax]
+  4b:	eb 67                	jmp    b4 <_FpuLnx@12+0xb4>
+  4d:	f7 45 10 00 00 02 00 	test   DWORD PTR [ebp+0x10],0x20000
+  54:	74 04                	je     5a <_FpuLnx@12+0x5a>
+  56:	dd 00                	fld    QWORD PTR [eax]
+  58:	eb 5a                	jmp    b4 <_FpuLnx@12+0xb4>
+  5a:	f7 45 10 00 00 01 00 	test   DWORD PTR [ebp+0x10],0x10000
+  61:	74 04                	je     67 <_FpuLnx@12+0x67>
+  63:	d9 00                	fld    DWORD PTR [eax]
+  65:	eb 4d                	jmp    b4 <_FpuLnx@12+0xb4>
+  67:	f7 45 10 04 00 00 00 	test   DWORD PTR [ebp+0x10],0x4
+  6e:	74 04                	je     74 <_FpuLnx@12+0x74>
+  70:	db 00                	fild   DWORD PTR [eax]
+  72:	eb 40                	jmp    b4 <_FpuLnx@12+0xb4>
+  74:	f7 45 10 00 00 00 01 	test   DWORD PTR [ebp+0x10],0x1000000
+  7b:	74 04                	je     81 <_FpuLnx@12+0x81>
+  7d:	df 28                	fild   QWORD PTR [eax]
+  7f:	eb 33                	jmp    b4 <_FpuLnx@12+0xb4>
+  81:	f7 45 10 08 00 00 00 	test   DWORD PTR [ebp+0x10],0x8
+  88:	74 05                	je     8f <_FpuLnx@12+0x8f>
+  8a:	db 45 08             	fild   DWORD PTR [ebp+0x8]
+  8d:	eb 25                	jmp    b4 <_FpuLnx@12+0xb4>
+  8f:	dd 65 94             	frstor [ebp-0x6c]
+  92:	33 c0                	xor    eax,eax
+  94:	c9                   	leave  
+  95:	c2 0c 00             	ret    0xc
+  98:	83 f8 01             	cmp    eax,0x1
+  9b:	74 04                	je     a1 <_FpuLnx@12+0xa1>
+  9d:	d9 eb                	fldpi  
+  9f:	eb 13                	jmp    b4 <_FpuLnx@12+0xb4>
+  a1:	83 f8 02             	cmp    eax,0x2
+  a4:	74 e9                	je     8f <_FpuLnx@12+0x8f>
+  a6:	d9 e8                	fld1   
+  a8:	d9 ea                	fldl2e 
+  aa:	d8 e1                	fsub   st,st(1)
+  ac:	d9 f0                	f2xm1  
+  ae:	d8 c1                	fadd   st,st(1)
+  b0:	d9 fd                	fscale 
+  b2:	dd d9                	fstp   st(1)
+  b4:	d9 ed                	fldln2 
+  b6:	d9 c9                	fxch   st(1)
+  b8:	d9 f1                	fyl2x  
+  ba:	9b df e0             	fstsw  ax
+  bd:	9b                   	fwait
+  be:	d0 e8                	shr    al,1
+  c0:	72 cd                	jb     8f <_FpuLnx@12+0x8f>
+  c2:	f7 45 10 80 00 00 00 	test   DWORD PTR [ebp+0x10],0x80
+  c9:	74 05                	je     d0 <_FpuLnx@12+0xd0>
+  cb:	db 7d 8a             	fstp   TBYTE PTR [ebp-0x76]
+  ce:	eb 1f                	jmp    ef <_FpuLnx@12+0xef>
+  d0:	8b 45 0c             	mov    eax,DWORD PTR [ebp+0xc]
+  d3:	f7 45 10 00 00 10 00 	test   DWORD PTR [ebp+0x10],0x100000
+  da:	74 04                	je     e0 <_FpuLnx@12+0xe0>
+  dc:	d9 18                	fstp   DWORD PTR [eax]
+  de:	eb 0f                	jmp    ef <_FpuLnx@12+0xef>
+  e0:	f7 45 10 00 00 20 00 	test   DWORD PTR [ebp+0x10],0x200000
+  e7:	74 04                	je     ed <_FpuLnx@12+0xed>
+  e9:	dd 18                	fstp   QWORD PTR [eax]
+  eb:	eb 02                	jmp    ef <_FpuLnx@12+0xef>
+  ed:	db 38                	fstp   TBYTE PTR [eax]
+  ef:	dd 65 94             	frstor [ebp-0x6c]
+  f2:	f7 45 10 01 00 00 00 	test   DWORD PTR [ebp+0x10],0x1
+  f9:	74 02                	je     fd <_FpuLnx@12+0xfd>
+  fb:	dd d8                	fstp   st(0)
+  fd:	f7 45 10 80 00 00 00 	test   DWORD PTR [ebp+0x10],0x80
+ 104:	74 05                	je     10b <_FpuLnx@12+0x10b>
+ 106:	dd c7                	ffree  st(7)
+ 108:	db 6d 8a             	fld    TBYTE PTR [ebp-0x76]
+ 10b:	0c 01                	or     al,0x1
+ 10d:	c9                   	leave  
+ 10e:	c2 0c 00             	ret    0xc

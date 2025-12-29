@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NASM - The Netwide Assembler</title>
+<link href="nasmdoc.css" rel="stylesheet" type="text/css" />
+<link href="local.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<ul class="navbar">
+<li class="first"><a class="prev" href="nasmdocc.html">Appendix C</a></li>
+<li><a class="next" href="nasmdoce.html">Appendix E</a></li>
+<li><a class="toc" href="nasmdoc0.html">Contents</a></li>
+<li class="last"><a class="index" href="nasmdoci.html">Index</a></li>
+</ul>
+<div class="title">
+<h1>NASM - The Netwide Assembler</h1>
+<span class="subtitle">version 2.15.05</span>
+</div>
+<div class="contents"
+>
+<h2 id="appendix-D">Appendix D: Building NASM from Source</h2>
+<p>The source code for NASM is available from our website,
+<a href="http://www.nasm.us/">http://wwww.nasm.us/</a>, see
+<a href="nasmdoce.html#section-E.1">section E.1</a>.</p>
+<h3 id="section-D.1">D.1 Building from a Source Archive</h3>
+<p>The source archives available on the web site should be capable of
+building on a number of platforms. This is the recommended method for
+building NASM to support platforms for which executables are not available.</p>
+<p>On a system which has Unix shell (<code>sh</code>), run:</p>
+<pre>
+     sh configure 
+     make everything
+</pre>
+<p>A number of options can be passed to <code>configure</code>; see
+<code>sh configure --help</code>.</p>
+<p>A set of Makefiles for some other environments are also available;
+please see the file <code>Mkfiles/README</code>.</p>
+<p>To build the installer for the Windows platform, you will need the
+<em>Nullsoft Scriptable Installer</em>, NSIS, installed.</p>
+<p>To build the documentation, you will need a set of additional tools. The
+documentation is not likely to be able to build on non-Unix systems.</p>
+<h3 id="section-D.2">D.2 Building from the <code>git</code> Repository</h3>
+<p>The NASM development tree is kept in a source code repository using the
+<code>git</code> distributed source control system. The link is available
+on the website. This is recommended only to participate in the development
+of NASM or to assist with testing the development code.</p>
+<p>To build NASM from the <code>git</code> repository you will need a Perl
+interpreter and, if building on a Unix system, GNU autoconf installed on
+your system.</p>
+<p>To build on a Unix system, run:</p>
+<pre>
+     sh autogen.sh
+</pre>
+<p>to create the <code>configure</code> script and then build as listed
+above.</p>
+<h3 id="section-D.3">D.3 Building the documentation</h3>
+<p>To build the documentation, you will need a Perl interpreter, a
+Postscript to PDF converter such as Ghostscript, and suitable fonts
+installed on your system. The recommended (and default) fonts are Adobe's
+Source Sans and Source Code fonts, which are freely available under the SIL
+Open Font License.</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Beej's Guide to Network Programming</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet"> 
+
+  <!-- BG custom styling -->
+  <style type="text/css">
+  /* Fix for line numbers not visible */
+  pre.numberSource code > span {
+      left: -1em;
+  }
+  pre.numberSource {
+      margin-left: initial;
+  }
+
+  /* Put some space after the section numbers */
+  span.toc-section-number::after {
+      content: "\a0\a0\a0";  /* non-breaking whitespace */
+  }
+
+  /* Hide underlines on code number links */
+  pre > code.sourceCode > span > a:first-child::before {
+      text-decoration: none;
+  }
+
+  /* Color the source blocks */
+  div.sourceCode {
+      background-color: #f0f0f0;
+  }
+
+  /* Fix iOS big text rendering issue */
+  pre > code.sourceCode > span {
+      display: initial;
+  }
+
+
+  /* Color the inline code */
+  code:not(.sourceCode) {
+      background: #f0f0f0;
+      padding-left: 0.2em;
+      padding-right: 0.2em;
+      border-radius: 0.2em;
+  }
+
+  /* Keep code tags from wrapping in tables */
+  tbody code {
+      white-space: nowrap;
+  }
+
+  td {
+      vertical-align: top;
+  }
+
+  body {
+      font-size: 12pt;
+      max-width: 43em;
+  }
+
+  figure {
+      text-align: center;
+  }
+  </style>
+  <!-- BG custom styling for the wide body variant -->
+  <!-- Gets appended after bg-css.html -->
+
+  <style type="text/css">
+  body {
+      max-width: inherit;
+  }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div style="text-align:center"><span><a href="ip-addresses-structs-and-data-munging.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="system-calls-or-bust.html">Next</a></span></div><hr>
+<h1 data-number="4" id="jumping-from-ipv4-to-ipv6"><span class="header-section-number">4</span> Jumping from IPv4 to IPv6</h1>
+<p></p>
+<p>But I just want to know what to change in my code to get it going with IPv6! Tell me now!</p>
+<p>Ok! Ok!</p>
+<p>Almost everything in here is something I’ve gone over, above, but it’s the short version for the impatient. (Of course, there is more than this, but this is what applies to the guide.)</p>
+<ol type="1">
+<li><p>First of all, try to use <a href="ip-addresses-structs-and-data-munging.html#structs"><code>getaddrinfo()</code></a> to get all the <code>struct sockaddr</code> info, instead of packing the structures by hand. This will keep you IP version-agnostic, and will eliminate many of the subsequent steps.</p></li>
+<li><p>Any place that you find you’re hard-coding anything related to the IP version, try to wrap up in a helper function.</p></li>
+<li><p>Change <code>AF_INET</code> to <code>AF_INET6</code>.</p></li>
+<li><p>Change <code>PF_INET</code> to <code>PF_INET6</code>.</p></li>
+<li><p>Change <code>INADDR_ANY</code> assignments to <code>in6addr_any</code> assignments, which are slightly different:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb18-1"><a href="jumping-from-ipv4-to-ipv6.html#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> sockaddr_in sa<span class="op">;</span></span>
+<span id="cb18-2"><a href="jumping-from-ipv4-to-ipv6.html#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> sockaddr_in6 sa6<span class="op">;</span></span>
+<span id="cb18-3"><a href="jumping-from-ipv4-to-ipv6.html#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="jumping-from-ipv4-to-ipv6.html#cb18-4" aria-hidden="true" tabindex="-1"></a>sa<span class="op">.</span>sin_addr<span class="op">.</span>s_addr <span class="op">=</span> INADDR_ANY<span class="op">;</span>  <span class="co">// use my IPv4 address</span></span>
+<span id="cb18-5"><a href="jumping-from-ipv4-to-ipv6.html#cb18-5" aria-hidden="true" tabindex="-1"></a>sa6<span class="op">.</span>sin6_addr <span class="op">=</span> in6addr_any<span class="op">;</span> <span class="co">// use my IPv6 address</span></span></code></pre></div>
+<p>Also, the value <code>IN6ADDR_ANY_INIT</code> can be used as an initializer when the <code>struct in6_addr</code> is declared, like so:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb19-1"><a href="jumping-from-ipv4-to-ipv6.html#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> in6_addr ia6 <span class="op">=</span> IN6ADDR_ANY_INIT<span class="op">;</span></span></code></pre></div></li>
+<li><p>Instead of <code>struct sockaddr_in</code> use <code>struct sockaddr_in6</code>, being sure to add “6” to the fields as appropriate (see <a href="ip-addresses-structs-and-data-munging.html#structs"><code>struct</code>s</a>, above). There is no <code>sin6_zero</code> field.</p></li>
+<li><p>Instead of <code>struct in_addr</code> use <code>struct in6_addr</code>, being sure to add “6” to the fields as appropriate (see <a href="ip-addresses-structs-and-data-munging.html#structs"><code>struct</code>s</a>, above).</p></li>
+<li><p>Instead of <code>inet_aton()</code> or <code>inet_addr()</code>, use <code>inet_pton()</code>.</p></li>
+<li><p>Instead of <code>inet_ntoa()</code>, use <code>inet_ntop()</code>.</p></li>
+<li><p>Instead of <code>gethostbyname()</code>, use the superior <code>getaddrinfo()</code>.</p></li>
+<li><p>Instead of <code>gethostbyaddr()</code>, use the superior <code>getnameinfo()</code> (although <code>gethostbyaddr()</code> can still work with IPv6).</p></li>
+<li><p><code>INADDR_BROADCAST</code> no longer works. Use IPv6 multicast instead.</p></li>
+</ol>
+<p><em>Et voila</em>!</p>
+<hr><div style="text-align:center"><span><a href="ip-addresses-structs-and-data-munging.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="system-calls-or-bust.html">Next</a></span></div></body>
+</html>

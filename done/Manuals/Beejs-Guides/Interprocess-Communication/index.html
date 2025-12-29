@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Beej's Guide to Interprocess Communication</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet"> 
+
+  <!-- BG custom styling -->
+  <style type="text/css">
+  /* Fix for line numbers not visible */
+  pre.numberSource code > span {
+      left: -1em;
+  }
+  pre.numberSource {
+      margin-left: initial;
+  }
+
+  /* Put some space after the section numbers */
+  span.toc-section-number::after {
+      content: "\a0\a0\a0";  /* non-breaking whitespace */
+  }
+
+  /* Hide underlines on code number links */
+  pre > code.sourceCode > span > a:first-child::before {
+      text-decoration: none;
+  }
+
+  /* Color the source blocks */
+  div.sourceCode {
+      background-color: #f0f0f0;
+  }
+
+  /* Fix iOS big text rendering issue */
+  pre > code.sourceCode > span {
+      display: initial;
+  }
+
+
+  /* Color the inline code */
+  code:not(.sourceCode) {
+      background: #f0f0f0;
+      padding-left: 0.2em;
+      padding-right: 0.2em;
+      border-radius: 0.2em;
+  }
+
+  /* Keep code tags from wrapping in tables */
+  tbody code {
+      white-space: nowrap;
+  }
+
+  td {
+      vertical-align: top;
+  }
+
+  body {
+      font-size: 12pt;
+      max-width: 43em;
+  }
+
+  figure {
+      text-align: center;
+  }
+  </style>
+  <!-- BG custom styling for the wide body variant -->
+  <!-- Gets appended after bg-css.html -->
+
+  <style type="text/css">
+  body {
+      max-width: inherit;
+  }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div style="text-align:center"><span style="visibility: hidden"><a href="">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="intro.html">Next</a></span></div><hr>
+<header id="title-block-header">
+<h1 class="title">Beej's Guide to Interprocess Communication</h1>
+<p class="author">Brian “Beej Jorgensen” Hall</p>
+<p class="date">v1.1.4, Copyright © February 4, 2023</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="intro.html#intro" id="toc-intro"><span class="toc-section-number">1</span> Intro</a>
+<ul>
+<li><a href="intro.html#audience" id="toc-audience"><span class="toc-section-number">1.1</span> Audience</a></li>
+<li><a href="intro.html#platform-and-compiler" id="toc-platform-and-compiler"><span class="toc-section-number">1.2</span> Platform and Compiler</a></li>
+<li><a href="intro.html#official-homepage" id="toc-official-homepage"><span class="toc-section-number">1.3</span> Official Homepage</a></li>
+<li><a href="intro.html#email-policy" id="toc-email-policy"><span class="toc-section-number">1.4</span> Email Policy</a></li>
+<li><a href="intro.html#mirroring" id="toc-mirroring"><span class="toc-section-number">1.5</span> Mirroring</a></li>
+<li><a href="intro.html#note-for-translators" id="toc-note-for-translators"><span class="toc-section-number">1.6</span> Note for Translators</a></li>
+<li><a href="intro.html#copyright-and-distribution" id="toc-copyright-and-distribution"><span class="toc-section-number">1.7</span> Copyright and Distribution</a></li>
+</ul></li>
+<li><a href="fork.html#fork" id="toc-fork"><span class="toc-section-number">2</span> A <code>fork()</code> Primer</a>
+<ul>
+<li><a href="fork.html#seek-ye-the-gorge-of-eternal-peril" id="toc-seek-ye-the-gorge-of-eternal-peril"><span class="toc-section-number">2.1</span> “Seek ye the Gorge of Eternal Peril”</a></li>
+<li><a href="fork.html#im-mentally-prepared-give-me-the-button" id="toc-im-mentally-prepared-give-me-the-button"><span class="toc-section-number">2.2</span> `“I’m mentally prepared! Give me <em>The Button</em>!”</a></li>
+<li><a href="fork.html#summary" id="toc-summary"><span class="toc-section-number">2.3</span> Summary</a></li>
+</ul></li>
+<li><a href="signals.html#signals" id="toc-signals"><span class="toc-section-number">3</span> Signals</a>
+<ul>
+<li><a href="signals.html#catching-signals-for-fun-and-profit" id="toc-catching-signals-for-fun-and-profit"><span class="toc-section-number">3.1</span> Catching Signals for Fun and Profit!</a></li>
+<li><a href="signals.html#the-handler-is-not-omnipotent" id="toc-the-handler-is-not-omnipotent"><span class="toc-section-number">3.2</span> The Handler is not Omnipotent</a></li>
+<li><a href="signals.html#what-about-signal" id="toc-what-about-signal"><span class="toc-section-number">3.3</span> What about <code>signal()</code></a></li>
+<li><a href="signals.html#some-signals-to-make-you-popular" id="toc-some-signals-to-make-you-popular"><span class="toc-section-number">3.4</span> Some signals to make you popular</a></li>
+<li><a href="signals.html#what-i-have-glossed-over" id="toc-what-i-have-glossed-over"><span class="toc-section-number">3.5</span> What I have Glossed Over</a></li>
+</ul></li>
+<li><a href="pipes.html#pipes" id="toc-pipes"><span class="toc-section-number">4</span> Pipes</a>
+<ul>
+<li><a href="pipes.html#these-pipes-are-clean" id="toc-these-pipes-are-clean"><span class="toc-section-number">4.1</span> “These pipes are clean!”</a></li>
+<li><a href="pipes.html#fork-and-pipeyou-have-the-power" id="toc-fork-and-pipeyou-have-the-power"><span class="toc-section-number">4.2</span> <code>fork()</code> and <code>pipe()</code>—you have the power!</a></li>
+<li><a href="pipes.html#fork-and-pipeyou-have-the-power-1" id="toc-fork-and-pipeyou-have-the-power-1"><span class="toc-section-number">4.3</span> <code>fork()</code> and <code>pipe()</code>—you have the power!</a></li>
+<li><a href="pipes.html#the-search-for-pipe-as-we-know-it" id="toc-the-search-for-pipe-as-we-know-it"><span class="toc-section-number">4.4</span> The search for Pipe as we know it</a></li>
+<li><a href="pipes.html#summary-1" id="toc-summary-1"><span class="toc-section-number">4.5</span> Summary</a></li>
+</ul></li>
+<li><a href="fifos.html#fifos" id="toc-fifos"><span class="toc-section-number">5</span> FIFOs</a>
+<ul>
+<li><a href="fifos.html#a-new-fifo-is-born" id="toc-a-new-fifo-is-born"><span class="toc-section-number">5.1</span> A New FIFO is Born</a></li>
+<li><a href="fifos.html#producers-and-consumers" id="toc-producers-and-consumers"><span class="toc-section-number">5.2</span> Producers and Consumers</a></li>
+<li><a href="fifos.html#fifondelay" id="toc-fifondelay"><span class="toc-section-number">5.3</span> <code>O_NDELAY</code>! I’m UNSTOPPABLE!</a></li>
+<li><a href="fifos.html#concluding-notes" id="toc-concluding-notes"><span class="toc-section-number">5.4</span> Concluding Notes</a></li>
+</ul></li>
+<li><a href="flocking.html#flocking" id="toc-flocking"><span class="toc-section-number">6</span> File Locking</a>
+<ul>
+<li><a href="flocking.html#setting-a-lock" id="toc-setting-a-lock"><span class="toc-section-number">6.1</span> Setting a lock</a></li>
+<li><a href="flocking.html#clearing-a-lock" id="toc-clearing-a-lock"><span class="toc-section-number">6.2</span> Clearing a lock</a></li>
+<li><a href="flocking.html#a-demo-program" id="toc-a-demo-program"><span class="toc-section-number">6.3</span> A demo program</a></li>
+<li><a href="flocking.html#summary-2" id="toc-summary-2"><span class="toc-section-number">6.4</span> Summary</a></li>
+</ul></li>
+<li><a href="mq.html#mq" id="toc-mq"><span class="toc-section-number">7</span> Message Queues</a>
+<ul>
+<li><a href="mq.html#wheres-my-queue" id="toc-wheres-my-queue"><span class="toc-section-number">7.1</span> Where’s my queue?</a></li>
+<li><a href="mq.html#mqftok" id="toc-mqftok"><span class="toc-section-number">7.2</span> “Are you the Key Master?”</a></li>
+<li><a href="mq.html#sending-to-the-queue" id="toc-sending-to-the-queue"><span class="toc-section-number">7.3</span> Sending to the queue</a></li>
+<li><a href="mq.html#receiving-from-the-queue" id="toc-receiving-from-the-queue"><span class="toc-section-number">7.4</span> Receiving from the queue</a></li>
+<li><a href="mq.html#destroying-a-message-queue" id="toc-destroying-a-message-queue"><span class="toc-section-number">7.5</span> Destroying a message queue</a></li>
+<li><a href="mq.html#sample-programs-anyone" id="toc-sample-programs-anyone"><span class="toc-section-number">7.6</span> Sample programs, anyone?</a></li>
+<li><a href="mq.html#summary-3" id="toc-summary-3"><span class="toc-section-number">7.7</span> Summary</a></li>
+</ul></li>
+<li><a href="semaphores.html#semaphores" id="toc-semaphores"><span class="toc-section-number">8</span> Semaphores</a>
+<ul>
+<li><a href="semaphores.html#grabbing-some-semaphores" id="toc-grabbing-some-semaphores"><span class="toc-section-number">8.1</span> Grabbing some semaphores</a></li>
+<li><a href="semaphores.html#controlling-your-semaphores-with-semctl" id="toc-controlling-your-semaphores-with-semctl"><span class="toc-section-number">8.2</span> Controlling your semaphores with <code>semctl()</code></a></li>
+<li><a href="semaphores.html#semop-atomic-power" id="toc-semop-atomic-power"><span class="toc-section-number">8.3</span> <code>semop()</code>: Atomic power!</a></li>
+<li><a href="semaphores.html#destroying-a-semaphore" id="toc-destroying-a-semaphore"><span class="toc-section-number">8.4</span> Destroying a semaphore</a></li>
+<li><a href="semaphores.html#sample-programs" id="toc-sample-programs"><span class="toc-section-number">8.5</span> Sample Programs</a></li>
+<li><a href="semaphores.html#summary-4" id="toc-summary-4"><span class="toc-section-number">8.6</span> Summary</a></li>
+</ul></li>
+<li><a href="shm.html#shm" id="toc-shm"><span class="toc-section-number">9</span> Shared Memory Segments</a>
+<ul>
+<li><a href="shm.html#creating-the-segment-and-connecting" id="toc-creating-the-segment-and-connecting"><span class="toc-section-number">9.1</span> Creating the segment and connecting</a></li>
+<li><a href="shm.html#attach-megetting-a-pointer-to-the-segment" id="toc-attach-megetting-a-pointer-to-the-segment"><span class="toc-section-number">9.2</span> Attach me—getting a pointer to the segment</a></li>
+<li><a href="shm.html#reading-and-writing" id="toc-reading-and-writing"><span class="toc-section-number">9.3</span> Reading and Writing</a></li>
+<li><a href="shm.html#detaching-from-and-deleting-segments" id="toc-detaching-from-and-deleting-segments"><span class="toc-section-number">9.4</span> Detaching from and deleting segments</a></li>
+<li><a href="shm.html#shmcon" id="toc-shmcon"><span class="toc-section-number">9.5</span> Concurrency</a></li>
+<li><a href="shm.html#sample-code" id="toc-sample-code"><span class="toc-section-number">9.6</span> Sample code</a></li>
+</ul></li>
+<li><a href="mmap.html#mmap" id="toc-mmap"><span class="toc-section-number">10</span> Memory Mapped Files</a>
+<ul>
+<li><a href="mmap.html#mapmake" id="toc-mapmake"><span class="toc-section-number">10.1</span> Mapmake</a></li>
+<li><a href="mmap.html#unmapping-the-file" id="toc-unmapping-the-file"><span class="toc-section-number">10.2</span> Unmapping the file</a></li>
+<li><a href="mmap.html#concurrency-again" id="toc-concurrency-again"><span class="toc-section-number">10.3</span> Concurrency, again?!</a></li>
+<li><a href="mmap.html#a-simple-sample" id="toc-a-simple-sample"><span class="toc-section-number">10.4</span> A simple sample</a></li>
+<li><a href="mmap.html#observations-on-memory-mapping" id="toc-observations-on-memory-mapping"><span class="toc-section-number">10.5</span> Observations on memory mapping</a></li>
+<li><a href="mmap.html#summary-5" id="toc-summary-5"><span class="toc-section-number">10.6</span> Summary</a></li>
+</ul></li>
+<li><a href="unixsock.html#unixsock" id="toc-unixsock"><span class="toc-section-number">11</span> Unix Sockets</a>
+<ul>
+<li><a href="unixsock.html#overview" id="toc-overview"><span class="toc-section-number">11.1</span> Overview</a></li>
+<li><a href="unixsock.html#what-to-do-to-be-a-server" id="toc-what-to-do-to-be-a-server"><span class="toc-section-number">11.2</span> What to do to be a Server</a></li>
+<li><a href="unixsock.html#what-to-do-to-be-a-client" id="toc-what-to-do-to-be-a-client"><span class="toc-section-number">11.3</span> What to do to be a client</a></li>
+<li><a href="unixsock.html#socketpairquick-full-duplex-pipes" id="toc-socketpairquick-full-duplex-pipes"><span class="toc-section-number">11.4</span> <code>socketpair()</code>—quick full-duplex pipes</a></li>
+</ul></li>
+<li><a href="references.html#references" id="toc-references"><span class="toc-section-number">12</span> More IPC Resources</a>
+<ul>
+<li><a href="references.html#books" id="toc-books"><span class="toc-section-number">12.1</span> Books</a></li>
+<li><a href="references.html#other-online-documentation" id="toc-other-online-documentation"><span class="toc-section-number">12.2</span> Other online documentation</a></li>
+<li><a href="references.html#linux-man-pages" id="toc-linux-man-pages"><span class="toc-section-number">12.3</span> Linux man pages</a></li>
+</ul></li>
+</ul>
+</nav>
+<!-- Beej's guide to IPC
+
+# vim: ts=4:sw=4:nosi:et:tw=72
+-->
+<!-- No hyphenation -->
+<!-- ======================================================= -->
+<!-- Introduction -->
+<!-- ======================================================= -->
+<hr><div style="text-align:center"><span style="visibility: hidden"><a href="">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="intro.html">Next</a></span></div></body>
+</html>
