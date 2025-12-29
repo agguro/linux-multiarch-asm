@@ -1,0 +1,202 @@
+; ==============================================================================
+; File: bcd2ascii_conv.asm
+; Version: 8.1 (Final Integration - Fully Commented)
+; Description: A library for converting Packed BCD to ASCII strings across 
+;              various register widths (4-bit to 512-bit).
+; ==============================================================================
+
+bits 64
+
+global bcd2ascii_uint4
+global bcd2ascii_uint8
+global bcd2ascii_uint16
+global bcd2ascii_uint32
+global bcd2ascii_uint64
+global bcd2ascii_m128i
+global bcd2ascii_m256i
+global bcd2ascii_m512i
+
+section .text
+
+; --- 4-bit Nibble to ASCII ---
+; Input:  DIL (Low 4 bits of RDI)
+; Output: AL (ASCII character)
+bcd2ascii_uint4:
+    movzx   eax, dil
+    and     al, 0x0F           ; Isolate low nibble
+    or      al, 0x30           ; Convert 0-9 to '0'-'9' (0x30-0x39)
+    ret
+
+; --- 8-bit Byte to ASCII ---
+; Input:  DIL (Two BCD digits)
+; Output: AX (Two ASCII characters)
+bcd2ascii_uint8:
+    movzx   eax, dil
+    mov     edx, eax
+    shr     al, 4              ; Shift high nibble to low position
+    and     dl, 0x0F           ; Isolate low nibble
+    or      al, 0x30           ; Convert high nibble
+    or      dl, 0x30           ; Convert low nibble
+    shl     edx, 8             ; Position second char in bits 8-15
+    or      eax, edx           ; Merge into AX
+    ret
+
+; --- 16-bit Word to ASCII ---
+; Input:  DI (4 BCD digits)
+; Output: EAX (4 ASCII characters)
+bcd2ascii_uint16:
+    movzx   eax, di
+    mov     edx, eax
+    shl     edx, 8
+    or      eax, edx
+    and     eax, 0x00FF00FF    ; Spread: 00AA00BB
+    mov     edx, eax
+    shl     edx, 4
+    or      eax, edx
+    and     eax, 0x0F0F0F0F    ; Spread: 0A0B0C0D
+    add     eax, 0x30303030    ; SIMD-style add '0' to all bytes
+    bswap   eax                ; Correct Big-Endian string order
+    ret
+
+; --- 32-bit Dword to ASCII ---
+; Input:  EDI (8 BCD digits)
+; Output: RAX (8 ASCII characters)
+bcd2ascii_uint32:
+    mov     eax, edi
+    mov     rdx, rax
+    shl     rdx, 16
+    or      rax, rdx
+    mov     rcx, 0x0000FFFF0000FFFF
+    and     rax, rcx           ; Spread bytes
+    mov     rdx, rax
+    shl     rdx, 8
+    or      rax, rdx
+    mov     rcx, 0x00FF00FF00FF00FF
+    and     rax, rcx           ; Spread nibbles to bytes
+    mov     rdx, rax
+    shl     rdx, 4
+    or      rax, rdx
+    mov     rcx, 0x0F0F0F0F0F0F0F0F
+    and     rax, rcx           ; Final isolation
+    mov     r8, 0x3030303030303030 
+    add     rax, r8            ; Parallel ASCII conversion
+    bswap   rax                ; Correct string orientation
+    ret
+
+; --- 64-bit Qword to ASCII ---
+; Input:  RDI (16 BCD digits)
+; Output: RAX (First 8 chars), RDX (Next 8 chars)
+bcd2ascii_uint64:
+    push    rbx
+    mov     rbx, rdi           ; Backup input to avoid corruption
+    
+    ; 1. Process Low 32 bits (mapped to Right side of string)
+    mov     rdi, rbx
+    mov     eax, 0xFFFFFFFF    
+    and     rdi, rax
+    call    bcd2ascii_uint32   
+    push    rax                ; Temporarily store low-half result
+
+    ; 2. Process High 32 bits (mapped to Left side of string)
+    mov     rdi, rbx
+    shr     rdi, 32            
+    call    bcd2ascii_uint32   
+
+    ; 3. Restore and Align
+    pop     rdx                ; Move low results to RDX
+    pop     rbx
+    ret
+
+; --- 128-bit Vector to ASCII ---
+; Input:  RDI (Source Ptr), RSI (Dest Ptr)
+bcd2ascii_m128i:
+    push    r12
+    push    r13
+    mov     r12, rdi           ; Anchor source
+    mov     r13, rsi           ; Anchor destination
+    vmovdqu xmm0, [r12]        ; Load 128-bit BCD
+    
+    ; Process Lower 64 bits (q[0])
+    vmovq   rdi, xmm0
+    call    bcd2ascii_uint64
+    mov     [r13], rax         
+    mov     [r13+8], rdx       
+
+    ; Process Upper 64 bits (q[1])
+    vpextrq rdi, xmm0, 1       ; Extract high qword to RDI
+    call    bcd2ascii_uint64
+    mov     [r13+16], rax
+    mov     [r13+24], rdx
+
+    pop     r13
+    pop     r12
+    ret
+    
+; --- 256-bit Vector to ASCII ---
+; Input:  RDI (Source Ptr), RSI (Dest Ptr)
+bcd2ascii_m256i:
+    push    rbp
+    mov     rbp, rsp
+    push    r12
+    push    r13
+
+    mov     r12, rdi            ; r12 = src
+    mov     r13, rsi            ; r13 = dest
+
+    ; Call 1: Digits 0-31
+    mov     rdi, r12            
+    mov     rsi, r13            
+    call    bcd2ascii_m128i
+
+    ; Call 2: Digits 32-63
+    lea     rdi, [r12 + 16]     ; Offset source by 128 bits
+    lea     rsi, [r13 + 32]     ; Offset dest by 32 characters
+    call    bcd2ascii_m128i
+
+    pop     r13
+    pop     r12
+    pop     rbp
+    ret
+
+; --- 512-bit Vector to ASCII ---
+; in:  rdi = ptr to src
+; out: rsi = ptr to ascii bcd string
+bcd2ascii_m512i:
+    push    rbp
+    mov     rbp, rsp
+    push    r12                 
+    push    r13                 
+
+    mov     r12, rdi            
+    mov     r13, rsi            
+
+    ; Direct Memory Offset Strategy:
+    ; Each call handles 16 bytes of BCD and produces 32 bytes of ASCII.
+
+    ; Quad 0: (Chars 0-31)
+    mov     rdi, r12
+    mov     rsi, r13
+    call    bcd2ascii_m128i
+
+    ; Quad 1: (Chars 32-63)
+    lea     rdi, [r12 + 16]     
+    lea     rsi, [r13 + 32]     
+    call    bcd2ascii_m128i
+
+    ; Quad 2: (Chars 64-95)
+    lea     rdi, [r12 + 32]     
+    lea     rsi, [r13 + 64]     
+    call    bcd2ascii_m128i
+
+    ; Quad 3: (Chars 96-127)
+    lea     rdi, [r12 + 48]     
+    lea     rsi, [r13 + 96]     
+    call    bcd2ascii_m128i
+
+    vzeroupper                  ; Clear AVX state for return to C++
+    pop     r13
+    pop     r12
+    pop     rbp
+    ret
+
+section .note.GNU-stack noalloc noexec nowrite progbits

@@ -8,6 +8,7 @@
 bits 64
 
 [list -]
+    %include "unistd.inc"
     %include "asm-generic/mman.inc"
 [list +]
 
@@ -60,3 +61,5 @@ pagesize:
     pop         r14
     pop         r15
     ret
+    
+section .note.GNU-stack noalloc noexec nowrite progbits

@@ -51,3 +51,5 @@ toupper_branchless:
     not     dl              ; DL becomes 0xDF (mask) if in range, else 0xFF
     and     al, dl          ; Clear bit 5 if lowercase, else keep original
     ret
+    
+section .note.GNU-stack noalloc noexec nowrite progbits

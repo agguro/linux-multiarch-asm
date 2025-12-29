@@ -1,10 +1,6 @@
-# archive/snippets/convert/meson.build
-
+# archive/snippets/string/meson.build
 files = [
-    'bin2bcd_conv',
-    'bin2hexascii_conv',
-    'bcd2bin_conv',
-    'bcd2ascii_conv'
+    'string_case'
 ]
 
 lst_build_dir = join_paths(meson.current_build_dir(), 'lst')

@@ -1,2 +1,0 @@
-# convert.dwordbcd2ascii
-

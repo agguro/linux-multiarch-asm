@@ -102,3 +102,5 @@ shiftedmonth:
     inc     al              ;
     and     rax, 1111b      ;
     ret                     ;
+    
+section .note.GNU-stack noalloc noexec nowrite progbits

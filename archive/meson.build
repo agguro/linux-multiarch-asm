@@ -17,3 +17,5 @@ ld_common_flags = [
 ]
 
 subdir('examples')
+subdir('snippets')
+

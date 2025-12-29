@@ -14,7 +14,7 @@
 bits 64
 
 [list -]
-    %include "unistd.h"
+    %include "unistd.inc"
     %include "sys/stat.inc"
 [list +]
 
@@ -81,3 +81,5 @@ ftok:
     mov     rsp, rbp                    ; Balanced stack cleanup
     pop     rbp
     ret
+    
+section .note.GNU-stack noalloc noexec nowrite progbits

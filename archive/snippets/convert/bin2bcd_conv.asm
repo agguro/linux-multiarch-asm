@@ -176,11 +176,11 @@ bin2bcd_uint256:
     push    rbp
     mov     rbp, rsp
     sub     rsp, 64
-    vmovdqa [rbp-32], ymm0
-    vmovdqa xmm0, [rbp-32]
+    vmovdqu [rbp-32], ymm0
+    vmovdqu xmm0, [rbp-32]
     mov     rdi, [rbp+16]
     call    bin2bcd_uint128
-    vmovdqa xmm0, [rbp-16]
+    vmovdqu xmm0, [rbp-16]
     mov     rdi, [rbp+16]
     add     rdi, 32
     call    bin2bcd_uint128
@@ -192,13 +192,15 @@ bin2bcd_uint512:
     push    rbp
     mov     rbp, rsp
     sub     rsp, 128
-    vmovdqa64 [rbp-64], zmm0
-    vmovdqa ymm0, [rbp-64]
+    vmovdqu64 [rbp-64], zmm0
+    vmovdqu ymm0, [rbp-64]
     mov     rdi, [rbp+16]
     call    bin2bcd_uint256
-    vmovdqa ymm0, [rbp-32]
+    vmovdqu ymm0, [rbp-32]
     mov     rdi, [rbp+16]
     add     rdi, 64
     call    bin2bcd_uint256
     leave
     ret
+    
+section .note.GNU-stack noalloc noexec nowrite progbits
