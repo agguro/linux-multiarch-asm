@@ -1,0 +1,46 @@
+stap 0 : programma ergens bewaren (backup)
+stap 1 : programma runnen
+    resultaat: Usage: <key> , nice maar we zijn er niks mee.
+stap 2 : is programma nog daar waar we het gestart hebben? Indien neen, backup terug zetten anders backup wissen.
+         (denk aan virussen etc... en de rommel die het achterlaat)
+stap 3 : strings --data ./license_2 > license_2.txt geeft alle leesbare karakters weer in het bestand, beetje zoals
+         cat license_2 > license_2.txt maar geeft enkel de leesbare karakters weer.
+         opmerking: er zijn mogelijkheden om niet-leesbare karakters in te geven!!  Ik ga ervan uit dat het programma
+         een leesbare license key vraagt.
+    resultaat: na uitproberen van de niet standaard voorkomende ";*3$" geen resultaat. (alle andere tekst is van de
+               c-compiler. Kan je uitproberen maar geeft niets (hoogstwaarschijnlijk).  Die code is ook niet te benaderen
+               in het geheugen bij normale uitvoering (leer je mettertijd door te doen en zelf C progs te maken)
+stap 4 : disassembleren van het programma met objdump -D license_2 > license_2.disasm 
+         (extensie speelt geen rol, als je ze zelf maar herkent)
+stap 5 : haal locaties van main (als dat er is, want puur assembler programma(s hebben dat niet altijd) met
+         cat license_2.disasm | grep "main"
+    resultaat:  00000000004004b0 <__libc_start_main@plt>:
+                  4004b0:       ff 25 7a 0b 20 00       jmp    QWORD PTR [rip+0x200b7a]        # 601030 <__libc_start_main@GLIBC_2.2.5>
+                  4004f4:       e8 b7 ff ff ff          call   4004b0 <__libc_start_main@plt>
+                00000000004005bd <main>:
+                  4005d1:       0f 85 8c 00 00 00       jne    400663 <main+0xa6>
+                  400602:       eb 20                   jmp    400624 <main+0x67>
+                  400640:       72 c2                   jb     400604 <main+0x47>                   
+                  400649:       75 0c                   jne    400657 <main+0x9a>
+                  400655:       eb 16                   jmp    40066d <main+0xb0>
+                  400661:       eb 0a                   jmp    40066d <main+0xb0>
+               We hebben geluk, we weten waar het programma start
+stap 6 : open license_2.disasm en verwijder alles voor main (ongeveer rond lijnnummer 361) en
+         alles vanaf <__libc_csu_init>: (inbegrepen) mag ook weg.  Als je later C programma's ontleedt, weet je waarom.
+         Als je alles voor main weg hebt gedaan, mag je vanaf lijnnummer 59 alles verwijderen. (beter te weinig dan teveel weg.)
+         bewaar license_2.disasm.
+stap 7 : disassembleren met de hand (old-style cracking)
+    resultaat : disassembleren en interpreteren van code toont dat de juiste code de som van alle ascii codes van de karakters
+                is die je hebt ingevoerd.  Deze som moet 916 (decimaal) zijn.  Aan ons om uit te vissen dewelke.  De originele
+                maker van dit programma had het gemakkelijk met zijn zelf gemaakte patch want die s..cker wist natuurlijk
+                hoe zijn code in elkaar steekt.
+                MAAR
+                volgende aannemend: de ascii code van "0" = 0x30 of 48 decimaal. Door een wilde gok ben ik hiermee begonnen en:
+                
+                916 / 48 = 19 rest 4 dat wil zeggen dat we (19x48)+4 zouden kunnen ingeven, we van de license_2 vanaf zijn enkel
+                ascii code 4 is moeilijk in te geven, bestaat wel maar staat niet op toetsenbord en een gewonde gebruiker gaat
+                geen extra software kopen om dat in te geven.
+                we herschrijven de rekensom : (19x48)+4 = (19x48 + 1x48) + 4 = (19 x 48) + (1x48+4) = 19x48 + 52
+                het laatste karakter is dus ascii(52) oftewel "4" en ascii(48)="0".
+                We krijgen dus 18 keer "0" en 1 keer "4". We hebben we de license_2 code nl: 0000000000000000004                
+stap 8 : verander naam van directory van "liveoverflow_youtube/0x07_0x08_uncrackable_crackme" naar "liveoverflow_youtube/0x07_0x08_easy_crackable_crackme"

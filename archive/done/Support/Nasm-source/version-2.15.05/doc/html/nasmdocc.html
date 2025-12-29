@@ -1,0 +1,3927 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NASM - The Netwide Assembler</title>
+<link href="nasmdoc.css" rel="stylesheet" type="text/css" />
+<link href="local.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<ul class="navbar">
+<li class="first"><a class="prev" href="nasmdocb.html">Appendix B</a></li>
+<li><a class="next" href="nasmdocd.html">Appendix D</a></li>
+<li><a class="toc" href="nasmdoc0.html">Contents</a></li>
+<li class="last"><a class="index" href="nasmdoci.html">Index</a></li>
+</ul>
+<div class="title">
+<h1>NASM - The Netwide Assembler</h1>
+<span class="subtitle">version 2.15.05</span>
+</div>
+<div class="contents"
+>
+<h2 id="appendix-C">Appendix C: NASM Version History</h2>
+<h3 id="section-C.1">C.1 NASM 2 Series</h3>
+<p>The NASM 2 series supports x86-64, and is the production version of NASM
+since 2007.</p>
+<h4 id="section-C.1.1">C.1.1 Version 2.15.05</h4>
+<ul>
+<li>
+<p>Correct <code>%ifid $</code> and <code>%ifid $$</code> being treated as
+true. See <a href="nasmdoc4.html#section-4.4.6">section 4.4.6</a>.</p>
+</li>
+<li>
+<p>Add <code>--reproducible</code> option to suppress NASM version numbers
+and timestamps in output files. See
+<a href="nasmdoc2.html#section-2.1.34">section 2.1.34</a>.</p>
+</li>
+</ul>
+<h4 id="section-C.1.2">C.1.2 Version 2.15.04</h4>
+<ul>
+<li>
+<p>More sensible handling of the case where one single-line macro
+definition will shadow another. A warning will be issued, but the
+additional definition will be allowed. For the existing error case where
+both a parameterless and parametered macro are created, that warning is
+promoted to an error by default.</p>
+</li>
+<li>
+<p>Add special preprocessor tokens <code>%*?</code> and <code>%*??</code>
+that expand like <code>%?</code> and <code>%??</code> in single-line macros
+only. See <a href="nasmdoc4.html#section-4.1.6">section 4.1.6</a>.</p>
+</li>
+<li>
+<p>Correct the encoding of the <code>ENQCMDS</code> and
+<code>TILELOADT1</code> instructions.</p>
+</li>
+<li>
+<p>Fix case where the COFF backend (the <code>coff</code>,
+<code>win32</code> and <code>win64</code> output formats) would add padding
+bytes in the middle of a section if a
+<code>SECTION</code>/<code>SEGMENT</code> directive was provided which
+repeated an <code>ALIGN=</code> attribute. This neither matched legacy
+behavior, other backends, or user expectations.</p>
+</li>
+<li>
+<p>Fix SSE instructions not being recognized with an explicit memory
+operation size (e.g. <code>movsd qword [eax],xmm0</code>).</p>
+</li>
+<li>
+<p>The <code>-L+</code> option no longer enables <code>-Lw</code>, which is
+mainly useful to debug NASM crashes. See
+<a href="nasmdoc2.html#section-2.1.4">section 2.1.4</a>.</p>
+</li>
+<li>
+<p>Document long-standing hazards in the use of <code>$</code> in
+<code>Dx</code> statements, see
+<a href="nasmdoc3.html#section-3.2.1">section 3.2.1</a>.</p>
+</li>
+<li>
+<p>The NASM-only RDOFF output format backend, which has been broken since
+at least NASM 2.14, has been disabled. The RDOFF tools are scheduled to be
+removed from the NASM distribution in NASM 2.16. If you have a concrete use
+case for RDOFF, please file a NASM bug report at
+<a href="https://bugs.nasm.us/"><code>https://bugs.nasm.us/</code></a> as
+soon as possible. See <a href="nasmdoc8.html#section-8.13">section
+8.13</a>.</p>
+</li>
+</ul>
+<h4 id="section-C.1.3">C.1.3 Version 2.15.03</h4>
+<ul>
+<li>
+<p>Add instructions from the Intel Instruction Set Extensions and Future
+Features Programming Reference, June 2020. This includes AVX5512
+<code>bfloat16</code>, AVX512 mask intersect, and Intel Advanced Matrix
+Extensions (AMX).</p>
+</li>
+<li>
+<p>Support for <code>bfloat16</code> floating-point constants. See
+<a href="nasmdoc3.html#section-3.4.6">section 3.4.6</a> and
+<a href="nasmdoc6.html#section-6.3">section 6.3</a>.</p>
+</li>
+<li>
+<p>Properly display warnings in preprocess-only mode.</p>
+</li>
+<li>
+<p>Fix copy-and-paste of examples from the PDF documentation.</p>
+</li>
+<li>
+<p>Debug information now properly reflect the line numbers of macro
+invocations (unless declared <code>.nolist</code>).</p>
+</li>
+<li>
+<p>Fix excessive alignment of sections in the
+<code>coff</code>/<code>win32</code>/<code>win64</code> output formats when
+the user-specified alignment is less than the default alignment for the
+section or section type.</p>
+</li>
+<li>
+<p>Fix explicit token pasting (<code>%+</code>,
+<a href="nasmdoc4.html#section-4.1.4">section 4.1.4</a>) for the cases
+where one or more parts result from empty token expansion, resulting in
+<code>%+</code> tokens at the beginning or end, or multiple ones in a row.</p>
+</li>
+<li>
+<p>Fix macro label capture (<code>%00</code>,
+<a href="nasmdoc4.html#section-4.3.7">section 4.3.7</a>).</p>
+</li>
+<li>
+<p>Much better documentation for the MASM compatiblity package,
+<code>%use masm</code> (see <a href="nasmdoc6.html#section-6.5">section
+6.5</a>).</p>
+</li>
+<li>
+<p>Fix <code>LEA</code> without square brackets, for MASM compatibility.</p>
+</li>
+<li>
+<p>Portability fixes.</p>
+</li>
+</ul>
+<h4 id="section-C.1.4">C.1.4 Version 2.15.02</h4>
+<ul>
+<li>
+<p>Fix miscompilation when building with <code>clang</code>.</p>
+</li>
+<li>
+<p>Add <code>db-empty</code> warning class, see
+<a href="nasmdoc2.html#section-2.1.26">section 2.1.26</a>.</p>
+</li>
+<li>
+<p>Fix the dependencies in the MSVC NMAKE makefile
+(<code>Mkfiles/msvc.mak</code>).</p>
+</li>
+<li>
+<p>Some documentation improvements and cleanups.</p>
+</li>
+<li>
+<p>Fix the handling of macro parameter ranges (<code>%{:}</code>),
+including with brace-enclosed original arguments.</p>
+</li>
+</ul>
+<h4 id="section-C.1.5">C.1.5 Version 2.15.01</h4>
+<ul>
+<li>
+<p>Fix building the documentation from the release archive. For 2.15, the
+user has to do <code>make warnings</code> manually in the main directory in
+order to be able to build the documentation, which means Perl needs to be
+installed on the system.</p>
+</li>
+<li>
+<p>Add instructions for Intel Control Flow Enforcement Technology (CET).</p>
+</li>
+</ul>
+<h4 id="section-C.1.6">C.1.6 Version 2.15</h4>
+<ul>
+<li>
+<p>The comparison and booleanizing operators can now be used in any
+expression context, not just <code>%if</code>. See
+<a href="nasmdoc3.html#section-3.5">section 3.5</a>.</p>
+</li>
+<li>
+<p>New operator <code>?</code> ... <code>:</code>. See
+<a href="nasmdoc3.html#section-3.5.1">section 3.5.1</a>.</p>
+</li>
+<li>
+<p>Signed shift operators <code>&lt;&lt;&lt;</code> and
+<code>&gt;&gt;&gt;</code>. See
+<a href="nasmdoc3.html#section-3.5.9">section 3.5.9</a>.</p>
+</li>
+<li>
+<p>The MASM <code>DUP</code> syntax for data definitions is now supported,
+in a somewhat enhanced form. See
+<a href="nasmdoc3.html#section-3.2.1">section 3.2.1</a>.</p>
+</li>
+<li>
+<p>Warn for strange legacy behavior regarding empty arguments in multi-line
+macro expansion, but try to match legacy behavior in most cases. Legacy
+behavior can be disabled with the directive
+<code>%pragma preproc sane_empty_expansion</code>, see
+<a href="nasmdoc4.html#section-4.3">section 4.3</a> and
+<a href="nasmdoc4.html#section-4.10.1">section 4.10.1</a>.</p>
+</li>
+<li>
+<p>A much more sensible limit to expression evaluation depth. The
+previously defined limit would rarely trigger before NASM died with a stack
+overrun error on most systems. See
+<a href="nasmdoc2.html#section-2.1.31">section 2.1.31</a>.</p>
+</li>
+<li>
+<p>The state of warnings can now be saved and restored via the
+<code>[WARNING PUSH]</code> and <code>[WARNING POP]</code> directives. See
+<a href="nasmdoc7.html#section-7.13">section 7.13</a>.</p>
+</li>
+<li>
+<p>The <code>sectalign on|off</code> switch does not affect an explicit
+directive. See <a href="nasmdoc5.html#section-5.10.2">section 5.10.2</a>.</p>
+</li>
+<li>
+<p>Added <code>configure</code> option to enable building with profiling
+(<code>--enable-profiling</code>).</p>
+</li>
+<li>
+<p>Attempt to support of long path names, up to 32767 of UTF-16 characters,
+on Windows.</p>
+</li>
+<li>
+<p>Fixed 'mismatch in operand sizes' error in the <code>MOVDDUP</code>,
+<code>CMPXCHG8B</code> and <code>CMPXCHG16B</code> instructions.</p>
+</li>
+<li>
+<p>Improved error messages in the string transformation routine.</p>
+</li>
+<li>
+<p>Removed obsolete <code>gnu-elf-extensions</code> warning about 8- and
+16-bit relocation generation. See
+<a href="nasmdoc8.html#section-8.9.8">section 8.9.8</a></p>
+</li>
+<li>
+<p>Added group aliases for all prefixed warnings. See
+<a href="nasmdoc2.html#section-2.1.26">section 2.1.26</a>.</p>
+</li>
+<li>
+<p>Allowed building with MSVC versions older than 1700.</p>
+</li>
+<li>
+<p>Added implicitly sized versions of the <code>K...</code> instructions,
+which allows the <code>K...</code> instructions to be specified without a
+size suffix as long as the operands are sized.</p>
+</li>
+<li>
+<p>Added <code>-L</code> option for additional listing information. See
+<a href="nasmdoc2.html#section-2.1.4">section 2.1.4</a>.</p>
+</li>
+<li>
+<p>Added some warnings for obsolete instructions for a specified CPU.</p>
+</li>
+<li>
+<p>Deprecated <code>-hf</code> and <code>-y</code> options. Use
+<code>-h</code> instead.</p>
+</li>
+<li>
+<p>Made DWARF as the default debug format for ELF.</p>
+</li>
+<li>
+<p>Added <code>%pragma list</code> <em>options...</em> to set or clear
+listing options (see <code>opt-L</code>).</p>
+</li>
+<li>
+<p>Allowed immediate syntax for <code>LEA</code> instruction (ignore
+operand size completely).</p>
+</li>
+<li>
+<p>Added limited functionality MASM compatibility package. See
+<a href="nasmdoc6.html#section-6.5">section 6.5</a>.</p>
+</li>
+<li>
+<p>Add single-line macros aliases using <code>%defalias</code> or
+<code>%idefalias</code>. These behave like a kind of "symbolic links" for
+single-line macros. See <a href="nasmdoc4.html#section-4.1.11">section
+4.1.11</a> and <code>clear</code>.</p>
+</li>
+<li>
+<p>Added support for stringify, nostrip, evaluating, and greedy single-line
+macro arguments. See <a href="nasmdoc4.html#section-4.1.1">section
+4.1.1</a>.</p>
+</li>
+<li>
+<p>Unused single-line macro arguments no longer need to have a specified
+name. See <a href="nasmdoc4.html#section-4.1.1">section 4.1.1</a>.</p>
+</li>
+<li>
+<p>Added conditional comma operator <code>%,</code>. See
+<a href="nasmdoc4.html#section-4.1.12">section 4.1.12</a>.</p>
+</li>
+<li>
+<p>Changed private namespace from <code>__foo__</code> to
+<code>__?foo?__</code>, so a user namespace starting from underscore is now
+clean from symbols. For backwards compatibility, the previous names are
+defined as aliases; see <a href="nasmdoc4.html#section-4.1.11">section
+4.1.11</a>, <a href="nasmdoc4.html#section-4.11.3">section 4.11.3</a> and
+<a href="nasmdoc5.html">chapter 5</a>.</p>
+</li>
+<li>
+<p>Added support of ELF weak symbols and external references. See
+<a href="nasmdoc8.html#section-8.9.5">section 8.9.5</a>.</p>
+</li>
+<li>
+<p>Changed the behavior of the EXTERN keyword and introduced REQUIRED
+keyword. See <a href="nasmdoc7.html#section-7.6">section 7.6</a>.</p>
+</li>
+<li>
+<p>Added <code>%ifusable</code> and <code>%ifusing</code> directives. See
+<a href="nasmdoc6.html">chapter 6</a>.</p>
+</li>
+<li>
+<p>Made various performance improvements and stability fixes in macro
+preprocessor engine.</p>
+</li>
+<li>
+<p>Improved NASM error handling and cleaned up error messages.</p>
+</li>
+<li>
+<p>Many, many bug fixes.</p>
+</li>
+</ul>
+<h4 id="section-C.1.7">C.1.7 Version 2.14.03</h4>
+<ul>
+<li>
+<p>Suppress nuisance "<code>label changed during code generation</code>"
+messages after a real error.</p>
+</li>
+<li>
+<p>Add support for the <code>merge</code> and <code>strings</code>
+attributes on ELF sections. See
+<a href="nasmdoc8.html#section-8.9.2">section 8.9.2</a>.</p>
+</li>
+<li>
+<p>Add support for the <code>note</code>, <code>preinit_array</code>,
+<code>init_array</code>, and <code>fini_array</code> sections type in ELF.
+See <a href="nasmdoc8.html#section-8.9.2">section 8.9.2</a>.</p>
+</li>
+<li>
+<p>Handle more than 32,633 sections in ELF.</p>
+</li>
+</ul>
+<h4 id="section-C.1.8">C.1.8 Version 2.14.02</h4>
+<ul>
+<li>
+<p>Fix crash due to multiple errors or warnings during the code generation
+pass if a list file is specified.</p>
+</li>
+</ul>
+<h4 id="section-C.1.9">C.1.9 Version 2.14.01</h4>
+<ul>
+<li>
+<p>Create all system-defined macros defore processing command-line given
+preprocessing directives (<code>-p</code>, <code>-d</code>,
+<code>-u</code>, <code>--pragma</code>, <code>--before</code>).</p>
+</li>
+<li>
+<p>If debugging is enabled, define a <code>__DEBUG_FORMAT__</code>
+predefined macro. See <a href="nasmdoc5.html#section-5.5">section 5.5</a>.</p>
+</li>
+<li>
+<p>Fix an assert for the case in the <code>obj</code> format when a
+<code>SEG</code> operator refers to an <code>EXTERN</code> symbol declared
+further down in the code.</p>
+</li>
+<li>
+<p>Fix a corner case in the floating-point code where a binary, octal or
+hexadecimal floating-point having at least 32, 11, or 8 mantissa digits
+could produce slightly incorrect results under very specific conditions.</p>
+</li>
+<li>
+<p>Support <code>-MD</code> without a filename, for <code>gcc</code>
+compatibility. <code>-MF</code> can be used to set the dependencies output
+filename. See <a href="nasmdoc2.html#section-2.1.8">section 2.1.8</a>.</p>
+</li>
+<li>
+<p>Fix <code>-E</code> in combination with <code>-MD</code>. See
+<a href="nasmdoc2.html#section-2.1.22">section 2.1.22</a>.</p>
+</li>
+<li>
+<p>Fix missing errors on redefined labels; would cause convergence failure
+instead which is very slow and not easy to debug.</p>
+</li>
+<li>
+<p>Duplicate definitions of the same label <em>with the same value</em> is
+now explicitly permitted (2.14 would allow it in some circumstances.)</p>
+</li>
+<li>
+<p>Add the option <code>--no-line</code> to ignore <code>%line</code>
+directives in the source. See
+<a href="nasmdoc2.html#section-2.1.33">section 2.1.33</a> and
+<a href="nasmdoc4.html#section-4.11.1">section 4.11.1</a>.</p>
+</li>
+</ul>
+<h4 id="section-C.1.10">C.1.10 Version 2.14</h4>
+<ul>
+<li>
+<p>Changed <code>-I</code> option semantics by adding a trailing path
+separator unconditionally.</p>
+</li>
+<li>
+<p>Fixed null dereference in corrupted invalid single line macros.</p>
+</li>
+<li>
+<p>Fixed division by zero which may happen if source code is malformed.</p>
+</li>
+<li>
+<p>Fixed out of bound access in processing of malformed segment override.</p>
+</li>
+<li>
+<p>Fixed out of bound access in certain <code>EQU</code> parsing.</p>
+</li>
+<li>
+<p>Fixed buffer underflow in float parsing.</p>
+</li>
+<li>
+<p>Added <code>SGX</code> (Intel Software Guard Extensions) instructions.</p>
+</li>
+<li>
+<p>Added <code>+n</code> syntax for multiple contiguous registers.</p>
+</li>
+<li>
+<p>Fixed <code>subsections_via_symbols</code> for <code>macho</code> object
+format.</p>
+</li>
+<li>
+<p>Added the <code>--gprefix</code>, <code>--gpostfix</code>,
+<code>--lprefix</code>, and <code>--lpostfix</code> command line options,
+to allow command line base symbol renaming. See
+<a href="nasmdoc2.html#section-2.1.28">section 2.1.28</a>.</p>
+</li>
+<li>
+<p>Allow label renaming to be specified by <code>%pragma</code> in addition
+to from the command line. See <a href="nasmdoc7.html#section-7.10">section
+7.10</a>.</p>
+</li>
+<li>
+<p>Supported generic <code>%pragma</code> namespaces, <code>output</code>
+and <code>debug</code>. See <a href="nasmdoc4.html#section-4.10">section
+4.10</a>.</p>
+</li>
+<li>
+<p>Added the <code>--pragma</code> command line option to inject a
+<code>%pragma</code> directive. See
+<a href="nasmdoc2.html#section-2.1.29">section 2.1.29</a>.</p>
+</li>
+<li>
+<p>Added the <code>--before</code> command line option to accept preprocess
+statement before input. See <a href="nasmdoc2.html#section-2.1.30">section
+2.1.30</a>.</p>
+</li>
+<li>
+<p>Added <code>AVX512</code> <code>VBMI2</code> (Additional Bit
+Manipulation), <code>VNNI</code> (Vector Neural Network),
+<code>BITALG</code> (Bit Algorithm), and <code>GFNI</code> (Galois Field
+New Instruction) instructions.</p>
+</li>
+<li>
+<p>Added the <code>STATIC</code> directive for local symbols that should be
+renamed using global-symbol rules. See
+<a href="nasmdoc7.html#section-7.9">section 7.9</a>.</p>
+</li>
+<li>
+<p>Allow a symbol to be defined as <code>EXTERN</code> and then later
+overridden as <code>GLOBAL</code> or <code>COMMON</code>. Furthermore, a
+symbol declared <code>EXTERN</code> and then defined will be treated as
+<code>GLOBAL</code>. See <a href="nasmdoc7.html#section-7.5">section
+7.5</a>.</p>
+</li>
+<li>
+<p>The <code>GLOBAL</code> directive no longer is required to precede the
+definition of the symbol.</p>
+</li>
+<li>
+<p>Support <code>private_extern</code> as <code>macho</code> specific
+extension to the <code>GLOBAL</code> directive. See
+<a href="nasmdoc8.html#section-8.8.5">section 8.8.5</a>.</p>
+</li>
+<li>
+<p>Updated <code>UD0</code> encoding to match with the specification</p>
+</li>
+<li>
+<p>Added the <code>--limit-X</code> command line option to set execution
+limits. See <a href="nasmdoc2.html#section-2.1.31">section 2.1.31</a>.</p>
+</li>
+<li>
+<p>Updated the <code>Codeview</code> version number to be aligned with
+<code>MASM</code>.</p>
+</li>
+<li>
+<p>Added the <code>--keep-all</code> command line option to preserve output
+files. See <a href="nasmdoc2.html#section-2.1.32">section 2.1.32</a>.</p>
+</li>
+<li>
+<p>Added the <code>--include</code> command line option, an alias to
+<code>-P</code> (<a href="nasmdoc2.html#section-2.1.19">section
+2.1.19</a>).</p>
+</li>
+<li>
+<p>Added the <code>--help</code> command line option as an alias to
+<code>-h</code> (<a href="nasmdoc3.html#section-3.1">section 3.1</a>).</p>
+</li>
+<li>
+<p>Added <code>-W</code>, <code>-D</code>, and <code>-Q</code> suffix
+aliases for <code>RET</code> instructions so the operand sizes of these
+instructions can be encoded without using <code>o16</code>,
+<code>o32</code> or <code>o64</code>.</p>
+</li>
+</ul>
+<h4 id="section-C.1.11">C.1.11 Version 2.13.03</h4>
+<ul>
+<li>
+<p>Added AVX and AVX512 <code>VAES*</code> and <code>VPCLMULQDQ</code>
+instructions.</p>
+</li>
+<li>
+<p>Fixed missing dwarf record in x32 ELF output format.</p>
+</li>
+</ul>
+<h4 id="section-C.1.12">C.1.12 Version 2.13.02</h4>
+<ul>
+<li>
+<p>Fix false positive in testing of numeric overflows.</p>
+</li>
+<li>
+<p>Fix generation of <code>PEXTRW</code> instruction.</p>
+</li>
+<li>
+<p>Fix <code>smartalign</code> package which could trigger an error during
+optimization if the alignment code expanded too much due to optimization of
+the previous code.</p>
+</li>
+<li>
+<p>Fix a case where negative value in <code>TIMES</code> directive causes
+panic instead of an error.</p>
+</li>
+<li>
+<p>Always finalize <code>.debug_abbrev</code> section with a null in
+<code>dwarf</code> output format.</p>
+</li>
+<li>
+<p>Support <code>debug</code> flag in section attributes for
+<code>macho</code> output format. See
+<a href="nasmdoc8.html#section-8.8.1">section 8.8.1</a>.</p>
+</li>
+<li>
+<p>Support up to 16 characters in section names for <code>macho</code>
+output format.</p>
+</li>
+<li>
+<p>Fix missing update of global <code>BITS</code> setting if
+<code>SECTION</code> directive specified a bit size using output
+format-specific extensions (e.g. <code>USE32</code> for the
+<code>obj</code> output format.)</p>
+</li>
+<li>
+<p>Fix the incorrect generation of VEX-encoded instruction when static mode
+decorators are specified on scalar instructions, losing the decorators as
+they require EVEX encoding.</p>
+</li>
+<li>
+<p>Option <code>-MW</code> to quote dependency outputs according to Watcom
+Make conventions instead of POSIX Make conventions. See
+<a href="nasmdoc2.html#section-2.1.12">section 2.1.12</a>.</p>
+</li>
+<li>
+<p>The <code>obj</code> output format now contains embedded dependency file
+information, unless disabled with <code>%pragma obj nodepend</code>. See
+<a href="nasmdoc8.html#section-8.4.9">section 8.4.9</a>.</p>
+</li>
+<li>
+<p>Fix generation of dependency lists.</p>
+</li>
+<li>
+<p>Fix a number of null pointer reference and memory allocation errors.</p>
+</li>
+<li>
+<p>Always generate symbol-relative relocations for the <code>macho64</code>
+output format; at least some versions of the XCode/LLVM linker fails for
+section-relative relocations.</p>
+</li>
+</ul>
+<h4 id="section-C.1.13">C.1.13 Version 2.13.01</h4>
+<ul>
+<li>
+<p>Fix incorrect output for some types of <code>FAR</code> or
+<code>SEG</code> references in the <code>obj</code> output format, and
+possibly other 16-bit output formats.</p>
+</li>
+<li>
+<p>Fix the address in the list file for an instruction containing a
+<code>TIMES</code> directive.</p>
+</li>
+<li>
+<p>Fix error with <code>TIMES</code> used together with an instruction
+which can vary in size, e.g. <code>JMP</code>.</p>
+</li>
+<li>
+<p>Fix breakage on some uses of the <code>DZ</code> pseudo-op.</p>
+</li>
+</ul>
+<h4 id="section-C.1.14">C.1.14 Version 2.13</h4>
+<ul>
+<li>
+<p>Support the official forms of the <code>UD0</code> and <code>UD1</code>
+instructions.</p>
+</li>
+<li>
+<p>Allow self-segment-relative expressions in immediates and displacements,
+even when combined with an external or otherwise out-of-segment special
+symbol, e.g.:</p>
+<pre>
+     extern foo 
+     mov eax,[foo - $ + ebx]               ; Now legal
+</pre>
+</li>
+<li>
+<p>Handle a 64-bit origin in NDISASM.</p>
+</li>
+<li>
+<p>NASM can now generate sparse output files for relevant output formats,
+if the underlying operating system supports them.</p>
+</li>
+<li>
+<p>The <code>macho</code> object format now supports the
+<code>subsections_via_symbols</code> and <code>no_dead_strip</code>
+directives, see <a href="nasmdoc8.html#section-8.8.4">section 8.8.4</a>.</p>
+</li>
+<li>
+<p>The <code>macho</code> object format now supports the
+<code>no_dead_strip</code>, <code>live_support</code> and
+<code>strip_static_syms</code> section flags, see
+<a href="nasmdoc8.html#section-8.8.1">section 8.8.1</a>.</p>
+</li>
+<li>
+<p>The <code>macho</code> object format now supports the <code>dwarf</code>
+debugging format, as required by newer toolchains.</p>
+</li>
+<li>
+<p>All warnings can now be suppressed if desired; warnings not otherwise
+part of any warning class are now considered its own warning class called
+<code>other</code> (e.g. <code>-w-other</code>). Furthermore,
+warning-as-error can now be controlled on a per warning class basis, using
+the syntax <code>-w+error=</code><em>warning-class</em> and its equivalent
+for all other warning control options. See
+<a href="nasmdoc2.html#section-2.1.26">section 2.1.26</a> for the
+command-line options and warning classes and
+<a href="nasmdoc7.html#section-7.13">section 7.13</a> for the
+<code>[WARNING]</code> directive.</p>
+</li>
+<li>
+<p>Fix a number of bugs related to AVX-512 decorators.</p>
+</li>
+<li>
+<p>Significant improvements to building NASM with Microsoft Visual Studio
+via <code>Mkfiles/msvc.mak</code>. It is now possible to build the full
+Windows installer binary as long as the necessary prerequisites are
+installed; see <code>Mkfiles/README</code></p>
+</li>
+<li>
+<p>To build NASM with custom modifications (table changes) or from the git
+tree now requires Perl 5.8 at the very minimum, quite possibly a higher
+version (Perl 5.24.1 tested.) There is no requirement to have Perl on your
+system at all if all you want to do is build unmodified NASM from source
+archives.</p>
+</li>
+<li>
+<p>Fix the <code>{z}</code> decorator on AVX-512 <code>VMOVDQ*</code>
+instructions.</p>
+</li>
+<li>
+<p>Add new warnings for certain dangerous constructs which never ought to
+have been allowed. In particular, the <code>RESB</code> family of
+instructions should have been taking a critical expression all along.</p>
+</li>
+<li>
+<p>Fix the EVEX (AVX-512) versions of the <code>VPBROADCAST</code>,
+<code>VPEXTR</code>, and <code>VPINSR</code> instructions.</p>
+</li>
+<li>
+<p>Support contracted forms of additional instructions. As a general rule,
+if an instruction has a non-destructive source immediately after a
+destination register that isn't used as an input, NASM supports omitting
+that source register, using the destination register as that value. This
+among other things makes it easier to convert SSE code to the equivalent
+AVX code:</p>
+<pre>
+     addps xmm1,xmm0                       ; SSE instruction 
+     vaddps ymm1,ymm1,ymm0                 ; AVX official long form 
+     vaddps ymm1,ymm0                      ; AVX contracted form
+</pre>
+</li>
+<li>
+<p>Fix Codeview malformed compiler version record.</p>
+</li>
+<li>
+<p>Add the <code>CLWB</code> and <code>PCOMMIT</code> instructions. Note
+that the <code>PCOMMIT</code> instruction has been deprecated and will
+never be included in a shipping product; it is included for completeness
+only.</p>
+</li>
+<li>
+<p>Add the <code>%pragma</code> preprocessor directive for soft-error
+directives.</p>
+</li>
+<li>
+<p>Add the <code>RDPID</code> instruction.</p>
+</li>
+</ul>
+<h4 id="section-C.1.15">C.1.15 Version 2.12.02</h4>
+<ul>
+<li>
+<p>Fix preprocessor errors, especially <code>%error</code> and
+<code>%warning</code>, inside <code>%if</code> statements.</p>
+</li>
+<li>
+<p>Fix relative relocations in 32-bit Mach-O.</p>
+</li>
+<li>
+<p>More Codeview debug format fixes.</p>
+</li>
+<li>
+<p>If the MASM <code>PTR</code> keyword is encountered, issue a warning.
+This is much more likely to indicate a MASM-ism encountered in NASM than it
+is a valid label. This warning can be suppressed with <code>-w-ptr</code>,
+the <code>[warning]</code> directive (see
+<a href="nasmdoc2.html#section-2.1.26">section 2.1.26</a>) or by the macro
+definition <code>%idefine ptr $%?</code> (see
+<a href="nasmdoc4.html#section-4.1.5">section 4.1.5</a>).</p>
+</li>
+<li>
+<p>When an error or a warning comes from the expansion of a multi-line
+macro, display the file and line numbers for the expanded macros. Macros
+defined with <code>.nolist</code> do not get displayed.</p>
+</li>
+<li>
+<p>Add macros <code>ilog2fw()</code> and <code>ilog2cw()</code> to the
+<code>ifunc</code> macro package. See
+<a href="nasmdoc6.html#section-6.4.1">section 6.4.1</a>.</p>
+</li>
+</ul>
+<h4 id="section-C.1.16">C.1.16 Version 2.12.01</h4>
+<ul>
+<li>
+<p>Portability fixes for some platforms.</p>
+</li>
+<li>
+<p>Fix error when not specifying a list file.</p>
+</li>
+<li>
+<p>Correct the handling of macro-local labels in the Codeview debugging
+format.</p>
+</li>
+<li>
+<p>Add <code>CLZERO</code>, <code>MONITORX</code> and <code>MWAITX</code>
+instructions.</p>
+</li>
+</ul>
+<h4 id="section-C.1.17">C.1.17 Version 2.12</h4>
+<ul>
+<li>
+<p>Major fixes to the <code>macho</code> backend
+(<a href="nasmdoc8.html#section-8.8">section 8.8</a>); earlier versions
+would produce invalid symbols and relocations on a regular basis.</p>
+</li>
+<li>
+<p>Support for thread-local storage in Mach-O.</p>
+</li>
+<li>
+<p>Support for arbitrary sections in Mach-O.</p>
+</li>
+<li>
+<p>Fix wrong negative size treated as a big positive value passed into
+backend causing NASM to crash.</p>
+</li>
+<li>
+<p>Fix handling of zero-extending unsigned relocations, we have been
+printing wrong message and forgot to assign segment with predefined value
+before passing it into output format.</p>
+</li>
+<li>
+<p>Fix potential write of oversized (with size greater than allowed in
+output format) relative relocations.</p>
+</li>
+<li>
+<p>Portability fixes for building NASM with the LLVM compiler.</p>
+</li>
+<li>
+<p>Add support of Codeview version 8 (<code>cv8</code>) debug format for
+<code>win32</code> and <code>win64</code> formats in the <code>COFF</code>
+backend, see <a href="nasmdoc8.html#section-8.5.3">section 8.5.3</a>.</p>
+</li>
+<li>
+<p>Allow 64-bit outputs in 16/32-bit only backends. Unsigned 64-bit
+relocations are zero-extended from 32-bits with a warning (suppressible via
+<code>-w-zext-reloc</code>); signed 64-bit relocations are an error.</p>
+</li>
+<li>
+<p>Line numbers in list files now correspond to the lines in the source
+files, instead of simply being sequential.</p>
+</li>
+<li>
+<p>There is now an official 64-bit (x64 a.k.a. x86-64) build for Windows.</p>
+</li>
+</ul>
+<h4 id="section-C.1.18">C.1.18 Version 2.11.09</h4>
+<ul>
+<li>
+<p>Fix potential stack overwrite in <code>macho32</code> backend.</p>
+</li>
+<li>
+<p>Fix relocation records in <code>macho64</code> backend.</p>
+</li>
+<li>
+<p>Fix symbol lookup computation in <code>macho64</code> backend.</p>
+</li>
+<li>
+<p>Adjust <code>.symtab</code> and <code>.rela.text</code> sections
+alignments to 8 bytes in <code>elf64</code> backed.</p>
+</li>
+<li>
+<p>Fix section length computation in <code>bin</code> backend which leaded
+in incorrect relocation records.</p>
+</li>
+</ul>
+<h4 id="section-C.1.19">C.1.19 Version 2.11.08</h4>
+<ul>
+<li>
+<p>Fix section length computation in <code>bin</code> backend which leaded
+in incorrect relocation records.</p>
+</li>
+<li>
+<p>Add a warning for numeric preprocessor definitions passed via command
+line which might have unexpected results otherwise.</p>
+</li>
+<li>
+<p>Add ability to specify a module name record in <code>rdoff</code> linker
+with <code>-mn</code> option.</p>
+</li>
+<li>
+<p>Increase label length capacity up to 256 bytes in <code>rdoff</code>
+backend for FreePascal sake, which tends to generate very long labels for
+procedures.</p>
+</li>
+<li>
+<p>Fix segmentation failure when rip addressing is used in
+<code>macho64</code> backend.</p>
+</li>
+<li>
+<p>Fix access on out of memory when handling strings with a single grave.
+We have sixed similar problem in previous release but not all cases were
+covered.</p>
+</li>
+<li>
+<p>Fix NULL dereference in disassembled on <code>BND</code> instruction.</p>
+</li>
+</ul>
+<h4 id="section-C.1.20">C.1.20 Version 2.11.07</h4>
+<ul>
+<li>
+<p>Fix 256 bit <code>VMOVNTPS</code> instruction.</p>
+</li>
+<li>
+<p>Fix <code>-MD</code> option handling, which was rather broken in
+previous release changing command line api.</p>
+</li>
+<li>
+<p>Fix access to unitialized space when handling strings with a single
+grave.</p>
+</li>
+<li>
+<p>Fix nil dereference in handling memory reference parsing.</p>
+</li>
+</ul>
+<h4 id="section-C.1.21">C.1.21 Version 2.11.06</h4>
+<ul>
+<li>
+<p>Update AVX512 instructions based on the Extension Reference (319433-021
+Sept 2014).</p>
+</li>
+<li>
+<p>Fix the behavior of <code>-MF</code> and <code>-MD</code> options
+(Bugzilla 3392280)</p>
+</li>
+<li>
+<p>Updated Win32 Makefile to fix issue with build</p>
+</li>
+</ul>
+<h4 id="section-C.1.22">C.1.22 Version 2.11.05</h4>
+<ul>
+<li>
+<p>Add <code>--v</code> as an alias for <code>-v</code> (see
+<a href="nasmdoc2.html#section-2.1.27">section 2.1.27</a>), for
+command-line compatibility with Yasm.</p>
+</li>
+<li>
+<p>Fix a bug introduced in 2.11.03 whereby certain instructions would
+contain multiple REX prefixes, and thus be corrupt.</p>
+</li>
+</ul>
+<h4 id="section-C.1.23">C.1.23 Version 2.11.04</h4>
+<ul>
+<li>
+<p>Removed an invalid error checking code. Sometimes a memref only with a
+displacement can also set an evex flag. For example:</p>
+<pre>
+      vmovdqu32 [0xabcd]{k1}, zmm0
+</pre>
+</li>
+<li>
+<p>Fixed a bug in disassembler that EVEX.L'L vector length was not matched
+when EVEX.b was set because it was simply considered as EVEC.RC. Separated
+EVEX.L'L case from EVEX.RC which is ignored in matching.</p>
+</li>
+</ul>
+<h4 id="section-C.1.24">C.1.24 Version 2.11.03</h4>
+<ul>
+<li>
+<p>Fix a bug there REX prefixes were missing on instructions inside a
+<code>TIMES</code> statement.</p>
+</li>
+</ul>
+<h4 id="section-C.1.25">C.1.25 Version 2.11.02</h4>
+<ul>
+<li>
+<p>Add the <code>XSAVEC</code>, <code>XSAVES</code> and
+<code>XRSTORS</code> family instructions.</p>
+</li>
+<li>
+<p>Add the <code>CLFLUSHOPT</code> instruction.</p>
+</li>
+</ul>
+<h4 id="section-C.1.26">C.1.26 Version 2.11.01</h4>
+<ul>
+<li>
+<p>Allow instructions which implicitly uses <code>XMM0</code>
+(<code>VBLENDVPD</code>, <code>VBLENDVPS</code>, <code>PBLENDVB</code> and
+<code>SHA256RNDS2</code>) to be specified without an explicit
+<code>xmm0</code> on the assembly line. In other words, the following two
+lines produce the same output:</p>
+<pre>
+     vblendvpd xmm2,xmm1,xmm0      ; Last operand is fixed xmm0 
+     vblendvpd xmm2,xmm1           ; Implicit xmm0 omitted
+</pre>
+</li>
+<li>
+<p>In the ELF backends, don't crash the assembler if
+<code>section align</code> is specified without a value.</p>
+</li>
+</ul>
+<h4 id="section-C.1.27">C.1.27 Version 2.11</h4>
+<ul>
+<li>
+<p>Add support for the Intel AVX-512 instruction set:</p>
+</li>
+<li>
+<p>16 new, 512-bit SIMD registers. Total 32 <code>(ZMM0 ~ ZMM31)</code></p>
+</li>
+<li>
+<p>8 new opmask registers <code>(K0 ~ K7)</code>. One of 7 registers
+<code>(K1 ~ K7)</code> can be used as an opmask for conditional execution.</p>
+</li>
+<li>
+<p>A new EVEX encoding prefix. EVEX is based on VEX and provides more
+capabilities: opmasks, broadcasting, embedded rounding and compressed
+displacements.</p>
+<pre>
+ - opmask 
+     VDIVPD zmm0{k1}{z}, zmm1, zmm3  ; conditional vector operation 
+                                     ; using opmask k1. 
+                                     ; {z} is for zero-masking 
+ - broadcasting 
+     VDIVPS zmm4, zmm5, [rbx]{1to16} ; load single-precision float and 
+                                     ; replicate it 16 times. 32 * 16 = 512 
+ - embedded rounding 
+     VCVTSI2SD xmm6, xmm7, {rz-sae}, rax ; round toward zero. note that it 
+                                      ; is used as if a separate operand. 
+                                      ; it comes after the last SIMD operand
+</pre>
+</li>
+<li>
+<p>Add support for <code>ZWORD</code> (512 bits), <code>DZ</code> and
+<code>RESZ</code>.</p>
+</li>
+<li>
+<p>Add support for the MPX and SHA instruction sets.</p>
+</li>
+<li>
+<p>Better handling of section redefinition.</p>
+</li>
+<li>
+<p>Generate manpages when running <code>'make dist'</code>.</p>
+</li>
+<li>
+<p>Handle all token chains in mmacro params range.</p>
+</li>
+<li>
+<p>Support split [base,index] effective address:</p>
+<pre>
+     mov eax,[eax+8,ecx*4]   ; eax=base, ecx=index, 4=scale, 8=disp
+</pre>
+</li>
+</ul>
+<p>This is expected to be most useful for the MPX instructions.</p>
+<ul>
+<li>
+<p>Support <code>BND</code> prefix for branch instructions (for MPX).</p>
+</li>
+<li>
+<p>The <code>DEFAULT</code> directive can now take <code>BND</code> and
+<code>NOBND</code> options to indicate whether all relevant branches should
+be getting <code>BND</code> prefixes. This is expected to be the normal for
+use in MPX code.</p>
+</li>
+<li>
+<p>Add <code>{evex</code>}, <code>{vex3</code>} and <code>{vex2</code>}
+instruction prefixes to have NASM encode the corresponding instruction, if
+possible, with an EVEX, 3-byte VEX, or 2-byte VEX prefix, respectively.</p>
+</li>
+<li>
+<p>Support for section names longer than 8 bytes in Win32/Win64 COFF.</p>
+</li>
+<li>
+<p>The <code>NOSPLIT</code> directive by itself no longer forces a single
+register to become an index register, unless it has an explicit multiplier.</p>
+<pre>
+     mov eax,[nosplit eax]       ; eax as base register 
+     mov eax,[nosplit eax*1]     ; eax as index register
+</pre>
+</li>
+</ul>
+<h4 id="section-C.1.28">C.1.28 Version 2.10.09</h4>
+<ul>
+<li>
+<p>Pregenerate man pages.</p>
+</li>
+</ul>
+<h4 id="section-C.1.29">C.1.29 Version 2.10.08</h4>
+<ul>
+<li>
+<p>Fix <code>VMOVNTDQA</code>, <code>MOVNTDQA</code> and
+<code>MOVLPD</code> instructions.</p>
+</li>
+<li>
+<p>Fix collision for <code>VGATHERQPS</code>, <code>VPGATHERQD</code>
+instructions.</p>
+</li>
+<li>
+<p>Fix <code>VPMOVSXBQ</code>, <code>VGATHERQPD</code>, <code>VSPLLW</code>
+instructions.</p>
+</li>
+<li>
+<p>Add a bunch of AMD TBM instructions.</p>
+</li>
+<li>
+<p>Fix potential stack overwrite in numbers conversion.</p>
+</li>
+<li>
+<p>Allow byte size in <code>PREFETCHTx</code> instructions.</p>
+</li>
+<li>
+<p>Make manual pages up to date.</p>
+</li>
+<li>
+<p>Make <code>F3</code> and <code>F2</code> SSE prefixes to override
+<code>66</code>.</p>
+</li>
+<li>
+<p>Support of AMD SVM instructions in 32 bit mode.</p>
+</li>
+<li>
+<p>Fix near offsets code generation for <code>JMP</code>, <code>CALL</code>
+instrictions in long mode.</p>
+</li>
+<li>
+<p>Fix preprocessor parse regression when id is expanding to a whitespace.</p>
+</li>
+</ul>
+<h4 id="section-C.1.30">C.1.30 Version 2.10.07</h4>
+<ul>
+<li>
+<p>Fix line continuation parsing being broken in previous version.</p>
+</li>
+</ul>
+<h4 id="section-C.1.31">C.1.31 Version 2.10.06</h4>
+<ul>
+<li>
+<p>Always quote the dependency source names when using the automatic
+dependency generation options.</p>
+</li>
+<li>
+<p>If no dependency target name is specified via the <code>-MT</code> or
+<code>-MQ</code> options, quote the default output name.</p>
+</li>
+<li>
+<p>Fix assembly of shift operations in <code>CPU 8086</code> mode.</p>
+</li>
+<li>
+<p>Fix incorrect generation of explicit immediate byte for shift by 1 under
+certain circumstances.</p>
+</li>
+<li>
+<p>Fix assembly of the <code>VPCMPGTQ</code> instruction.</p>
+</li>
+<li>
+<p>Fix RIP-relative relocations in the <code>macho64</code> backend.</p>
+</li>
+</ul>
+<h4 id="section-C.1.32">C.1.32 Version 2.10.05</h4>
+<ul>
+<li>
+<p>Add the <code>CLAC</code> and <code>STAC</code> instructions.</p>
+</li>
+</ul>
+<h4 id="section-C.1.33">C.1.33 Version 2.10.04</h4>
+<ul>
+<li>
+<p>Add back the inadvertently deleted 256-bit version of the
+<code>VORPD</code> instruction.</p>
+</li>
+<li>
+<p>Correct disassembly of instructions starting with byte <code>82</code>
+hex.</p>
+</li>
+<li>
+<p>Fix corner cases in token pasting, for example:</p>
+<pre>
+   %define N 1e%++%+ 5 
+           dd N, 1e+5
+</pre>
+</li>
+</ul>
+<h4 id="section-C.1.34">C.1.34 Version 2.10.03</h4>
+<ul>
+<li>
+<p>Correct the assembly of the instruction:</p>
+<pre>
+XRELEASE MOV [absolute],AL
+</pre>
+<p>Previous versions would incorrectly generate <code>F3 A2</code> for this
+instruction and issue a warning; correct behavior is to emit
+<code>F3 88 05</code>.</p>
+</li>
+</ul>
+<h4 id="section-C.1.35">C.1.35 Version 2.10.02</h4>
+<ul>
+<li>
+<p>Add the <code>ifunc</code> macro package with integer functions,
+currently only integer logarithms. See
+<a href="nasmdoc6.html#section-6.4">section 6.4</a>.</p>
+</li>
+<li>
+<p>Add the <code>RDSEED</code>, <code>ADCX</code> and <code>ADOX</code>
+instructions.</p>
+</li>
+</ul>
+<h4 id="section-C.1.36">C.1.36 Version 2.10.01</h4>
+<ul>
+<li>
+<p>Add missing VPMOVMSKB instruction with reg32, ymmreg operands.</p>
+</li>
+</ul>
+<h4 id="section-C.1.37">C.1.37 Version 2.10</h4>
+<ul>
+<li>
+<p>When optimization is enabled, <code>mov r64,imm</code> now optimizes to
+the shortest form possible between:</p>
+<pre>
+     mov r32,imm32                   ;  5 bytes 
+     mov r64,imm32                   ;  7 bytes 
+     mov r64,imm64                   ; 10 bytes
+</pre>
+<p>To force a specific form, use the <code>STRICT</code> keyword, see
+<a href="nasmdoc3.html#section-3.7">section 3.7</a>.</p>
+</li>
+<li>
+<p>Add support for the Intel AVX2 instruction set.</p>
+</li>
+<li>
+<p>Add support for Bit Manipulation Instructions 1 and 2.</p>
+</li>
+<li>
+<p>Add support for Intel Transactional Synchronization Extensions (TSX).</p>
+</li>
+<li>
+<p>Add support for x32 ELF (32-bit ELF with the CPU in 64-bit mode.) See
+<a href="nasmdoc8.html#section-8.9">section 8.9</a>.</p>
+</li>
+<li>
+<p>Add support for bigendian UTF-16 and UTF-32. See
+<a href="nasmdoc3.html#section-3.4.5">section 3.4.5</a>.</p>
+</li>
+</ul>
+<h4 id="section-C.1.38">C.1.38 Version 2.09.10</h4>
+<ul>
+<li>
+<p>Fix up NSIS script to protect uninstaller against registry keys absence
+or corruption. It brings in a few additional questions to a user during
+deinstallation procedure but still it is better than unpredictable file
+removal.</p>
+</li>
+</ul>
+<h4 id="section-C.1.39">C.1.39 Version 2.09.09</h4>
+<ul>
+<li>
+<p>Fix initialization of section attributes of <code>bin</code> output
+format.</p>
+</li>
+<li>
+<p>Fix <code>mach64</code> output format bug that crashes NASM due to NULL
+symbols.</p>
+</li>
+</ul>
+<h4 id="section-C.1.40">C.1.40 Version 2.09.08</h4>
+<ul>
+<li>
+<p>Fix <code>__OUTPUT_FORMAT__</code> assignment when output driver alias
+is used. For example when <code>-f elf</code> is used
+<code>__OUTPUT_FORMAT__</code> must be set to <code>elf</code>, if
+<code>-f elf32</code> is used <code>__OUTPUT_FORMAT__</code> must be
+assigned accordingly, i.e. to <code>elf32</code>. The rule applies to all
+output driver aliases. See <a href="nasmdoc5.html#section-5.4">section
+5.4</a>.</p>
+</li>
+</ul>
+<h4 id="section-C.1.41">C.1.41 Version 2.09.07</h4>
+<ul>
+<li>
+<p>Fix attempts to close same file several times when <code>-a</code>
+option is used.</p>
+</li>
+<li>
+<p>Fixes for VEXTRACTF128, VMASKMOVPS encoding.</p>
+</li>
+</ul>
+<h4 id="section-C.1.42">C.1.42 Version 2.09.06</h4>
+<ul>
+<li>
+<p>Fix missed section attribute initialization in <code>bin</code> output
+target.</p>
+</li>
+</ul>
+<h4 id="section-C.1.43">C.1.43 Version 2.09.05</h4>
+<ul>
+<li>
+<p>Fix arguments encoding for VPEXTRW instruction.</p>
+</li>
+<li>
+<p>Remove invalid form of VPEXTRW instruction.</p>
+</li>
+<li>
+<p>Add <code>VLDDQU</code> as alias for <code>VLDQQU</code> to match
+specification.</p>
+</li>
+</ul>
+<h4 id="section-C.1.44">C.1.44 Version 2.09.04</h4>
+<ul>
+<li>
+<p>Fix incorrect labels offset for VEX intructions.</p>
+</li>
+<li>
+<p>Eliminate bogus warning on implicit operand size override.</p>
+</li>
+<li>
+<p><code>%if</code> term could not handle 64 bit numbers.</p>
+</li>
+<li>
+<p>The COFF backend was limiting relocations number to 16 bits even if in
+real there were a way more relocations.</p>
+</li>
+</ul>
+<h4 id="section-C.1.45">C.1.45 Version 2.09.03</h4>
+<ul>
+<li>
+<p>Print <code>%macro</code> name inside <code>%rep</code> blocks on error.</p>
+</li>
+<li>
+<p>Fix preprocessor expansion behaviour. It happened sometime too early and
+sometime simply wrong. Move behaviour back to the origins (down to NASM
+2.05.01).</p>
+</li>
+<li>
+<p>Fix unitialized data dereference on OMF output format.</p>
+</li>
+<li>
+<p>Issue warning on unterminated <code>%{</code> construct.</p>
+</li>
+<li>
+<p>Fix for documentation typo.</p>
+</li>
+</ul>
+<h4 id="section-C.1.46">C.1.46 Version 2.09.02</h4>
+<ul>
+<li>
+<p>Fix reversed tokens when <code>%deftok</code> produces more than one
+output token.</p>
+</li>
+<li>
+<p>Fix segmentation fault on disassembling some VEX instructions.</p>
+</li>
+<li>
+<p>Missing <code>%endif</code> did not always cause error.</p>
+</li>
+<li>
+<p>Fix typo in documentation.</p>
+</li>
+<li>
+<p>Compound context local preprocessor single line macro identifiers were
+not expanded early enough and as result lead to unresolved symbols.</p>
+</li>
+</ul>
+<h4 id="section-C.1.47">C.1.47 Version 2.09.01</h4>
+<ul>
+<li>
+<p>Fix NULL dereference on missed %deftok second parameter.</p>
+</li>
+<li>
+<p>Fix NULL dereference on invalid %substr parameters.</p>
+</li>
+</ul>
+<h4 id="section-C.1.48">C.1.48 Version 2.09</h4>
+<ul>
+<li>
+<p>Fixed assignment the magnitude of <code>%rep</code> counter. It is
+limited to 62 bits now.</p>
+</li>
+<li>
+<p>Fixed NULL dereference if argument of <code>%strlen</code> resolves to
+whitespace. For example if nonexistent macro parameter is used.</p>
+</li>
+<li>
+<p><code>%ifenv</code>, <code>%elifenv</code>, <code>%ifnenv</code>, and
+<code>%elifnenv</code> directives introduced. See
+<a href="nasmdoc4.html#section-4.4.9">section 4.4.9</a>.</p>
+</li>
+<li>
+<p>Fixed NULL dereference if environment variable is missed.</p>
+</li>
+<li>
+<p>Updates of new AVX v7 Intel instructions.</p>
+</li>
+<li>
+<p><code>PUSH imm32</code> is now officially documented.</p>
+</li>
+<li>
+<p>Fix for encoding the LFS, LGS and LSS in 64-bit mode.</p>
+</li>
+<li>
+<p>Fixes for compatibility with OpenWatcom compiler and DOS 8.3 file format
+limitation.</p>
+</li>
+<li>
+<p>Macros parameters range expansion introduced. See
+<a href="nasmdoc4.html#section-4.3.4">section 4.3.4</a>.</p>
+</li>
+<li>
+<p>Backward compatibility on expanging of local sigle macros restored.</p>
+</li>
+<li>
+<p>8 bit relocations for <code>elf</code> and <code>bin</code> output
+formats are introduced.</p>
+</li>
+<li>
+<p>Short intersegment jumps are permitted now.</p>
+</li>
+<li>
+<p>An alignment more than 64 bytes are allowed for <code>win32</code>,
+<code>win64</code> output formats.</p>
+</li>
+<li>
+<p><code>SECTALIGN</code> directive introduced. See
+<a href="nasmdoc5.html#section-5.10.2">section 5.10.2</a>.</p>
+</li>
+<li>
+<p><code>nojmp</code> option introduced in <code>smartalign</code> package.
+See <a href="nasmdoc6.html#section-6.2">section 6.2</a>.</p>
+</li>
+<li>
+<p>Short aliases <code>win</code>, <code>elf</code> and <code>macho</code>
+for output formats are introduced. Each stands for <code>win32</code>,
+<code>elf32</code> and <code>macho32</code> accordingly.</p>
+</li>
+<li>
+<p>Faster handling of missing directives implemented.</p>
+</li>
+<li>
+<p>Various small improvements in documentation.</p>
+</li>
+<li>
+<p>No hang anymore if unable to open malloc.log file.</p>
+</li>
+<li>
+<p>The environments without vsnprintf function are able to build nasm
+again.</p>
+</li>
+<li>
+<p>AMD LWP instructions updated.</p>
+</li>
+<li>
+<p>Tighten EA checks. We warn a user if there overflow in EA addressing.</p>
+</li>
+<li>
+<p>Make <code>-Ox</code> the default optimization level. For the legacy
+behavior, specify <code>-O0</code> explicitly. See
+<a href="nasmdoc2.html#section-2.1.24">section 2.1.24</a>.</p>
+</li>
+<li>
+<p>Environment variables read with <code>%!</code> or tested with
+<code>%ifenv</code> can now contain non-identifier characters if surrounded
+by quotes. See <a href="nasmdoc4.html#section-4.11.2">section 4.11.2</a>.</p>
+</li>
+<li>
+<p>Add a new standard macro package <code>%use fp</code> for floating-point
+convenience macros. See <a href="nasmdoc6.html#section-6.3">section
+6.3</a>.</p>
+</li>
+</ul>
+<h4 id="section-C.1.49">C.1.49 Version 2.08.02</h4>
+<ul>
+<li>
+<p>Fix crash under certain circumstances when using the <code>%+</code>
+operator.</p>
+</li>
+</ul>
+<h4 id="section-C.1.50">C.1.50 Version 2.08.01</h4>
+<ul>
+<li>
+<p>Fix the <code>%use</code> statement, which was broken in 2.08.</p>
+</li>
+</ul>
+<h4 id="section-C.1.51">C.1.51 Version 2.08</h4>
+<ul>
+<li>
+<p>A number of enhancements/fixes in macros area.</p>
+</li>
+<li>
+<p>Support for converting strings to tokens. See
+<a href="nasmdoc4.html#section-4.1.10">section 4.1.10</a>.</p>
+</li>
+<li>
+<p>Fuzzy operand size logic introduced.</p>
+</li>
+<li>
+<p>Fix COFF stack overrun on too long export identifiers.</p>
+</li>
+<li>
+<p>Fix Macho-O alignment bug.</p>
+</li>
+<li>
+<p>Fix crashes with &ndash;fwin32 on file with many exports.</p>
+</li>
+<li>
+<p>Fix stack overrun for too long [DEBUG id].</p>
+</li>
+<li>
+<p>Fix incorrect sbyte usage in IMUL (hit only if optimization flag
+passed).</p>
+</li>
+<li>
+<p>Append ending token for <code>.stabs</code> records in the ELF output
+format.</p>
+</li>
+<li>
+<p>New NSIS script which uses ModernUI and MultiUser approach.</p>
+</li>
+<li>
+<p>Visual Studio 2008 NASM integration (rules file).</p>
+</li>
+<li>
+<p>Warn a user if a constant is too long (and as result will be stripped).</p>
+</li>
+<li>
+<p>The obsoleted pre-XOP AMD SSE5 instruction set which was never
+actualized was removed.</p>
+</li>
+<li>
+<p>Fix stack overrun on too long error file name passed from the command
+line.</p>
+</li>
+<li>
+<p>Bind symbols to the .text section by default (ie in case if SECTION
+directive was omitted) in the ELF output format.</p>
+</li>
+<li>
+<p>Fix sync points array index wrapping.</p>
+</li>
+<li>
+<p>A few fixes for FMA4 and XOP instruction templates.</p>
+</li>
+<li>
+<p>Add AMD Lightweight Profiling (LWP) instructions.</p>
+</li>
+<li>
+<p>Fix the offset for <code>%arg</code> in 64-bit mode.</p>
+</li>
+<li>
+<p>An undefined local macro (<code>%$</code>) no longer matches a global
+macro with the same name.</p>
+</li>
+<li>
+<p>Fix NULL dereference on too long local labels.</p>
+</li>
+</ul>
+<h4 id="section-C.1.52">C.1.52 Version 2.07</h4>
+<ul>
+<li>
+<p>NASM is now under the 2-clause BSD license. See
+<a href="nasmdoc1.html#section-1.1.1">section 1.1.1</a>.</p>
+</li>
+<li>
+<p>Fix the section type for the <code>.strtab</code> section in the
+<code>elf64</code> output format.</p>
+</li>
+<li>
+<p>Fix the handling of <code>COMMON</code> directives in the
+<code>obj</code> output format.</p>
+</li>
+<li>
+<p>New <code>ith</code> and <code>srec</code> output formats; these are
+variants of the <code>bin</code> output format which output Intel hex and
+Motorola S-records, respectively. See
+<a href="nasmdoc8.html#section-8.2">section 8.2</a> and
+<a href="nasmdoc8.html#section-8.3">section 8.3</a>.</p>
+</li>
+<li>
+<p><code>rdf2ihx</code> replaced with an enhanced <code>rdf2bin</code>,
+which can output binary, COM, Intel hex or Motorola S-records.</p>
+</li>
+<li>
+<p>The Windows installer now puts the NASM directory first in the
+<code>PATH</code> of the "NASM Shell".</p>
+</li>
+<li>
+<p>Revert the early expansion behavior of <code>%+</code> to pre-2.06
+behavior: <code>%+</code> is only expanded late.</p>
+</li>
+<li>
+<p>Yet another Mach-O alignment fix.</p>
+</li>
+<li>
+<p>Don't delete the list file on errors. Also, include error and warning
+information in the list file.</p>
+</li>
+<li>
+<p>Support for 64-bit Mach-O output, see
+<a href="nasmdoc8.html#section-8.8">section 8.8</a>.</p>
+</li>
+<li>
+<p>Fix assert failure on certain operations that involve strings with
+high-bit bytes.</p>
+</li>
+</ul>
+<h4 id="section-C.1.53">C.1.53 Version 2.06</h4>
+<ul>
+<li>
+<p>This release is dedicated to the memory of Charles A. Crayne, long time
+NASM developer as well as moderator of <code>comp.lang.asm.x86</code> and
+author of the book <em>Serious Assembler</em>. We miss you, Chuck.</p>
+</li>
+<li>
+<p>Support for indirect macro expansion (<code>%[...]</code>). See
+<a href="nasmdoc4.html#section-4.1.3">section 4.1.3</a>.</p>
+</li>
+<li>
+<p><code>%pop</code> can now take an argument, see
+<a href="nasmdoc4.html#section-4.7.1">section 4.7.1</a>.</p>
+</li>
+<li>
+<p>The argument to <code>%use</code> is no longer macro-expanded. Use
+<code>%[...]</code> if macro expansion is desired.</p>
+</li>
+<li>
+<p>Support for thread-local storage in ELF32 and ELF64. See
+<a href="nasmdoc8.html#section-8.9.4">section 8.9.4</a>.</p>
+</li>
+<li>
+<p>Fix crash on <code>%ifmacro</code> without an argument.</p>
+</li>
+<li>
+<p>Correct the arguments to the <code>POPCNT</code> instruction.</p>
+</li>
+<li>
+<p>Fix section alignment in the Mach-O format.</p>
+</li>
+<li>
+<p>Update AVX support to version 5 of the Intel specification.</p>
+</li>
+<li>
+<p>Fix the handling of accesses to context-local macros from higher levels
+in the context stack.</p>
+</li>
+<li>
+<p>Treat <code>WAIT</code> as a prefix rather than as an instruction,
+thereby allowing constructs like <code>O16 FSAVE</code> to work correctly.</p>
+</li>
+<li>
+<p>Support for structures with a non-zero base offset. See
+<a href="nasmdoc5.html#section-5.9.1">section 5.9.1</a>.</p>
+</li>
+<li>
+<p>Correctly handle preprocessor token concatenation (see
+<a href="nasmdoc4.html#section-4.3.9">section 4.3.9</a>) involving
+floating-point numbers.</p>
+</li>
+<li>
+<p>The <code>PINSR</code> series of instructions have been corrected and
+rationalized.</p>
+</li>
+<li>
+<p>Removed AMD SSE5, replaced with the new XOP/FMA4/CVT16 (rev 3.03) spec.</p>
+</li>
+<li>
+<p>The ELF backends no longer automatically generate a
+<code>.comment</code> section.</p>
+</li>
+<li>
+<p>Add additional "well-known" ELF sections with default attributes. See
+<a href="nasmdoc8.html#section-8.9.2">section 8.9.2</a>.</p>
+</li>
+</ul>
+<h4 id="section-C.1.54">C.1.54 Version 2.05.01</h4>
+<ul>
+<li>
+<p>Fix the <code>-w</code>/<code>-W</code> option parsing, which was broken
+in NASM 2.05.</p>
+</li>
+</ul>
+<h4 id="section-C.1.55">C.1.55 Version 2.05</h4>
+<ul>
+<li>
+<p>Fix redundant REX.W prefix on <code>JMP reg64</code>.</p>
+</li>
+<li>
+<p>Make the behaviour of <code>-O0</code> match NASM 0.98 legacy behavior.
+See <a href="nasmdoc2.html#section-2.1.24">section 2.1.24</a>.</p>
+</li>
+<li>
+<p><code>-w-user</code> can be used to suppress the output of
+<code>%warning</code> directives. See
+<a href="nasmdoc2.html#section-2.1.26">section 2.1.26</a>.</p>
+</li>
+<li>
+<p>Fix bug where <code>ALIGN</code> would issue a full alignment datum
+instead of zero bytes.</p>
+</li>
+<li>
+<p>Fix offsets in list files.</p>
+</li>
+<li>
+<p>Fix <code>%include</code> inside multi-line macros or loops.</p>
+</li>
+<li>
+<p>Fix error where NASM would generate a spurious warning on valid
+optimizations of immediate values.</p>
+</li>
+<li>
+<p>Fix arguments to a number of the <code>CVT</code> SSE instructions.</p>
+</li>
+<li>
+<p>Fix RIP-relative offsets when the instruction carries an immediate.</p>
+</li>
+<li>
+<p>Massive overhaul of the ELF64 backend for spec compliance.</p>
+</li>
+<li>
+<p>Fix the Geode <code>PFRCPV</code> and <code>PFRSQRTV</code> instruction.</p>
+</li>
+<li>
+<p>Fix the SSE 4.2 <code>CRC32</code> instruction.</p>
+</li>
+</ul>
+<h4 id="section-C.1.56">C.1.56 Version 2.04</h4>
+<ul>
+<li>
+<p>Sanitize macro handing in the <code>%error</code> directive.</p>
+</li>
+<li>
+<p>New <code>%warning</code> directive to issue user-controlled warnings.</p>
+</li>
+<li>
+<p><code>%error</code> directives are now deferred to the final assembly
+phase.</p>
+</li>
+<li>
+<p>New <code>%fatal</code> directive to immediately terminate assembly.</p>
+</li>
+<li>
+<p>New <code>%strcat</code> directive to join quoted strings together.</p>
+</li>
+<li>
+<p>New <code>%use</code> macro directive to support standard macro
+directives. See <a href="nasmdoc4.html#section-4.6.4">section 4.6.4</a>.</p>
+</li>
+<li>
+<p>Excess default parameters to <code>%macro</code> now issues a warning by
+default. See <a href="nasmdoc4.html#section-4.3">section 4.3</a>.</p>
+</li>
+<li>
+<p>Fix <code>%ifn</code> and <code>%elifn</code>.</p>
+</li>
+<li>
+<p>Fix nested <code>%else</code> clauses.</p>
+</li>
+<li>
+<p>Correct the handling of nested <code>%rep</code>s.</p>
+</li>
+<li>
+<p>New <code>%unmacro</code> directive to undeclare a multi-line macro. See
+<a href="nasmdoc4.html#section-4.3.12">section 4.3.12</a>.</p>
+</li>
+<li>
+<p>Builtin macro <code>__PASS__</code> which expands to the current
+assembly pass. See <a href="nasmdoc5.html#section-5.8">section 5.8</a>.</p>
+</li>
+<li>
+<p><code>__utf16__</code> and <code>__utf32__</code> operators to generate
+UTF-16 and UTF-32 strings. See
+<a href="nasmdoc3.html#section-3.4.5">section 3.4.5</a>.</p>
+</li>
+<li>
+<p>Fix bug in case-insensitive matching when compiled on platforms that
+don't use the <code>configure</code> script. Of the official release
+binaries, that only affected the OS/2 binary.</p>
+</li>
+<li>
+<p>Support for x87 packed BCD constants. See
+<a href="nasmdoc3.html#section-3.4.7">section 3.4.7</a>.</p>
+</li>
+<li>
+<p>Correct the <code>LTR</code> and <code>SLDT</code> instructions in
+64-bit mode.</p>
+</li>
+<li>
+<p>Fix unnecessary REX.W prefix on indirect jumps in 64-bit mode.</p>
+</li>
+<li>
+<p>Add AVX versions of the AES instructions (<code>VAES</code>...).</p>
+</li>
+<li>
+<p>Fix the 256-bit FMA instructions.</p>
+</li>
+<li>
+<p>Add 256-bit AVX stores per the latest AVX spec.</p>
+</li>
+<li>
+<p>VIA XCRYPT instructions can now be written either with or without
+<code>REP</code>, apparently different versions of the VIA spec wrote them
+differently.</p>
+</li>
+<li>
+<p>Add missing 64-bit <code>MOVNTI</code> instruction.</p>
+</li>
+<li>
+<p>Fix the operand size of <code>VMREAD</code> and <code>VMWRITE</code>.</p>
+</li>
+<li>
+<p>Numerous bug fixes, especially to the AES, AVX and VTX instructions.</p>
+</li>
+<li>
+<p>The optimizer now always runs until it converges. It also runs even when
+disabled, but doesn't optimize. This allows most forward references to be
+resolved properly.</p>
+</li>
+<li>
+<p><code>%push</code> no longer needs a context identifier; omitting the
+context identifier results in an anonymous context.</p>
+</li>
+</ul>
+<h4 id="section-C.1.57">C.1.57 Version 2.03.01</h4>
+<ul>
+<li>
+<p>Fix buffer overflow in the listing module.</p>
+</li>
+<li>
+<p>Fix the handling of hexadecimal escape codes in `...` strings.</p>
+</li>
+<li>
+<p>The Postscript/PDF documentation has been reformatted.</p>
+</li>
+<li>
+<p>The <code>-F</code> option now implies <code>-g</code>.</p>
+</li>
+</ul>
+<h4 id="section-C.1.58">C.1.58 Version 2.03</h4>
+<ul>
+<li>
+<p>Add support for Intel AVX, CLMUL and FMA instructions, including YMM
+registers.</p>
+</li>
+<li>
+<p><code>dy</code>, <code>resy</code> and <code>yword</code> for 32-byte
+operands.</p>
+</li>
+<li>
+<p>Fix some SSE5 instructions.</p>
+</li>
+<li>
+<p>Intel <code>INVEPT</code>, <code>INVVPID</code> and <code>MOVBE</code>
+instructions.</p>
+</li>
+<li>
+<p>Fix checking for critical expressions when the optimizer is enabled.</p>
+</li>
+<li>
+<p>Support the DWARF debugging format for ELF targets.</p>
+</li>
+<li>
+<p>Fix optimizations of signed bytes.</p>
+</li>
+<li>
+<p>Fix operation on bigendian machines.</p>
+</li>
+<li>
+<p>Fix buffer overflow in the preprocessor.</p>
+</li>
+<li>
+<p><code>SAFESEH</code> support for Win32, <code>IMAGEREL</code> for Win64
+(SEH).</p>
+</li>
+<li>
+<p><code>%?</code> and <code>%??</code> to refer to the name of a macro
+itself. In particular, <code>%idefine keyword $%?</code> can be used to
+make a keyword "disappear".</p>
+</li>
+<li>
+<p>New options for dependency generation: <code>-MD</code>,
+<code>-MF</code>, <code>-MP</code>, <code>-MT</code>, <code>-MQ</code>.</p>
+</li>
+<li>
+<p>New preprocessor directives <code>%pathsearch</code> and
+<code>%depend</code>; INCBIN reimplemented as a macro.</p>
+</li>
+<li>
+<p><code>%include</code> now resolves macros in a sane manner.</p>
+</li>
+<li>
+<p><code>%substr</code> can now be used to get other than one-character
+substrings.</p>
+</li>
+<li>
+<p>New type of character/string constants, using backquotes
+(<code>`...`</code>), which support C-style escape sequences.</p>
+</li>
+<li>
+<p><code>%defstr</code> and <code>%idefstr</code> to stringize macro
+definitions before creation.</p>
+</li>
+<li>
+<p>Fix forward references used in <code>EQU</code> statements.</p>
+</li>
+</ul>
+<h4 id="section-C.1.59">C.1.59 Version 2.02</h4>
+<ul>
+<li>
+<p>Additional fixes for MMX operands with explicit <code>qword</code>, as
+well as (hopefully) SSE operands with <code>oword</code>.</p>
+</li>
+<li>
+<p>Fix handling of truncated strings with <code>DO</code>.</p>
+</li>
+<li>
+<p>Fix segfaults due to memory overwrites when floating-point constants
+were used.</p>
+</li>
+<li>
+<p>Fix segfaults due to missing include files.</p>
+</li>
+<li>
+<p>Fix OpenWatcom Makefiles for DOS and OS/2.</p>
+</li>
+<li>
+<p>Add autogenerated instruction list back into the documentation.</p>
+</li>
+<li>
+<p>ELF: Fix segfault when generating stabs, and no symbols have been
+defined.</p>
+</li>
+<li>
+<p>ELF: Experimental support for DWARF debugging information.</p>
+</li>
+<li>
+<p>New compile date and time standard macros.</p>
+</li>
+<li>
+<p><code>%ifnum</code> now returns true for negative numbers.</p>
+</li>
+<li>
+<p>New <code>%iftoken</code> test for a single token.</p>
+</li>
+<li>
+<p>New <code>%ifempty</code> test for empty expansion.</p>
+</li>
+<li>
+<p>Add support for the <code>XSAVE</code> instruction group.</p>
+</li>
+<li>
+<p>Makefile for Netware/gcc.</p>
+</li>
+<li>
+<p>Fix issue with some warnings getting emitted way too many times.</p>
+</li>
+<li>
+<p>Autogenerated instruction list added to the documentation.</p>
+</li>
+</ul>
+<h4 id="section-C.1.60">C.1.60 Version 2.01</h4>
+<ul>
+<li>
+<p>Fix the handling of MMX registers with explicit <code>qword</code> tags
+on memory (broken in 2.00 due to 64-bit changes.)</p>
+</li>
+<li>
+<p>Fix the PREFETCH instructions.</p>
+</li>
+<li>
+<p>Fix the documentation.</p>
+</li>
+<li>
+<p>Fix debugging info when using <code>-f elf</code> (backwards
+compatibility alias for <code>-f elf32</code>).</p>
+</li>
+<li>
+<p>Man pages for rdoff tools (from the Debian project.)</p>
+</li>
+<li>
+<p>ELF: handle large numbers of sections.</p>
+</li>
+<li>
+<p>Fix corrupt output when the optimizer runs out of passes.</p>
+</li>
+</ul>
+<h4 id="section-C.1.61">C.1.61 Version 2.00</h4>
+<ul>
+<li>
+<p>Added c99 data-type compliance.</p>
+</li>
+<li>
+<p>Added general x86-64 support.</p>
+</li>
+<li>
+<p>Added win64 (x86-64 COFF) output format.</p>
+</li>
+<li>
+<p>Added <code>__BITS__</code> standard macro.</p>
+</li>
+<li>
+<p>Renamed the <code>elf</code> output format to <code>elf32</code> for
+clarity.</p>
+</li>
+<li>
+<p>Added <code>elf64</code> and <code>macho</code> (MacOS X) output
+formats.</p>
+</li>
+<li>
+<p>Added Numeric constants in <code>dq</code> directive.</p>
+</li>
+<li>
+<p>Added <code>oword</code>, <code>do</code> and <code>reso</code> pseudo
+operands.</p>
+</li>
+<li>
+<p>Allow underscores in numbers.</p>
+</li>
+<li>
+<p>Added 8-, 16- and 128-bit floating-point formats.</p>
+</li>
+<li>
+<p>Added binary, octal and hexadecimal floating-point.</p>
+</li>
+<li>
+<p>Correct the generation of floating-point constants.</p>
+</li>
+<li>
+<p>Added floating-point option control.</p>
+</li>
+<li>
+<p>Added Infinity and NaN floating point support.</p>
+</li>
+<li>
+<p>Added ELF Symbol Visibility support.</p>
+</li>
+<li>
+<p>Added setting OSABI value in ELF header directive.</p>
+</li>
+<li>
+<p>Added Generate Makefile Dependencies option.</p>
+</li>
+<li>
+<p>Added Unlimited Optimization Passes option.</p>
+</li>
+<li>
+<p>Added <code>%IFN</code> and <code>%ELIFN</code> support.</p>
+</li>
+<li>
+<p>Added Logical Negation Operator.</p>
+</li>
+<li>
+<p>Enhanced Stack Relative Preprocessor Directives.</p>
+</li>
+<li>
+<p>Enhanced ELF Debug Formats.</p>
+</li>
+<li>
+<p>Enhanced Send Errors to a File option.</p>
+</li>
+<li>
+<p>Added SSSE3, SSE4.1, SSE4.2, SSE5 support.</p>
+</li>
+<li>
+<p>Added a large number of additional instructions.</p>
+</li>
+<li>
+<p>Significant performance improvements.</p>
+</li>
+<li>
+<p><code>-w+warning</code> and <code>-w-warning</code> can now be written
+as &ndash;Wwarning and &ndash;Wno-warning, respectively. See
+<a href="nasmdoc2.html#section-2.1.26">section 2.1.26</a>.</p>
+</li>
+<li>
+<p>Add <code>-w+error</code> to treat warnings as errors. See
+<a href="nasmdoc2.html#section-2.1.26">section 2.1.26</a>.</p>
+</li>
+<li>
+<p>Add <code>-w+all</code> and <code>-w-all</code> to enable or disable all
+suppressible warnings. See <a href="nasmdoc2.html#section-2.1.26">section
+2.1.26</a>.</p>
+</li>
+</ul>
+<h3 id="section-C.2">C.2 NASM 0.98 Series</h3>
+<p>The 0.98 series was the production versions of NASM from 1999 to 2007.</p>
+<h4 id="section-C.2.1">C.2.1 Version 0.98.39</h4>
+<ul>
+<li>
+<p>fix buffer overflow</p>
+</li>
+<li>
+<p>fix outas86's <code>.bss</code> handling</p>
+</li>
+<li>
+<p>"make spotless" no longer deletes config.h.in.</p>
+</li>
+<li>
+<p><code>%(el)if(n)idn</code> insensitivity to string quotes difference
+(#809300).</p>
+</li>
+<li>
+<p>(nasm.c)<code>__OUTPUT_FORMAT__</code> changed to string value instead
+of symbol.</p>
+</li>
+</ul>
+<h4 id="section-C.2.2">C.2.2 Version 0.98.38</h4>
+<ul>
+<li>
+<p>Add Makefile for 16-bit DOS binaries under OpenWatcom, and modify
+<code>mkdep.pl</code> to be able to generate completely pathless
+dependencies, as required by OpenWatcom wmake (it supports path searches,
+but not explicit paths.)</p>
+</li>
+<li>
+<p>Fix the <code>STR</code> instruction.</p>
+</li>
+<li>
+<p>Fix the ELF output format, which was broken under certain circumstances
+due to the addition of stabs support.</p>
+</li>
+<li>
+<p>Quick-fix Borland format debug-info for <code>-f obj</code></p>
+</li>
+<li>
+<p>Fix for <code>%rep</code> with no arguments (#560568)</p>
+</li>
+<li>
+<p>Fix concatenation of preprocessor function call (#794686)</p>
+</li>
+<li>
+<p>Fix long label causes coredump (#677841)</p>
+</li>
+<li>
+<p>Use autoheader as well as autoconf to keep configure from generating
+ridiculously long command lines.</p>
+</li>
+<li>
+<p>Make sure that all of the formats which support debugging output
+actually will suppress debugging output when <code>-g</code> not specified.</p>
+</li>
+</ul>
+<h4 id="section-C.2.3">C.2.3 Version 0.98.37</h4>
+<ul>
+<li>
+<p>Paths given in <code>-I</code> switch searched for
+<code>incbin</code>&ndash;ed as well as <code>%include</code>&ndash;ed
+files.</p>
+</li>
+<li>
+<p>Added stabs debugging for the ELF output format, patch from Martin
+Wawro.</p>
+</li>
+<li>
+<p>Fix <code>output/outbin.c</code> to allow origin &gt; 80000000h.</p>
+</li>
+<li>
+<p>Make <code>-U</code> switch work.</p>
+</li>
+<li>
+<p>Fix the use of relative offsets with explicit prefixes, e.g.
+<code>a32 loop foo</code>.</p>
+</li>
+<li>
+<p>Remove <code>backslash()</code>.</p>
+</li>
+<li>
+<p>Fix the <code>SMSW</code> and <code>SLDT</code> instructions.</p>
+</li>
+<li>
+<p><code>-O2</code> and <code>-O3</code> are no longer aliases for
+<code>-O10</code> and <code>-O15</code>. If you mean the latter, please say
+so! :)</p>
+</li>
+</ul>
+<h4 id="section-C.2.4">C.2.4 Version 0.98.36</h4>
+<ul>
+<li>
+<p>Update rdoff &ndash; librarian/archiver &ndash; common rec &ndash; docs!</p>
+</li>
+<li>
+<p>Fix signed/unsigned problems.</p>
+</li>
+<li>
+<p>Fix <code>JMP FAR label</code> and <code>CALL FAR label</code>.</p>
+</li>
+<li>
+<p>Add new multisection support &ndash; map files &ndash; fix align bug</p>
+</li>
+<li>
+<p>Fix sysexit, movhps/movlps reg,reg bugs in insns.dat</p>
+</li>
+<li>
+<p><code>Q</code> or <code>O</code> suffixes indicate octal</p>
+</li>
+<li>
+<p>Support Prescott new instructions (PNI).</p>
+</li>
+<li>
+<p>Cyrix <code>XSTORE</code> instruction.</p>
+</li>
+</ul>
+<h4 id="section-C.2.5">C.2.5 Version 0.98.35</h4>
+<ul>
+<li>
+<p>Fix build failure on 16-bit DOS (Makefile.bc3 workaround for compiler
+bug.)</p>
+</li>
+<li>
+<p>Fix dependencies and compiler warnings.</p>
+</li>
+<li>
+<p>Add "const" in a number of places.</p>
+</li>
+<li>
+<p>Add &ndash;X option to specify error reporting format (use &ndash;Xvc to
+integrate with Microsoft Visual Studio.)</p>
+</li>
+<li>
+<p>Minor changes for code legibility.</p>
+</li>
+<li>
+<p>Drop use of tmpnam() in rdoff (security fix.)</p>
+</li>
+</ul>
+<h4 id="section-C.2.6">C.2.6 Version 0.98.34</h4>
+<ul>
+<li>
+<p>Correct additional address-size vs. operand-size confusions.</p>
+</li>
+<li>
+<p>Generate dependencies for all Makefiles automatically.</p>
+</li>
+<li>
+<p>Add support for unimplemented (but theoretically available) registers
+such as tr0 and cr5. Segment registers 6 and 7 are called segr6 and segr7
+for the operations which they can be represented.</p>
+</li>
+<li>
+<p>Correct some disassembler bugs related to redundant address-size
+prefixes. Some work still remains in this area.</p>
+</li>
+<li>
+<p>Correctly generate an error for things like "SEG eax".</p>
+</li>
+<li>
+<p>Add the JMPE instruction, enabled by "CPU IA64".</p>
+</li>
+<li>
+<p>Correct compilation on newer gcc/glibc platforms.</p>
+</li>
+<li>
+<p>Issue an error on things like "jmp far eax".</p>
+</li>
+</ul>
+<h4 id="section-C.2.7">C.2.7 Version 0.98.33</h4>
+<ul>
+<li>
+<p>New __NASM_PATCHLEVEL__ and __NASM_VERSION_ID__ standard macros to round
+out the version-query macros. version.pl now understands X.YYplWW or
+X.YY.ZZplWW as a version number, equivalent to X.YY.ZZ.WW (or X.YY.0.WW, as
+appropriate).</p>
+</li>
+<li>
+<p>New keyword "strict" to disable the optimization of specific operands.</p>
+</li>
+<li>
+<p>Fix the handing of size overrides with JMP instructions (instructions
+such as "jmp dword foo".)</p>
+</li>
+<li>
+<p>Fix the handling of "ABSOLUTE label", where "label" points into a
+relocatable segment.</p>
+</li>
+<li>
+<p>Fix OBJ output format with lots of externs.</p>
+</li>
+<li>
+<p>More documentation updates.</p>
+</li>
+<li>
+<p>Add &ndash;Ov option to get verbose information about optimizations.</p>
+</li>
+<li>
+<p>Undo a braindead change which broke <code>%elif</code> directives.</p>
+</li>
+<li>
+<p>Makefile updates.</p>
+</li>
+</ul>
+<h4 id="section-C.2.8">C.2.8 Version 0.98.32</h4>
+<ul>
+<li>
+<p>Fix NASM crashing when <code>%macro</code> directives were left
+unterminated.</p>
+</li>
+<li>
+<p>Lots of documentation updates.</p>
+</li>
+<li>
+<p>Complete rewrite of the PostScript/PDF documentation generator.</p>
+</li>
+<li>
+<p>The MS Visual C++ Makefile was updated and corrected.</p>
+</li>
+<li>
+<p>Recognize .rodata as a standard section name in ELF.</p>
+</li>
+<li>
+<p>Fix some obsolete Perl4-isms in Perl scripts.</p>
+</li>
+<li>
+<p>Fix configure.in to work with autoconf 2.5x.</p>
+</li>
+<li>
+<p>Fix a couple of "make cleaner" misses.</p>
+</li>
+<li>
+<p>Make the normal "./configure &amp;&amp; make" work with Cygwin.</p>
+</li>
+</ul>
+<h4 id="section-C.2.9">C.2.9 Version 0.98.31</h4>
+<ul>
+<li>
+<p>Correctly build in a separate object directory again.</p>
+</li>
+<li>
+<p>Derive all references to the version number from the version file.</p>
+</li>
+<li>
+<p>New standard macros __NASM_SUBMINOR__ and __NASM_VER__ macros.</p>
+</li>
+<li>
+<p>Lots of Makefile updates and bug fixes.</p>
+</li>
+<li>
+<p>New <code>%ifmacro</code> directive to test for multiline macros.</p>
+</li>
+<li>
+<p>Documentation updates.</p>
+</li>
+<li>
+<p>Fixes for 16-bit OBJ format output.</p>
+</li>
+<li>
+<p>Changed the NASM environment variable to NASMENV.</p>
+</li>
+</ul>
+<h4 id="section-C.2.10">C.2.10 Version 0.98.30</h4>
+<ul>
+<li>
+<p>Changed doc files a lot: completely removed old READMExx and Wishlist
+files, incorporating all information in CHANGES and TODO.</p>
+</li>
+<li>
+<p>I waited a long time to rename zoutieee.c to (original) outieee.c</p>
+</li>
+<li>
+<p>moved all output modules to output/ subdirectory.</p>
+</li>
+<li>
+<p>Added 'make strip' target to strip debug info from nasm &amp; ndisasm.</p>
+</li>
+<li>
+<p>Added INSTALL file with installation instructions.</p>
+</li>
+<li>
+<p>Added &ndash;v option description to nasm man.</p>
+</li>
+<li>
+<p>Added dist makefile target to produce source distributions.</p>
+</li>
+<li>
+<p>16-bit support for ELF output format (GNU extension, but useful.)</p>
+</li>
+</ul>
+<h4 id="section-C.2.11">C.2.11 Version 0.98.28</h4>
+<ul>
+<li>
+<p>Fastcooked this for Debian's Woody release: Frank applied the INCBIN bug
+patch to 0.98.25alt and called it 0.98.28 to not confuse poor little
+apt-get.</p>
+</li>
+</ul>
+<h4 id="section-C.2.12">C.2.12 Version 0.98.26</h4>
+<ul>
+<li>
+<p>Reorganised files even better from 0.98.25alt</p>
+</li>
+</ul>
+<h4 id="section-C.2.13">C.2.13 Version 0.98.25alt</h4>
+<ul>
+<li>
+<p>Prettified the source tree. Moved files to more reasonable places.</p>
+</li>
+<li>
+<p>Added findleak.pl script to misc/ directory.</p>
+</li>
+<li>
+<p>Attempted to fix doc.</p>
+</li>
+</ul>
+<h4 id="section-C.2.14">C.2.14 Version 0.98.25</h4>
+<ul>
+<li>
+<p>Line continuation character <code>\</code>.</p>
+</li>
+<li>
+<p>Docs inadvertantly reverted &ndash; "dos packaging".</p>
+</li>
+</ul>
+<h4 id="section-C.2.15">C.2.15 Version 0.98.24p1</h4>
+<ul>
+<li>
+<p>FIXME: Someone, document this please.</p>
+</li>
+</ul>
+<h4 id="section-C.2.16">C.2.16 Version 0.98.24</h4>
+<ul>
+<li>
+<p>Documentation &ndash; Ndisasm doc added to Nasm.doc.</p>
+</li>
+</ul>
+<h4 id="section-C.2.17">C.2.17 Version 0.98.23</h4>
+<ul>
+<li>
+<p>Attempted to remove rdoff version1</p>
+</li>
+<li>
+<p>Lino Mastrodomenico's patches to preproc.c (%$$ bug?).</p>
+</li>
+</ul>
+<h4 id="section-C.2.18">C.2.18 Version 0.98.22</h4>
+<ul>
+<li>
+<p>Update rdoff2 &ndash; attempt to remove v1.</p>
+</li>
+</ul>
+<h4 id="section-C.2.19">C.2.19 Version 0.98.21</h4>
+<ul>
+<li>
+<p>Optimization fixes.</p>
+</li>
+</ul>
+<h4 id="section-C.2.20">C.2.20 Version 0.98.20</h4>
+<ul>
+<li>
+<p>Optimization fixes.</p>
+</li>
+</ul>
+<h4 id="section-C.2.21">C.2.21 Version 0.98.19</h4>
+<ul>
+<li>
+<p>H. J. Lu's patch back out.</p>
+</li>
+</ul>
+<h4 id="section-C.2.22">C.2.22 Version 0.98.18</h4>
+<ul>
+<li>
+<p>Added ".rdata" to "-f win32".</p>
+</li>
+</ul>
+<h4 id="section-C.2.23">C.2.23 Version 0.98.17</h4>
+<ul>
+<li>
+<p>H. J. Lu's "bogus elf" patch. (Red Hat problem?)</p>
+</li>
+</ul>
+<h4 id="section-C.2.24">C.2.24 Version 0.98.16</h4>
+<ul>
+<li>
+<p>Fix whitespace before "[section ..." bug.</p>
+</li>
+</ul>
+<h4 id="section-C.2.25">C.2.25 Version 0.98.15</h4>
+<ul>
+<li>
+<p>Rdoff changes (?).</p>
+</li>
+<li>
+<p>Fix fixes to memory leaks.</p>
+</li>
+</ul>
+<h4 id="section-C.2.26">C.2.26 Version 0.98.14</h4>
+<ul>
+<li>
+<p>Fix memory leaks.</p>
+</li>
+</ul>
+<h4 id="section-C.2.27">C.2.27 Version 0.98.13</h4>
+<ul>
+<li>
+<p>There was no 0.98.13</p>
+</li>
+</ul>
+<h4 id="section-C.2.28">C.2.28 Version 0.98.12</h4>
+<ul>
+<li>
+<p>Update optimization (new function of "-O1")</p>
+</li>
+<li>
+<p>Changes to test/bintest.asm (?).</p>
+</li>
+</ul>
+<h4 id="section-C.2.29">C.2.29 Version 0.98.11</h4>
+<ul>
+<li>
+<p>Optimization changes.</p>
+</li>
+<li>
+<p>Ndisasm fixed.</p>
+</li>
+</ul>
+<h4 id="section-C.2.30">C.2.30 Version 0.98.10</h4>
+<ul>
+<li>
+<p>There was no 0.98.10</p>
+</li>
+</ul>
+<h4 id="section-C.2.31">C.2.31 Version 0.98.09</h4>
+<ul>
+<li>
+<p>Add multiple sections support to "-f bin".</p>
+</li>
+<li>
+<p>Changed GLOBAL_TEMP_BASE in outelf.c from 6 to 15.</p>
+</li>
+<li>
+<p>Add "-v" as an alias to the "-r" switch.</p>
+</li>
+<li>
+<p>Remove "#ifdef" from Tasm compatibility options.</p>
+</li>
+<li>
+<p>Remove redundant size-overrides on "mov ds, ex", etc.</p>
+</li>
+<li>
+<p>Fixes to SSE2, other insns.dat (?).</p>
+</li>
+<li>
+<p>Enable uppercase "I" and "P" switches.</p>
+</li>
+<li>
+<p>Case insinsitive "seg" and "wrt".</p>
+</li>
+<li>
+<p>Update install.sh (?).</p>
+</li>
+<li>
+<p>Allocate tokens in blocks.</p>
+</li>
+<li>
+<p>Improve "invalid effective address" messages.</p>
+</li>
+</ul>
+<h4 id="section-C.2.32">C.2.32 Version 0.98.08</h4>
+<ul>
+<li>
+<p>Add "<code>%strlen</code>" and "<code>%substr</code>" macro operators</p>
+</li>
+<li>
+<p>Fixed broken c16.mac.</p>
+</li>
+<li>
+<p>Unterminated string error reported.</p>
+</li>
+<li>
+<p>Fixed bugs as per 0.98bf</p>
+</li>
+</ul>
+<h4 id="section-C.2.33">C.2.33 Version 0.98.09b with John Coffman patches released 28-Oct-2001</h4>
+<p>Changes from 0.98.07 release to 98.09b as of 28-Oct-2001</p>
+<ul>
+<li>
+<p>More closely compatible with 0.98 when &ndash;O0 is implied or
+specified. Not strictly identical, since backward branches in range of
+short offsets are recognized, and signed byte values with no explicit size
+specification will be assembled as a single byte.</p>
+</li>
+<li>
+<p>More forgiving with the PUSH instruction. 0.98 requires a size to be
+specified always. 0.98.09b will imply the size from the current BITS
+setting (16 or 32).</p>
+</li>
+<li>
+<p>Changed definition of the optimization flag:</p>
+<pre>
+   -O0     strict two-pass assembly, JMP and Jcc are 
+           handled more like 0.98, except that back- 
+           ward JMPs are short, if possible. 
+
+   -O1     strict two-pass assembly, but forward 
+           branches are assembled with code guaranteed 
+           to reach; may produce larger code than 
+           -O0, but will produce successful assembly 
+           more often if branch offset sizes are not 
+           specified. 
+
+   -O2     multi-pass optimization, minimize branch 
+           offsets; also will minimize signed immed- 
+           iate bytes, overriding size specification. 
+
+   -O3     like -O2, but more passes taken, if needed
+</pre>
+</li>
+</ul>
+<h4 id="section-C.2.34">C.2.34 Version 0.98.07 released 01/28/01</h4>
+<ul>
+<li>
+<p>Added Stepane Denis' SSE2 instructions to a *working* version of the
+code &ndash; some earlier versions were based on broken code &ndash; sorry
+'bout that. version "0.98.07"</p>
+</li>
+<li>
+<p>Cosmetic modifications to nasm.c, nasm.h, AUTHORS, MODIFIED</p>
+</li>
+</ul>
+<h4 id="section-C.2.35">C.2.35 Version 0.98.06f released 01/18/01</h4>
+<ul>
+<li>
+<p>Add "metalbrain"s jecxz bug fix in insns.dat</p>
+</li>
+<li>
+<p>Alter nasmdoc.src to match &ndash; version "0.98.06f"</p>
+</li>
+</ul>
+<h4 id="section-C.2.36">C.2.36 Version 0.98.06e released 01/09/01</h4>
+<ul>
+<li>
+<p>Removed the "outforms.h" file &ndash; it appears to be someone's old
+backup of "outform.h". version "0.98.06e"</p>
+</li>
+<li>
+<p>fbk &ndash; finally added the fix for the "multiple %includes bug",
+known since 7/27/99 &ndash; reported originally (?) and sent to us by
+Austin Lunnen &ndash; he reports that John Fine had a fix within the day.
+Here it is...</p>
+</li>
+<li>
+<p>Nelson Rush resigns from the group. Big thanks to Nelson for his
+leadership and enthusiasm in getting these changes incorporated into Nasm!</p>
+</li>
+<li>
+<p>fbk &ndash; [list +], [list &ndash;] directives &ndash; ineptly
+implemented, should be re-written or removed, perhaps.</p>
+</li>
+<li>
+<p>Brian Raiter / fbk &ndash; "elfso bug" fix &ndash; applied to aoutb
+format as well &ndash; testing might be desirable...</p>
+</li>
+<li>
+<p>James Seter &ndash; &ndash;postfix, &ndash;prefix command line switches.</p>
+</li>
+<li>
+<p>Yuri Zaporozhets &ndash; rdoff utility changes.</p>
+</li>
+</ul>
+<h4 id="section-C.2.37">C.2.37 Version 0.98p1</h4>
+<ul>
+<li>
+<p>GAS-like palign (Panos Minos)</p>
+</li>
+<li>
+<p>FIXME: Someone, fill this in with details</p>
+</li>
+</ul>
+<h4 id="section-C.2.38">C.2.38 Version 0.98bf (bug-fixed)</h4>
+<ul>
+<li>
+<p>Fixed &ndash; elf and aoutb bug &ndash; shared libraries &ndash;
+multiple "%include" bug in "-f obj" &ndash; jcxz, jecxz bug &ndash;
+unrecognized option bug in ndisasm</p>
+</li>
+</ul>
+<h4 id="section-C.2.39">C.2.39 Version 0.98.03 with John Coffman's changes released 27-Jul-2000</h4>
+<ul>
+<li>
+<p>Added signed byte optimizations for the 0x81/0x83 class of instructions:
+ADC, ADD, AND, CMP, OR, SBB, SUB, XOR: when used as 'ADD reg16,imm' or 'ADD
+reg32,imm.' Also optimization of signed byte form of 'PUSH imm' and 'IMUL
+reg,imm'/'IMUL reg,reg,imm.' No size specification is needed.</p>
+</li>
+<li>
+<p>Added multi-pass JMP and Jcc offset optimization. Offsets on forward
+references will preferentially use the short form, without the need to code
+a specific size (short or near) for the branch. Added instructions for 'Jcc
+label' to use the form 'Jnotcc $+3/JMP label', in cases where a short
+offset is out of bounds. If compiling for a 386 or higher CPU, then the 386
+form of Jcc will be used instead.</p>
+<p>This feature is controlled by a new command-line switch: "O", (upper
+case letter O). "-O0" reverts the assembler to no extra optimization
+passes, "-O1" allows up to 5 extra passes, and "-O2"(default), allows up to
+10 extra optimization passes.</p>
+</li>
+<li>
+<p>Added a new directive: 'cpu XXX', where XXX is any of: 8086, 186, 286,
+386, 486, 586, pentium, 686, PPro, P2, P3 or Katmai. All are case
+insensitive. All instructions will be selected only if they apply to the
+selected cpu or lower. Corrected a couple of bugs in cpu-dependence in
+'insns.dat'.</p>
+</li>
+<li>
+<p>Added to 'standard.mac', the "use16" and "use32" forms of the "bits
+16/32" directive. This is nothing new, just conforms to a lot of other
+assemblers. (minor)</p>
+</li>
+<li>
+<p>Changed label allocation from 320/32 (10000 labels @ 200K+) to 32/37
+(1000 labels); makes running under DOS much easier. Since additional label
+space is allocated dynamically, this should have no effect on large
+programs with lots of labels. The 37 is a prime, believed to be better for
+hashing. (minor)</p>
+</li>
+</ul>
+<h4 id="section-C.2.40">C.2.40 Version 0.98.03</h4>
+<p>"Integrated patchfile 0.98-0.98.01. I call this version 0.98.03 for
+historical reasons: 0.98.02 was trashed." &ndash;&ndash;John Coffman
+&lt;johninsd@san.rr.com&gt;, 27-Jul-2000</p>
+<ul>
+<li>
+<p>Kendall Bennett's SciTech MGL changes</p>
+</li>
+<li>
+<p>Note that you must define "TASM_COMPAT" at compile-time to get the Tasm
+Ideal Mode compatibility.</p>
+</li>
+<li>
+<p>All changes can be compiled in and out using the TASM_COMPAT macros, and
+when compiled without TASM_COMPAT defined we get the exact same binary as
+the unmodified 0.98 sources.</p>
+</li>
+<li>
+<p>standard.mac, macros.c: Added macros to ignore TASM directives before
+first include</p>
+</li>
+<li>
+<p>nasm.h: Added extern declaration for tasm_compatible_mode</p>
+</li>
+<li>
+<p>nasm.c: Added global variable tasm_compatible_mode</p>
+</li>
+<li>
+<p>Added command line switch for TASM compatible mode (-t)</p>
+</li>
+<li>
+<p>Changed version command line to reflect when compiled with TASM
+additions</p>
+</li>
+<li>
+<p>Added response file processing to allow all arguments on a single line
+(response file is @resp rather than &ndash;@resp for NASM format).</p>
+</li>
+<li>
+<p>labels.c: Changes islocal() macro to support TASM style @@local labels.</p>
+</li>
+<li>
+<p>Added islocalchar() macro to support TASM style @@local labels.</p>
+</li>
+<li>
+<p>parser.c: Added support for TASM style memory references (ie: mov [DWORD
+eax],10 rather than the NASM style mov DWORD [eax],10).</p>
+</li>
+<li>
+<p>preproc.c: Added new directives, <code>%arg</code>, <code>%local</code>,
+<code>%stacksize</code> to directives table</p>
+</li>
+<li>
+<p>Added support for TASM style directives without a leading % symbol.</p>
+</li>
+<li>
+<p>Integrated a block of changes from Andrew Zabolotny
+&lt;bit@eltech.ru&gt;:</p>
+</li>
+<li>
+<p>A new keyword <code>%xdefine</code> and its case-insensitive counterpart
+<code>%ixdefine</code>. They work almost the same way as
+<code>%define</code> and <code>%idefine</code> but expand the definition
+immediately, not on the invocation. Something like a cross between
+<code>%define</code> and <code>%assign</code>. The "x" suffix stands for
+"eXpand", so "xdefine" can be deciphered as "expand-and-define". Thus you
+can do things like this:</p>
+<pre>
+     %assign ofs     0 
+
+     %macro  arg     1 
+             %xdefine %1 dword [esp+ofs] 
+             %assign ofs ofs+4 
+     %endmacro
+</pre>
+</li>
+<li>
+<p>Changed the place where the expansion of %$name macros are expanded. Now
+they are converted into ..@ctxnum.name form when detokenizing, so there are
+no quirks as before when using %$name arguments to macros, in macros etc.
+For example:</p>
+<pre>
+     %macro  abc     1 
+             %define %1 hello 
+     %endm 
+
+     abc     %$here 
+     %$here
+</pre>
+<p>Now last line will be expanded into "hello" as expected. This also
+allows for lots of goodies, a good example are extended "proc" macros
+included in this archive.</p>
+</li>
+<li>
+<p>Added a check for "cstk" in smacro_defined() before calling get_ctx()
+&ndash; this allows for things like:</p>
+<pre>
+     %ifdef %$abc 
+     %endif
+</pre>
+<p>to work without warnings even in no context.</p>
+</li>
+<li>
+<p>Added a check for "cstk" in %if*ctx and %elif*ctx directives &ndash;
+this allows to use <code>%ifctx</code> without excessive warnings. If there
+is no active context, <code>%ifctx</code> goes through "false" branch.</p>
+</li>
+<li>
+<p>Removed "user error: " prefix with <code>%error</code> directive: it
+just clobbers the output and has absolutely no functionality. Besides, this
+allows to write macros that does not differ from built-in functions in any
+way.</p>
+</li>
+<li>
+<p>Added expansion of string that is output by <code>%error</code>
+directive. Now you can do things like:</p>
+<pre>
+     %define hello(x) Hello, x! 
+
+     %define %$name andy 
+     %error "hello(%$name)"
+</pre>
+<p>Same happened with <code>%include</code> directive.</p>
+</li>
+<li>
+<p>Now all directives that expect an identifier will try to expand and
+concatenate everything without whitespaces in between before usage. For
+example, with "unfixed" nasm the commands</p>
+<pre>
+     %define %$abc hello 
+     %define __%$abc goodbye 
+     __%$abc
+</pre>
+<p>would produce "incorrect" output: last line will expand to</p>
+<pre>
+     hello goodbyehello
+</pre>
+<p>Not quite what you expected, eh? :-) The answer is that preprocessor
+treats the <code>%define</code> construct as if it would be</p>
+<pre>
+     %define __ %$abc goodbye
+</pre>
+<p>(note the white space between __ and %$abc). After my "fix" it will
+"correctly" expand into</p>
+<pre>
+     goodbye
+</pre>
+<p>as expected. Note that I use quotes around words "correct", "incorrect"
+etc because this is rather a feature not a bug; however current behaviour
+is more logical (and allows more advanced macro usage :-).</p>
+</li>
+</ul>
+<p>Same change was applied to:
+<code>%push</code>,<code>%macro</code>,<code>%imacro</code>,<code>%define</code>,<code>%idefine</code>,<code>%xdefine</code>,<code>%ixdefine</code>,
+<code>%assign</code>,<code>%iassign</code>,<code>%undef</code></p>
+<ul>
+<li>
+<p>A new directive [WARNING {+|-}warning-id] have been added. It works only
+if the assembly phase is enabled (i.e. it doesn't work with nasm &ndash;e).</p>
+</li>
+<li>
+<p>A new warning type: macro-selfref. By default this warning is disabled;
+when enabled NASM warns when a macro self-references itself; for example
+the following source:</p>
+<pre>
+       [WARNING macro-selfref] 
+
+       %macro          push    1-* 
+               %rep    %0 
+                       push    %1 
+                       %rotate 1 
+               %endrep 
+       %endmacro 
+
+                       push    eax,ebx,ecx
+</pre>
+<p>will produce a warning, but if we remove the first line we won't see it
+anymore (which is The Right Thing To Do {tm} IMHO since C preprocessor eats
+such constructs without warnings at all).</p>
+</li>
+<li>
+<p>Added a "error" routine to preprocessor which always will set ERR_PASS1
+bit in severity_code. This removes annoying repeated errors on first and
+second passes from preprocessor.</p>
+</li>
+<li>
+<p>Added the %+ operator in single-line macros for concatenating two
+identifiers. Usage example:</p>
+<pre>
+       %define _myfunc _otherfunc 
+       %define cextern(x) _ %+ x 
+       cextern (myfunc)
+</pre>
+<p>After first expansion, third line will become "_myfunc". After this
+expansion is performed again so it becomes "_otherunc".</p>
+</li>
+<li>
+<p>Now if preprocessor is in a non-emitting state, no warning or error will
+be emitted. Example:</p>
+<pre>
+       %if 1 
+               mov     eax,ebx 
+       %else 
+               put anything you want between these two brackets, 
+               even macro-parameter references %1 or local 
+               labels %$zz or macro-local labels %%zz - no 
+               warning will be emitted. 
+       %endif
+</pre>
+</li>
+<li>
+<p>Context-local variables on expansion as a last resort are looked up in
+outer contexts. For example, the following piece:</p>
+<pre>
+       %push   outer 
+       %define %$a [esp] 
+
+               %push   inner 
+               %$a 
+               %pop 
+       %pop
+</pre>
+<p>will expand correctly the fourth line to [esp]; if we'll define another
+%$a inside the "inner" context, it will take precedence over outer
+definition. However, this modification has been applied only to
+expand_smacro and not to smacro_define: as a consequence expansion looks in
+outer contexts, but <code>%ifdef</code> won't look in outer contexts.</p>
+<p>This behaviour is needed because we don't want nested contexts to act on
+already defined local macros. Example:</p>
+<pre>
+       %define %$arg1  [esp+4] 
+       test    eax,eax 
+       if      nz 
+               mov     eax,%$arg1 
+       endif
+</pre>
+<p>In this example the "if" mmacro enters into the "if" context, so %$arg1
+is not valid anymore inside "if". Of course it could be worked around by
+using explicitely %$$arg1 but this is ugly IMHO.</p>
+</li>
+<li>
+<p>Fixed memory leak in <code>%undef</code>. The origline wasn't freed
+before exiting on success.</p>
+</li>
+<li>
+<p>Fixed trap in preprocessor when line expanded to empty set of tokens.
+This happens, for example, in the following case:</p>
+<pre>
+       #define SOMETHING 
+       SOMETHING
+</pre>
+</li>
+</ul>
+<h4 id="section-C.2.41">C.2.41 Version 0.98</h4>
+<p>All changes since NASM 0.98p3 have been produced by H. Peter Anvin
+&lt;hpa@zytor.com&gt;.</p>
+<ul>
+<li>
+<p>The documentation comment delimiter is</p>
+</li>
+<li>
+<p>Allow EQU definitions to refer to external labels; reported by Pedro
+Gimeno.</p>
+</li>
+<li>
+<p>Re-enable support for RDOFF v1; reported by Pedro Gimeno.</p>
+</li>
+<li>
+<p>Updated License file per OK from Simon and Julian.</p>
+</li>
+</ul>
+<h4 id="section-C.2.42">C.2.42 Version 0.98p9</h4>
+<ul>
+<li>
+<p>Update documentation (although the instruction set reference will have
+to wait; I don't want to hold up the 0.98 release for it.)</p>
+</li>
+<li>
+<p>Verified that the NASM implementation of the PEXTRW and PMOVMSKB
+instructions is correct. The encoding differs from what the Intel manuals
+document, but the Pentium III behaviour matches NASM, not the Intel
+manuals.</p>
+</li>
+<li>
+<p>Fix handling of implicit sizes in PSHUFW and PINSRW, reported by Stefan
+Hoffmeister.</p>
+</li>
+<li>
+<p>Resurrect the &ndash;s option, which was removed when changing the
+diagnostic output to stdout.</p>
+</li>
+</ul>
+<h4 id="section-C.2.43">C.2.43 Version 0.98p8</h4>
+<ul>
+<li>
+<p>Fix for "DB" when NASM is running on a bigendian machine.</p>
+</li>
+<li>
+<p>Invoke insns.pl once for each output script, making Makefile.in legal
+for "make &ndash;j".</p>
+</li>
+<li>
+<p>Improve the Unix configure-based makefiles to make package creation
+easier.</p>
+</li>
+<li>
+<p>Included an RPM .spec file for building RPM (RedHat Package Manager)
+packages on Linux or Unix systems.</p>
+</li>
+<li>
+<p>Fix Makefile dependency problems.</p>
+</li>
+<li>
+<p>Change src/rdsrc.pl to include sectioning information in info output;
+required for install-info to work.</p>
+</li>
+<li>
+<p>Updated the RDOFF distribution to version 2 from Jules; minor massaging
+to make it compile in my environment.</p>
+</li>
+<li>
+<p>Split doc files that can be built by anyone with a Perl interpreter off
+into a separate archive.</p>
+</li>
+<li>
+<p>"Dress rehearsal" release!</p>
+</li>
+</ul>
+<h4 id="section-C.2.44">C.2.44 Version 0.98p7</h4>
+<ul>
+<li>
+<p>Fixed opcodes with a third byte-sized immediate argument to not complain
+if given "byte" on the immediate.</p>
+</li>
+<li>
+<p>Allow <code>%undef</code> to remove single-line macros with arguments.
+This matches the behaviour of #undef in the C preprocessor.</p>
+</li>
+<li>
+<p>Allow &ndash;d, &ndash;u, &ndash;i and &ndash;p to be specified as
+&ndash;D, &ndash;U, &ndash;I and &ndash;P for compatibility with most C
+compilers and preprocessors. This allows Makefile options to be shared
+between cc and nasm, for example.</p>
+</li>
+<li>
+<p>Minor cleanups.</p>
+</li>
+<li>
+<p>Went through the list of Katmai instructions and hopefully fixed the
+(rather few) mistakes in it.</p>
+</li>
+<li>
+<p>(Hopefully) fixed a number of disassembler bugs related to ambiguous
+instructions (disambiguated by &ndash;p) and SSE instructions with REP.</p>
+</li>
+<li>
+<p>Fix for bug reported by Mark Junger: "call dword 0x12345678" should work
+and may add an OSP (affected CALL, JMP, Jcc).</p>
+</li>
+<li>
+<p>Fix for environments when "stderr" isn't a compile-time constant.</p>
+</li>
+</ul>
+<h4 id="section-C.2.45">C.2.45 Version 0.98p6</h4>
+<ul>
+<li>
+<p>Took officially over coordination of the 0.98 release; so drop the p3.x
+notation. Skipped p4 and p5 to avoid confusion with John Fine's J4 and J5
+releases.</p>
+</li>
+<li>
+<p>Update the documentation; however, it still doesn't include
+documentation for the various new instructions. I somehow wonder if it
+makes sense to have an instruction set reference in the assembler manual
+when Intel et al have PDF versions of their manuals online.</p>
+</li>
+<li>
+<p>Recognize "idt" or "centaur" for the &ndash;p option to ndisasm.</p>
+</li>
+<li>
+<p>Changed error messages back to stderr where they belong, but add an
+&ndash;E option to redirect them elsewhere (the DOS shell cannot redirect
+stderr.)</p>
+</li>
+<li>
+<p>&ndash;M option to generate Makefile dependencies (based on code from
+Alex Verstak.)</p>
+</li>
+<li>
+<p><code>%undef</code> preprocessor directive, and &ndash;u option, that
+undefines a single-line macro.</p>
+</li>
+<li>
+<p>OS/2 Makefile (Mkfiles/Makefile.os2) for Borland under OS/2; from Chuck
+Crayne.</p>
+</li>
+<li>
+<p>Various minor bugfixes (reported by): &ndash; Dangling <code>%s</code>
+in preproc.c (Martin Junker)</p>
+</li>
+<li>
+<p>THERE ARE KNOWN BUGS IN SSE AND THE OTHER KATMAI INSTRUCTIONS. I am on a
+trip and didn't bring the Katmai instruction reference, so I can't work on
+them right now.</p>
+</li>
+<li>
+<p>Updated the License file per agreement with Simon and Jules to include a
+GPL distribution clause.</p>
+</li>
+</ul>
+<h4 id="section-C.2.46">C.2.46 Version 0.98p3.7</h4>
+<ul>
+<li>
+<p>(Hopefully) fixed the canned Makefiles to include the outrdf2 and
+zoutieee modules.</p>
+</li>
+<li>
+<p>Renamed changes.asm to changed.asm.</p>
+</li>
+</ul>
+<h4 id="section-C.2.47">C.2.47 Version 0.98p3.6</h4>
+<ul>
+<li>
+<p>Fixed a bunch of instructions that were added in 0.98p3.5 which had
+memory operands, and the address-size prefix was missing from the
+instruction pattern.</p>
+</li>
+</ul>
+<h4 id="section-C.2.48">C.2.48 Version 0.98p3.5</h4>
+<ul>
+<li>
+<p>Merged in changes from John S. Fine's 0.98-J5 release. John's based
+0.98-J5 on my 0.98p3.3 release; this merges the changes.</p>
+</li>
+<li>
+<p>Expanded the instructions flag field to a long so we can fit more flags;
+mark SSE (KNI) and AMD or Katmai-specific instructions as such.</p>
+</li>
+<li>
+<p>Fix the "PRIV" flag on a bunch of instructions, and create new "PROT"
+flag for protected-mode-only instructions (orthogonal to if the instruction
+is privileged!) and new "SMM" flag for SMM-only instructions.</p>
+</li>
+<li>
+<p>Added AMD-only SYSCALL and SYSRET instructions.</p>
+</li>
+<li>
+<p>Make SSE actually work, and add new Katmai MMX instructions.</p>
+</li>
+<li>
+<p>Added a &ndash;p (preferred vendor) option to ndisasm so that it can
+distinguish e.g. Cyrix opcodes also used in SSE. For example:</p>
+<pre>
+     ndisasm -p cyrix aliased.bin 
+     00000000  670F514310        paddsiw mm0,[ebx+0x10] 
+     00000005  670F514320        paddsiw mm0,[ebx+0x20] 
+     ndisasm -p intel aliased.bin 
+     00000000  670F514310        sqrtps xmm0,[ebx+0x10] 
+     00000005  670F514320        sqrtps xmm0,[ebx+0x20]
+</pre>
+</li>
+<li>
+<p>Added a bunch of Cyrix-specific instructions.</p>
+</li>
+</ul>
+<h4 id="section-C.2.49">C.2.49 Version 0.98p3.4</h4>
+<ul>
+<li>
+<p>Made at least an attempt to modify all the additional Makefiles (in the
+Mkfiles directory). I can't test it, but this was the best I could do.</p>
+</li>
+<li>
+<p>DOS DJGPP+"Opus Make" Makefile from John S. Fine.</p>
+</li>
+<li>
+<p>changes.asm changes from John S. Fine.</p>
+</li>
+</ul>
+<h4 id="section-C.2.50">C.2.50 Version 0.98p3.3</h4>
+<ul>
+<li>
+<p>Patch from Conan Brink to allow nesting of <code>%rep</code> directives.</p>
+</li>
+<li>
+<p>If we're going to allow INT01 as an alias for INT1/ICEBP (one of Jules
+0.98p3 changes), then we should allow INT03 as an alias for INT3 as well.</p>
+</li>
+<li>
+<p>Updated changes.asm to include the latest changes.</p>
+</li>
+<li>
+<p>Tried to clean up the &lt;CR&gt;s that had snuck in from a DOS/Windows
+environment into my Unix environment, and try to make sure than DOS/Windows
+users get them back.</p>
+</li>
+<li>
+<p>We would silently generate broken tools if insns.dat wasn't sorted
+properly. Change insns.pl so that the order doesn't matter.</p>
+</li>
+<li>
+<p>Fix bug in insns.pl (introduced by me) which would cause conditional
+instructions to have an extra "cc" in disassembly, e.g. "jnz" disassembled
+as "jccnz".</p>
+</li>
+</ul>
+<h4 id="section-C.2.51">C.2.51 Version 0.98p3.2</h4>
+<ul>
+<li>
+<p>Merged in John S. Fine's changes from his 0.98-J4 prerelease; see
+http://www.csoft.net/cz/johnfine/</p>
+</li>
+<li>
+<p>Changed previous "spotless" Makefile target (appropriate for
+distribution) to "distclean", and added "cleaner" target which is same as
+"clean" except deletes files generated by Perl scripts; "spotless" is
+union.</p>
+</li>
+<li>
+<p>Removed BASIC programs from distribution. Get a Perl interpreter instead
+(see below.)</p>
+</li>
+<li>
+<p>Calling this "pre-release 3.2" rather than "p3-hpa2" because of John's
+contributions.</p>
+</li>
+<li>
+<p>Actually link in the IEEE output format (zoutieee.c); fix a bunch of
+compiler warnings in that file. Note I don't know what IEEE output is
+supposed to look like, so these changes were made "blind".</p>
+</li>
+</ul>
+<h4 id="section-C.2.52">C.2.52 Version 0.98p3-hpa</h4>
+<ul>
+<li>
+<p>Merged nasm098p3.zip with nasm-0.97.tar.gz to create a fully buildable
+version for Unix systems (Makefile.in updates, etc.)</p>
+</li>
+<li>
+<p>Changed insns.pl to create the instruction tables in nasm.h and names.c,
+so that a new instruction can be added by adding it *only* to insns.dat.</p>
+</li>
+<li>
+<p>Added the following new instructions: SYSENTER, SYSEXIT, FXSAVE,
+FXRSTOR, UD1, UD2 (the latter two are two opcodes that Intel guarantee will
+never be used; one of them is documented as UD2 in Intel documentation, the
+other one just as "Undefined Opcode" &ndash;&ndash; calling it UD1 seemed
+to make sense.)</p>
+</li>
+<li>
+<p>MAX_SYMBOL was defined to be 9, but LOADALL286 and LOADALL386 are 10
+characters long. Now MAX_SYMBOL is derived from insns.dat.</p>
+</li>
+<li>
+<p>A note on the BASIC programs included: forget them. insns.bas is already
+out of date. Get yourself a Perl interpreter for your platform of choice at
+<a href="http://www.cpan.org/ports/index.html">http://www.cpan.org/ports/index.html</a>.</p>
+</li>
+</ul>
+<h4 id="section-C.2.53">C.2.53 Version 0.98 pre-release 3</h4>
+<ul>
+<li>
+<p>added response file support, improved command line handling, new layout
+help screen</p>
+</li>
+<li>
+<p>fixed limit checking bug, 'OUT byte nn, reg' bug, and a couple of rdoff
+related bugs, updated Wishlist; 0.98 Prerelease 3.</p>
+</li>
+</ul>
+<h4 id="section-C.2.54">C.2.54 Version 0.98 pre-release 2</h4>
+<ul>
+<li>
+<p>fixed bug in outcoff.c to do with truncating section names longer than 8
+characters, referencing beyond end of string; 0.98 pre-release 2</p>
+</li>
+</ul>
+<h4 id="section-C.2.55">C.2.55 Version 0.98 pre-release 1</h4>
+<ul>
+<li>
+<p>Fixed a bug whereby STRUC didn't work at all in RDF.</p>
+</li>
+<li>
+<p>Fixed a problem with group specification in PUBDEFs in OBJ.</p>
+</li>
+<li>
+<p>Improved ease of adding new output formats. Contribution due to Fox
+Cutter.</p>
+</li>
+<li>
+<p>Fixed a bug in relocations in the `bin' format: was showing up when a
+relocatable reference crossed an 8192-byte boundary in any output section.</p>
+</li>
+<li>
+<p>Fixed a bug in local labels: local-label lookups were inconsistent
+between passes one and two if an EQU occurred between the definition of a
+global label and the subsequent use of a local label local to that global.</p>
+</li>
+<li>
+<p>Fixed a seg-fault in the preprocessor (again) which happened when you
+use a blank line as the first line of a multi-line macro definition and
+then defined a label on the same line as a call to that macro.</p>
+</li>
+<li>
+<p>Fixed a stale-pointer bug in the handling of the NASM environment
+variable. Thanks to Thomas McWilliams.</p>
+</li>
+<li>
+<p>ELF had a hard limit on the number of sections which caused segfaults
+when transgressed. Fixed.</p>
+</li>
+<li>
+<p>Added ability for ndisasm to read from stdin by using `-' as the
+filename.</p>
+</li>
+<li>
+<p>ndisasm wasn't outputting the TO keyword. Fixed.</p>
+</li>
+<li>
+<p>Fixed error cascade on bogus expression in <code>%if</code> &ndash; an
+error in evaluation was causing the entire <code>%if</code> to be
+discarded, thus creating trouble later when the <code>%else</code> or
+<code>%endif</code> was encountered.</p>
+</li>
+<li>
+<p>Forward reference tracking was instruction-granular not operand-
+granular, which was causing 286-specific code to be generated needlessly on
+code of the form `shr word [forwardref],1'. Thanks to Jim Hague for sending
+a patch.</p>
+</li>
+<li>
+<p>All messages now appear on stdout, as sending them to stderr serves no
+useful purpose other than to make redirection difficult.</p>
+</li>
+<li>
+<p>Fixed the problem with EQUs pointing to an external symbol &ndash; this
+now generates an error message.</p>
+</li>
+<li>
+<p>Allowed multiple size prefixes to an operand, of which only the first is
+taken into account.</p>
+</li>
+<li>
+<p>Incorporated John Fine's changes, including fixes of a large number of
+preprocessor bugs, some small problems in OBJ, and a reworking of label
+handling to define labels before their line is assembled, rather than
+after.</p>
+</li>
+<li>
+<p>Reformatted a lot of the source code to be more readable. Included
+'coding.txt' as a guideline for how to format code for contributors.</p>
+</li>
+<li>
+<p>Stopped nested <code>%reps</code> causing a panic &ndash; they now cause
+a slightly more friendly error message instead.</p>
+</li>
+<li>
+<p>Fixed floating point constant problems (patch by Pedro Gimeno)</p>
+</li>
+<li>
+<p>Fixed the return value of insn_size() not being checked for &ndash;1,
+indicating an error.</p>
+</li>
+<li>
+<p>Incorporated 3Dnow! instructions.</p>
+</li>
+<li>
+<p>Fixed the 'mov eax, eax + ebx' bug.</p>
+</li>
+<li>
+<p>Fixed the GLOBAL EQU bug in ELF. Released developers release 3.</p>
+</li>
+<li>
+<p>Incorporated John Fine's command line parsing changes</p>
+</li>
+<li>
+<p>Incorporated David Lindauer's OMF debug support</p>
+</li>
+<li>
+<p>Made changes for LCC 4.0 support (<code>__NASM_CDecl__</code>, removed
+register size specification warning when sizes agree).</p>
+</li>
+</ul>
+<h3 id="section-C.3">C.3 NASM 0.9 Series</h3>
+<p>Revisions before 0.98.</p>
+<h4 id="section-C.3.1">C.3.1 Version 0.97 released December 1997</h4>
+<ul>
+<li>
+<p>This was entirely a bug-fix release to 0.96, which seems to have got
+cursed. Silly me.</p>
+</li>
+<li>
+<p>Fixed stupid mistake in OBJ which caused `MOV EAX,&lt;constant&gt;' to
+fail. Caused by an error in the `MOV EAX,&lt;segment&gt;' support.</p>
+</li>
+<li>
+<p>ndisasm hung at EOF when compiled with lcc on Linux because lcc on Linux
+somehow breaks feof(). ndisasm now does not rely on feof().</p>
+</li>
+<li>
+<p>A heading in the documentation was missing due to a markup error in the
+indexing. Fixed.</p>
+</li>
+<li>
+<p>Fixed failure to update all pointers on realloc() within extended-
+operand code in parser.c. Was causing wrong behaviour and seg faults on
+lines such as `dd 0.0,0.0,0.0,0.0,...'</p>
+</li>
+<li>
+<p>Fixed a subtle preprocessor bug whereby invoking one multi-line macro on
+the first line of the expansion of another, when the second had been
+invoked with a label defined before it, didn't expand the inner macro.</p>
+</li>
+<li>
+<p>Added internal.doc back in to the distribution archives &ndash; it was
+missing in 0.96 *blush*</p>
+</li>
+<li>
+<p>Fixed bug causing 0.96 to be unable to assemble its own test files,
+specifically objtest.asm. *blush again*</p>
+</li>
+<li>
+<p>Fixed seg-faults and bogus error messages caused by mismatching
+<code>%rep</code> and <code>%endrep</code> within multi-line macro
+definitions.</p>
+</li>
+<li>
+<p>Fixed a problem with buffer overrun in OBJ, which was causing corruption
+at ends of long PUBDEF records.</p>
+</li>
+<li>
+<p>Separated DOS archives into main-program and documentation to reduce
+download size.</p>
+</li>
+</ul>
+<h4 id="section-C.3.2">C.3.2 Version 0.96 released November 1997</h4>
+<ul>
+<li>
+<p>Fixed a bug whereby, if `nasm sourcefile' would cause a filename
+collision warning and put output into `nasm.out', then `nasm sourcefile
+&ndash;o outputfile' still gave the warning even though the `-o' was
+honoured. Fixed name pollution under Digital UNIX: one of its header files
+defined R_SP, which broke the enum in nasm.h.</p>
+</li>
+<li>
+<p>Fixed minor instruction table problems: FUCOM and FUCOMP didn't have
+two-operand forms; NDISASM didn't recognise the longer register forms of
+PUSH and POP (eg FF F3 for PUSH BX); TEST mem,imm32 was flagged as
+undocumented; the 32-bit forms of CMOV had 16-bit operand size prefixes;
+`AAD imm' and `AAM imm' are no longer flagged as undocumented because the
+Intel Architecture reference documents them.</p>
+</li>
+<li>
+<p>Fixed a problem with the local-label mechanism, whereby strange types of
+symbol (EQUs, auto-defined OBJ segment base symbols) interfered with the
+`previous global label' value and screwed up local labels.</p>
+</li>
+<li>
+<p>Fixed a bug whereby the stub preprocessor didn't communicate with the
+listing file generator, so that the &ndash;a and &ndash;l options in
+conjunction would produce a useless listing file.</p>
+</li>
+<li>
+<p>Merged `os2' object file format back into `obj', after discovering that
+`obj' _also_ shouldn't have a link pass separator in a module containing a
+non-trivial MODEND. Flat segments are now declared using the FLAT
+attribute. `os2' is no longer a valid object format name: use `obj'.</p>
+</li>
+<li>
+<p>Removed the fixed-size temporary storage in the evaluator. Very very
+long expressions (like `mov ax,1+1+1+1+...' for two hundred 1s or so)
+should now no longer crash NASM.</p>
+</li>
+<li>
+<p>Fixed a bug involving segfaults on disassembly of MMX instructions, by
+changing the meaning of one of the operand-type flags in nasm.h. This may
+cause other apparently unrelated MMX problems; it needs to be tested
+thoroughly.</p>
+</li>
+<li>
+<p>Fixed some buffer overrun problems with large OBJ output files. Thanks
+to DJ Delorie for the bug report and fix.</p>
+</li>
+<li>
+<p>Made preprocess-only mode actually listen to the <code>%line</code>
+markers as it prints them, so that it can report errors more sanely.</p>
+</li>
+<li>
+<p>Re-designed the evaluator to keep more sensible track of expressions
+involving forward references: can now cope with previously-nightmare
+situations such as:</p>
+<pre>
+  mov ax,foo | bar 
+  foo equ 1 
+  bar equ 2
+</pre>
+</li>
+<li>
+<p>Added the ALIGN and ALIGNB standard macros.</p>
+</li>
+<li>
+<p>Added PIC support in ELF: use of WRT to obtain the four extra relocation
+types needed.</p>
+</li>
+<li>
+<p>Added the ability for output file formats to define their own extensions
+to the GLOBAL, COMMON and EXTERN directives.</p>
+</li>
+<li>
+<p>Implemented common-variable alignment, and global-symbol type and size
+declarations, in ELF.</p>
+</li>
+<li>
+<p>Implemented NEAR and FAR keywords for common variables, plus far-common
+element size specification, in OBJ.</p>
+</li>
+<li>
+<p>Added a feature whereby EXTERNs and COMMONs in OBJ can be given a
+default WRT specification (either a segment or a group).</p>
+</li>
+<li>
+<p>Transformed the Unix NASM archive into an auto-configuring package.</p>
+</li>
+<li>
+<p>Added a sanity-check for people applying SEG to things which are already
+segment bases: this previously went unnoticed by the SEG processing and
+caused OBJ-driver panics later.</p>
+</li>
+<li>
+<p>Added the ability, in OBJ format, to deal with `MOV EAX,&lt;segment&gt;'
+type references: OBJ doesn't directly support dword-size segment base
+fixups, but as long as the low two bytes of the constant term are zero, a
+word-size fixup can be generated instead and it will work.</p>
+</li>
+<li>
+<p>Added the ability to specify sections' alignment requirements in Win32
+object files and pure binary files.</p>
+</li>
+<li>
+<p>Added preprocess-time expression evaluation: the <code>%assign</code>
+(and <code>%iassign</code>) directive and the bare <code>%if</code> (and
+<code>%elif</code>) conditional. Added relational operators to the
+evaluator, for use only in <code>%if</code> constructs: the standard
+relationals = &lt; &gt; &lt;= &gt;= &lt;&gt; (and C-like synonyms == and
+!=) plus low-precedence logical operators &amp;&amp;, ^^ and ||.</p>
+</li>
+<li>
+<p>Added a preprocessor repeat construct: <code>%rep</code> /
+<code>%exitrep</code> / <code>%endrep</code>.</p>
+</li>
+<li>
+<p>Added the __FILE__ and __LINE__ standard macros.</p>
+</li>
+<li>
+<p>Added a sanity check for number constants being greater than 0xFFFFFFFF.
+The warning can be disabled.</p>
+</li>
+<li>
+<p>Added the %0 token whereby a variadic multi-line macro can tell how many
+parameters it's been given in a specific invocation.</p>
+</li>
+<li>
+<p>Added <code>%rotate</code>, allowing multi-line macro parameters to be
+cycled.</p>
+</li>
+<li>
+<p>Added the `*' option for the maximum parameter count on multi-line
+macros, allowing them to take arbitrarily many parameters.</p>
+</li>
+<li>
+<p>Added the ability for the user-level forms of EXTERN, GLOBAL and COMMON
+to take more than one argument.</p>
+</li>
+<li>
+<p>Added the IMPORT and EXPORT directives in OBJ format, to deal with
+Windows DLLs.</p>
+</li>
+<li>
+<p>Added some more preprocessor <code>%if</code> constructs:
+<code>%ifidn</code> / <code>%ifidni</code> (exact textual identity), and
+<code>%ifid</code> / <code>%ifnum</code> / <code>%ifstr</code> (token type
+testing).</p>
+</li>
+<li>
+<p>Added the ability to distinguish SHL AX,1 (the 8086 version) from SHL
+AX,BYTE 1 (the 286-and-upwards version whose constant happens to be 1).</p>
+</li>
+<li>
+<p>Added NetBSD/FreeBSD/OpenBSD's variant of a.out format, complete with
+PIC shared library features.</p>
+</li>
+<li>
+<p>Changed NASM's idiosyncratic handling of FCLEX, FDISI, FENI, FINIT,
+FSAVE, FSTCW, FSTENV, and FSTSW to bring it into line with the otherwise
+accepted standard. The previous behaviour, though it was a deliberate
+feature, was a deliberate feature based on a misunderstanding. Apologies
+for the inconvenience.</p>
+</li>
+<li>
+<p>Improved the flexibility of ABSOLUTE: you can now give it an expression
+rather than being restricted to a constant, and it can take relocatable
+arguments as well.</p>
+</li>
+<li>
+<p>Added the ability for a variable to be declared as EXTERN multiple
+times, and the subsequent definitions are just ignored.</p>
+</li>
+<li>
+<p>We now allow instruction prefixes (CS, DS, LOCK, REPZ etc) to be alone
+on a line (without a following instruction).</p>
+</li>
+<li>
+<p>Improved sanity checks on whether the arguments to EXTERN, GLOBAL and
+COMMON are valid identifiers.</p>
+</li>
+<li>
+<p>Added misc/exebin.mac to allow direct generation of .EXE files by
+hacking up an EXE header using DB and DW; also added test/binexe.asm to
+demonstrate the use of this. Thanks to Yann Guidon for contributing the EXE
+header code.</p>
+</li>
+<li>
+<p>ndisasm forgot to check whether the input file had been successfully
+opened. Now it does. Doh!</p>
+</li>
+<li>
+<p>Added the Cyrix extensions to the MMX instruction set.</p>
+</li>
+<li>
+<p>Added a hinting mechanism to allow [EAX+EBX] and [EBX+EAX] to be
+assembled differently. This is important since [ESI+EBP] and [EBP+ESI] have
+different default base segment registers.</p>
+</li>
+<li>
+<p>Added support for the PharLap OMF extension for 4096-byte segment
+alignment.</p>
+</li>
+</ul>
+<h4 id="section-C.3.3">C.3.3 Version 0.95 released July 1997</h4>
+<ul>
+<li>
+<p>Fixed yet another ELF bug. This one manifested if the user relied on the
+default segment, and attempted to define global symbols without first
+explicitly declaring the target segment.</p>
+</li>
+<li>
+<p>Added makefiles (for NASM and the RDF tools) to build Win32 console apps
+under Symantec C++. Donated by Mark Junker.</p>
+</li>
+<li>
+<p>Added `macros.bas' and `insns.bas', QBasic versions of the Perl scripts
+that convert `standard.mac' to `macros.c' and convert `insns.dat' to
+`insnsa.c' and `insnsd.c'. Also thanks to Mark Junker.</p>
+</li>
+<li>
+<p>Changed the diassembled forms of the conditional instructions so that JB
+is now emitted as JC, and other similar changes. Suggested list by Ulrich
+Doewich.</p>
+</li>
+<li>
+<p>Added `@' to the list of valid characters to begin an identifier with.</p>
+</li>
+<li>
+<p>Documentary changes, notably the addition of the `Common Problems'
+section in nasm.doc.</p>
+</li>
+<li>
+<p>Fixed a bug relating to 32-bit PC-relative fixups in OBJ.</p>
+</li>
+<li>
+<p>Fixed a bug in perm_copy() in labels.c which was causing exceptions in
+cleanup_labels() on some systems.</p>
+</li>
+<li>
+<p>Positivity sanity check in TIMES argument changed from a warning to an
+error following a further complaint.</p>
+</li>
+<li>
+<p>Changed the acceptable limits on byte and word operands to allow things
+like `~10111001b' to work.</p>
+</li>
+<li>
+<p>Fixed a major problem in the preprocessor which caused seg-faults if
+macro definitions contained blank lines or comment-only lines.</p>
+</li>
+<li>
+<p>Fixed inadequate error checking on the commas separating the arguments
+to `db', `dw' etc.</p>
+</li>
+<li>
+<p>Fixed a crippling bug in the handling of macros with operand counts
+defined with a `+' modifier.</p>
+</li>
+<li>
+<p>Fixed a bug whereby object file formats which stored the input file name
+in the output file (such as OBJ and COFF) weren't doing so correctly when
+the output file name was specified on the command line.</p>
+</li>
+<li>
+<p>Removed [INC] and [INCLUDE] support for good, since they were obsolete
+anyway.</p>
+</li>
+<li>
+<p>Fixed a bug in OBJ which caused all fixups to be output in 16-bit
+(old-format) FIXUPP records, rather than putting the 32-bit ones in
+FIXUPP32 (new-format) records.</p>
+</li>
+<li>
+<p>Added, tentatively, OS/2 object file support (as a minor variant on
+OBJ).</p>
+</li>
+<li>
+<p>Updates to Fox Cutter's Borland C makefile, Makefile.bc2.</p>
+</li>
+<li>
+<p>Removed a spurious second fclose() on the output file.</p>
+</li>
+<li>
+<p>Added the `-s' command line option to redirect all messages which would
+go to stderr (errors, help text) to stdout instead.</p>
+</li>
+<li>
+<p>Added the `-w' command line option to selectively suppress some classes
+of assembly warning messages.</p>
+</li>
+<li>
+<p>Added the `-p' pre-include and `-d' pre-define command-line options.</p>
+</li>
+<li>
+<p>Added an include file search path: the `-i' command line option.</p>
+</li>
+<li>
+<p>Fixed a silly little preprocessor bug whereby starting a line with a
+`%!' environment-variable reference caused an `unknown directive' error.</p>
+</li>
+<li>
+<p>Added the long-awaited listing file support: the `-l' command line
+option.</p>
+</li>
+<li>
+<p>Fixed a problem with OBJ format whereby, in the absence of any explicit
+segment definition, non-global symbols declared in the implicit default
+segment generated spurious EXTDEF records in the output.</p>
+</li>
+<li>
+<p>Added the NASM environment variable.</p>
+</li>
+<li>
+<p>From this version forward, Win32 console-mode binaries will be included
+in the DOS distribution in addition to the 16-bit binaries. Added
+Makefile.vc for this purpose.</p>
+</li>
+<li>
+<p>Added `return 0;' to test/objlink.c to prevent compiler warnings.</p>
+</li>
+<li>
+<p>Added the __NASM_MAJOR__ and __NASM_MINOR__ standard defines.</p>
+</li>
+<li>
+<p>Added an alternative memory-reference syntax in which prefixing an
+operand with `&amp;' is equivalent to enclosing it in square brackets, at
+the request of Fox Cutter.</p>
+</li>
+<li>
+<p>Errors in pass two now cause the program to return a non-zero error
+code, which they didn't before.</p>
+</li>
+<li>
+<p>Fixed the single-line macro cycle detection, which didn't work at all on
+macros with no parameters (caused an infinite loop). Also changed the
+behaviour of single-line macro cycle detection to work like cpp, so that
+macros like `extrn' as given in the documentation can be implemented.</p>
+</li>
+<li>
+<p>Fixed the implementation of WRT, which was too restrictive in that you
+couldn't do `mov ax,[di+abc wrt dgroup]' because (di+abc) wasn't a
+relocatable reference.</p>
+</li>
+</ul>
+<h4 id="section-C.3.4">C.3.4 Version 0.94 released April 1997</h4>
+<ul>
+<li>
+<p>Major item: added the macro processor.</p>
+</li>
+<li>
+<p>Added undocumented instructions SMI, IBTS, XBTS and LOADALL286. Also
+reorganised CMPXCHG instruction into early-486 and Pentium forms. Thanks to
+Thobias Jones for the information.</p>
+</li>
+<li>
+<p>Fixed two more stupid bugs in ELF, which were causing `ld' to continue
+to seg-fault in a lot of non-trivial cases.</p>
+</li>
+<li>
+<p>Fixed a seg-fault in the label manager.</p>
+</li>
+<li>
+<p>Stopped FBLD and FBSTP from _requiring_ the TWORD keyword, which is the
+only option for BCD loads/stores in any case.</p>
+</li>
+<li>
+<p>Ensured FLDCW, FSTCW and FSTSW can cope with the WORD keyword, if anyone
+bothers to provide it. Previously they complained unless no keyword at all
+was present.</p>
+</li>
+<li>
+<p>Some forms of FDIV/FDIVR and FSUB/FSUBR were still inverted: a vestige
+of a bug that I thought had been fixed in 0.92. This was fixed, hopefully
+for good this time...</p>
+</li>
+<li>
+<p>Another minor phase error (insofar as a phase error can _ever_ be minor)
+fixed, this one occurring in code of the form</p>
+<pre>
+  rol ax,forward_reference 
+  forward_reference equ 1
+</pre>
+</li>
+<li>
+<p>The number supplied to TIMES is now sanity-checked for positivity, and
+also may be greater than 64K (which previously didn't work on 16-bit
+systems).</p>
+</li>
+<li>
+<p>Added Watcom C makefiles, and misc/pmw.bat, donated by Dominik Behr.</p>
+</li>
+<li>
+<p>Added the INCBIN pseudo-opcode.</p>
+</li>
+<li>
+<p>Due to the advent of the preprocessor, the [INCLUDE] and [INC]
+directives have become obsolete. They are still supported in this version,
+with a warning, but won't be in the next.</p>
+</li>
+<li>
+<p>Fixed a bug in OBJ format, which caused incorrect object records to be
+output when absolute labels were made global.</p>
+</li>
+<li>
+<p>Updates to RDOFF subdirectory, and changes to outrdf.c.</p>
+</li>
+</ul>
+<h4 id="section-C.3.5">C.3.5 Version 0.93 released January 1997</h4>
+<p>This release went out in a great hurry after semi-crippling bugs were
+found in 0.92.</p>
+<ul>
+<li>
+<p>Really <em>did</em> fix the stack overflows this time. *blush*</p>
+</li>
+<li>
+<p>Had problems with EA instruction sizes changing between passes, when an
+offset contained a forward reference and so 4 bytes were allocated for the
+offset in pass one; by pass two the symbol had been defined and happened to
+be a small absolute value, so only 1 byte got allocated, causing
+instruction size mismatch between passes and hence incorrect address
+calculations. Fixed.</p>
+</li>
+<li>
+<p>Stupid bug in the revised ELF section generation fixed (associated
+string-table section for .symtab was hard-coded as 7, even when this didn't
+fit with the real section table). Was causing `ld' to seg-fault under
+Linux.</p>
+</li>
+<li>
+<p>Included a new Borland C makefile, Makefile.bc2, donated by Fox Cutter
+&lt;lmb@comtch.iea.com&gt;.</p>
+</li>
+</ul>
+<h4 id="section-C.3.6">C.3.6 Version 0.92 released January 1997</h4>
+<ul>
+<li>
+<p>The FDIVP/FDIVRP and FSUBP/FSUBRP pairs had been inverted: this was
+fixed. This also affected the LCC driver.</p>
+</li>
+<li>
+<p>Fixed a bug regarding 32-bit effective addresses of the form
+<code>[other_register+ESP]</code>.</p>
+</li>
+<li>
+<p>Documentary changes, notably documentation of the fact that Borland
+Win32 compilers use `obj' rather than `win32' object format.</p>
+</li>
+<li>
+<p>Fixed the COMENT record in OBJ files, which was formatted incorrectly.</p>
+</li>
+<li>
+<p>Fixed a bug causing segfaults in large RDF files.</p>
+</li>
+<li>
+<p>OBJ format now strips initial periods from segment and group
+definitions, in order to avoid complications with the local label syntax.</p>
+</li>
+<li>
+<p>Fixed a bug in disassembling far calls and jumps in NDISASM.</p>
+</li>
+<li>
+<p>Added support for user-defined sections in COFF and ELF files.</p>
+</li>
+<li>
+<p>Compiled the DOS binaries with a sensible amount of stack, to prevent
+stack overflows on any arithmetic expression containing parentheses.</p>
+</li>
+<li>
+<p>Fixed a bug in handling of files that do not terminate in a newline.</p>
+</li>
+</ul>
+<h4 id="section-C.3.7">C.3.7 Version 0.91 released November 1996</h4>
+<ul>
+<li>
+<p>Loads of bug fixes.</p>
+</li>
+<li>
+<p>Support for RDF added.</p>
+</li>
+<li>
+<p>Support for DBG debugging format added.</p>
+</li>
+<li>
+<p>Support for 32-bit extensions to Microsoft OBJ format added.</p>
+</li>
+<li>
+<p>Revised for Borland C: some variable names changed, makefile added.</p>
+</li>
+<li>
+<p>LCC support revised to actually work.</p>
+</li>
+<li>
+<p>JMP/CALL NEAR/FAR notation added.</p>
+</li>
+<li>
+<p>`a16', `o16', `a32' and `o32' prefixes added.</p>
+</li>
+<li>
+<p>Range checking on short jumps implemented.</p>
+</li>
+<li>
+<p>MMX instruction support added.</p>
+</li>
+<li>
+<p>Negative floating point constant support added.</p>
+</li>
+<li>
+<p>Memory handling improved to bypass 64K barrier under DOS.</p>
+</li>
+<li>
+<p><code>$</code> prefix to force treatment of reserved words as
+identifiers added.</p>
+</li>
+<li>
+<p>Default-size mechanism for object formats added.</p>
+</li>
+<li>
+<p>Compile-time configurability added.</p>
+</li>
+<li>
+<p><code>#</code>, <code>@</code>, <code>~</code> and c{?} are now valid
+characters in labels.</p>
+</li>
+<li>
+<p><code>-e</code> and <code>-k</code> options in NDISASM added.</p>
+</li>
+</ul>
+<h4 id="section-C.3.8">C.3.8 Version 0.90 released October 1996</h4>
+<p>First release version. First support for object file output. Other
+changes from previous version (0.3x) too numerous to document.</p>
+</div>
+</body>
+</html>

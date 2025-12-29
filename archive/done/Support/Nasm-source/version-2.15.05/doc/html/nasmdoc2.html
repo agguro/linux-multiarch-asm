@@ -1,0 +1,1048 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NASM - The Netwide Assembler</title>
+<link href="nasmdoc.css" rel="stylesheet" type="text/css" />
+<link href="local.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<ul class="navbar">
+<li class="first"><a class="prev" href="nasmdoc1.html">Chapter 1</a></li>
+<li><a class="next" href="nasmdoc3.html">Chapter 3</a></li>
+<li><a class="toc" href="nasmdoc0.html">Contents</a></li>
+<li class="last"><a class="index" href="nasmdoci.html">Index</a></li>
+</ul>
+<div class="title">
+<h1>NASM - The Netwide Assembler</h1>
+<span class="subtitle">version 2.15.05</span>
+</div>
+<div class="contents"
+>
+<h2 id="chapter-2">Chapter 2: Running NASM</h2>
+<h3 id="section-2.1">2.1 NASM Command-Line Syntax</h3>
+<p>To assemble a file, you issue a command of the form</p>
+<pre>
+nasm -f &lt;format&gt; &lt;filename&gt; [-o &lt;output&gt;]
+</pre>
+<p>For example,</p>
+<pre>
+nasm -f elf myfile.asm
+</pre>
+<p>will assemble <code>myfile.asm</code> into an ELF object file
+<code>myfile.o</code>. And</p>
+<pre>
+nasm -f bin myfile.asm -o myfile.com
+</pre>
+<p>will assemble <code>myfile.asm</code> into a raw binary file
+<code>myfile.com</code>.</p>
+<p>To produce a listing file, with the hex codes output from NASM displayed
+on the left of the original sources, use the <code>-l</code> option to give
+a listing file name, for example:</p>
+<pre>
+nasm -f coff myfile.asm -l myfile.lst
+</pre>
+<p>To get further usage instructions from NASM, try typing</p>
+<pre>
+nasm -h
+</pre>
+<p>The option <code>--help</code> is an alias for the <code>-h</code>
+option.</p>
+<p>If you use Linux but aren't sure whether your system is
+<code>a.out</code> or ELF, type</p>
+<pre>
+file nasm
+</pre>
+<p>(in the directory in which you put the NASM binary when you installed
+it). If it says something like</p>
+<pre>
+nasm: ELF 32-bit LSB executable i386 (386 and up) Version 1
+</pre>
+<p>then your system is <code>ELF</code>, and you should use the option
+<code>-f elf</code> when you want NASM to produce Linux object files. If it
+says</p>
+<pre>
+nasm: Linux/i386 demand-paged executable (QMAGIC)
+</pre>
+<p>or something similar, your system is <code>a.out</code>, and you should
+use <code>-f aout</code> instead (Linux <code>a.out</code> systems have
+long been obsolete, and are rare these days.)</p>
+<p>Like Unix compilers and assemblers, NASM is silent unless it goes wrong:
+you won't see any output at all, unless it gives error messages.</p>
+<h4 id="section-2.1.1">2.1.1 The <code>-o</code> Option: Specifying the Output File Name</h4>
+<p>NASM will normally choose the name of your output file for you;
+precisely how it does this is dependent on the object file format. For
+Microsoft object file formats (<code>obj</code>, <code>win32</code> and
+<code>win64</code>), it will remove the <code>.asm</code> extension (or
+whatever extension you like to use &ndash; NASM doesn't care) from your
+source file name and substitute <code>.obj</code>. For Unix object file
+formats (<code>aout</code>, <code>as86</code>, <code>coff</code>,
+<code>elf32</code>, <code>elf64</code>, <code>elfx32</code>,
+<code>ieee</code>, <code>macho32</code> and <code>macho64</code>) it will
+substitute <code>.o</code>. For <code>dbg</code>, <code>rdf</code>,
+<code>ith</code> and <code>srec</code>, it will use <code>.dbg</code>,
+<code>.rdf</code>, <code>.ith</code> and <code>.srec</code>, respectively,
+and for the <code>bin</code> format it will simply remove the extension, so
+that <code>myfile.asm</code> produces the output file <code>myfile</code>.</p>
+<p>If the output file already exists, NASM will overwrite it, unless it has
+the same name as the input file, in which case it will give a warning and
+use <code>nasm.out</code> as the output file name instead.</p>
+<p>For situations in which this behaviour is unacceptable, NASM provides
+the <code>-o</code> command-line option, which allows you to specify your
+desired output file name. You invoke <code>-o</code> by following it with
+the name you wish for the output file, either with or without an
+intervening space. For example:</p>
+<pre>
+nasm -f bin program.asm -o program.com 
+nasm -f bin driver.asm -odriver.sys
+</pre>
+<p>Note that this is a small o, and is different from a capital O , which
+is used to specify the number of optimization passes required. See
+<a href="#section-2.1.24">section 2.1.24</a>.</p>
+<h4 id="section-2.1.2">2.1.2 The <code>-f</code> Option: Specifying the Output File Format</h4>
+<p>If you do not supply the <code>-f</code> option to NASM, it will choose
+an output file format for you itself. In the distribution versions of NASM,
+the default is always <code>bin</code>; if you've compiled your own copy of
+NASM, you can redefine <code>OF_DEFAULT</code> at compile time and choose
+what you want the default to be.</p>
+<p>Like <code>-o</code>, the intervening space between <code>-f</code> and
+the output file format is optional; so <code>-f elf</code> and
+<code>-felf</code> are both valid.</p>
+<p>A complete list of the available output file formats can be given by
+issuing the command <code>nasm -h</code>.</p>
+<h4 id="section-2.1.3">2.1.3 The <code>-l</code> Option: Generating a Listing File</h4>
+<p>If you supply the <code>-l</code> option to NASM, followed (with the
+usual optional space) by a file name, NASM will generate a source-listing
+file for you, in which addresses and generated code are listed on the left,
+and the actual source code, with expansions of multi-line macros (except
+those which specifically request no expansion in source listings: see
+<a href="nasmdoc4.html#section-4.3.11">section 4.3.11</a>) on the right.
+For example:</p>
+<pre>
+nasm -f elf myfile.asm -l myfile.lst
+</pre>
+<p>If a list file is selected, you may turn off listing for a section of
+your source with <code>[list -]</code>, and turn it back on with
+<code>[list +]</code>, (the default, obviously). There is no "user form"
+(without the brackets). This can be used to list only sections of interest,
+avoiding excessively long listings.</p>
+<h4 id="section-2.1.4">2.1.4 The <code>-L</code> Option: Additional or Modified Listing Info</h4>
+<p>Use this option to specify listing output details.</p>
+<p>Supported options are:</p>
+<ul>
+<li>
+<p><code>-Lb</code> show builtin macro packages (standard and
+<code>%use</code>)</p>
+</li>
+<li>
+<p><code>-Ld</code> show byte and repeat counts in decimal, not hex</p>
+</li>
+<li>
+<p><code>-Le</code> show the preprocessed input</p>
+</li>
+<li>
+<p><code>-Lf</code> ignore <code>.nolist</code> and force listing output</p>
+</li>
+<li>
+<p><code>-Lm</code> show multi-line macro calls with expanded parameters</p>
+</li>
+<li>
+<p><code>-Lp</code> output a list file in every pass, in case of errors</p>
+</li>
+<li>
+<p><code>-Ls</code> show all single-line macro definitions</p>
+</li>
+<li>
+<p><code>-Lw</code> flush the output after every line (very slow, mainly
+useful to debug NASM crashes)</p>
+</li>
+<li>
+<p><code>-L+</code> enable <em>all</em> listing options except
+<code>-Lw</code> (very verbose)</p>
+</li>
+</ul>
+<p>These options can be enabled or disabled at runtime using the
+<code>%pragma list options</code> directive:</p>
+<pre>
+%pragma list options [+|-]flags...
+</pre>
+<p>For example, to turn on the <code>d</code> and <code>m</code> flags but
+disable the <code>s</code> flag:</p>
+<pre>
+%pragma list options +dm -s
+</pre>
+<p>For forward compatility reasons, an undefined flag will be ignored.
+Thus, a new flag introduced in a newer version of NASM can be specified
+without breaking older versions. Listing flags will always be a single
+alphanumeric character and are case sensitive.</p>
+<h4 id="section-2.1.5">2.1.5 The <code>-M</code> Option: Generate Makefile Dependencies</h4>
+<p>This option can be used to generate makefile dependencies on stdout.
+This can be redirected to a file for further processing. For example:</p>
+<pre>
+nasm -M myfile.asm &gt; myfile.dep
+</pre>
+<h4 id="section-2.1.6">2.1.6 The <code>-MG</code> Option: Generate Makefile Dependencies</h4>
+<p>This option can be used to generate makefile dependencies on stdout.
+This differs from the <code>-M</code> option in that if a nonexisting file
+is encountered, it is assumed to be a generated file and is added to the
+dependency list without a prefix.</p>
+<h4 id="section-2.1.7">2.1.7 The <code>-MF</code> Option: Set Makefile Dependency File</h4>
+<p>This option can be used with the <code>-M</code> or <code>-MG</code>
+options to send the output to a file, rather than to stdout. For example:</p>
+<pre>
+nasm -M -MF myfile.dep myfile.asm
+</pre>
+<h4 id="section-2.1.8">2.1.8 The <code>-MD</code> Option: Assemble and Generate Dependencies</h4>
+<p>The <code>-MD</code> option acts as the combination of the
+<code>-M</code> and <code>-MF</code> options (i.e. a filename has to be
+specified.) However, unlike the <code>-M</code> or <code>-MG</code>
+options, <code>-MD</code> does <em>not</em> inhibit the normal operation of
+the assembler. Use this to automatically generate updated dependencies with
+every assembly session. For example:</p>
+<pre>
+nasm -f elf -o myfile.o -MD myfile.dep myfile.asm
+</pre>
+<p>If the argument after <code>-MD</code> is an option rather than a
+filename, then the output filename is the first applicable one of:</p>
+<ul>
+<li>
+<p>the filename set in the <code>-MF</code> option;</p>
+</li>
+<li>
+<p>the output filename from the <code>-o</code> option with <code>.d</code>
+appended;</p>
+</li>
+<li>
+<p>the input filename with the extension set to <code>.d</code>.</p>
+</li>
+</ul>
+<h4 id="section-2.1.9">2.1.9 The <code>-MT</code> Option: Dependency Target Name</h4>
+<p>The <code>-MT</code> option can be used to override the default name of
+the dependency target. This is normally the same as the output filename,
+specified by the <code>-o</code> option.</p>
+<h4 id="section-2.1.10">2.1.10 The <code>-MQ</code> Option: Dependency Target Name (Quoted)</h4>
+<p>The <code>-MQ</code> option acts as the <code>-MT</code> option, except
+it tries to quote characters that have special meaning in Makefile syntax.
+This is not foolproof, as not all characters with special meaning are
+quotable in Make. The default output (if no <code>-MT</code> or
+<code>-MQ</code> option is specified) is automatically quoted.</p>
+<h4 id="section-2.1.11">2.1.11 The <code>-MP</code> Option: Emit phony targets</h4>
+<p>When used with any of the dependency generation options, the
+<code>-MP</code> option causes NASM to emit a phony target without
+dependencies for each header file. This prevents Make from complaining if a
+header file has been removed.</p>
+<h4 id="section-2.1.12">2.1.12 The <code>-MW</code> Option: Watcom Make quoting style</h4>
+<p>This option causes NASM to attempt to quote dependencies according to
+Watcom Make conventions rather than POSIX Make conventions (also used by
+most other Make variants.) This quotes <code>#</code> as <code>$#</code>
+rather than <code>\#</code>, uses <code>&amp;</code> rather than
+<code>\</code> for continuation lines, and encloses filenames containing
+whitespace in double quotes.</p>
+<h4 id="section-2.1.13">2.1.13 The <code>-F</code> Option: Selecting a Debug Information Format</h4>
+<p>This option is used to select the format of the debug information
+emitted into the output file, to be used by a debugger (or <em>will</em>
+be). Prior to version 2.03.01, the use of this switch did <em>not</em>
+enable output of the selected debug info format. Use <code>-g</code>, see
+<a href="#section-2.1.14">section 2.1.14</a>, to enable output. Versions
+2.03.01 and later automatically enable <code>-g</code> if <code>-F</code>
+is specified.</p>
+<p>A complete list of the available debug file formats for an output format
+can be seen by issuing the command <code>nasm -h</code>. Not all output
+formats currently support debugging output.</p>
+<p>This should not be confused with the <code>-f dbg</code> output format
+option, see <a href="nasmdoc8.html#section-8.14">section 8.14</a>.</p>
+<h4 id="section-2.1.14">2.1.14 The <code>-g</code> Option: Enabling Debug Information.</h4>
+<p>This option can be used to generate debugging information in the
+specified format. See <a href="#section-2.1.13">section 2.1.13</a>. Using
+<code>-g</code> without <code>-F</code> results in emitting debug info in
+the default format, if any, for the selected output format. If no debug
+information is currently implemented in the selected output format,
+<code>-g</code> is <em>silently ignored</em>.</p>
+<h4 id="section-2.1.15">2.1.15 The <code>-X</code> Option: Selecting an Error Reporting Format</h4>
+<p>This option can be used to select an error reporting format for any
+error messages that might be produced by NASM.</p>
+<p>Currently, two error reporting formats may be selected. They are the
+<code>-Xvc</code> option and the <code>-Xgnu</code> option. The GNU format
+is the default and looks like this:</p>
+<pre>
+filename.asm:65: error: specific error message
+</pre>
+<p>where <code>filename.asm</code> is the name of the source file in which
+the error was detected, <code>65</code> is the source file line number on
+which the error was detected, <code>error</code> is the severity of the
+error (this could be <code>warning</code>), and
+<code>specific error message</code> is a more detailed text message which
+should help pinpoint the exact problem.</p>
+<p>The other format, specified by <code>-Xvc</code> is the style used by
+Microsoft Visual C++ and some other programs. It looks like this:</p>
+<pre>
+filename.asm(65) : error: specific error message
+</pre>
+<p>where the only difference is that the line number is in parentheses
+instead of being delimited by colons.</p>
+<p>See also the <code>Visual C++</code> output format,
+<a href="nasmdoc8.html#section-8.5">section 8.5</a>.</p>
+<h4 id="section-2.1.16">2.1.16 The <code>-Z</code> Option: Send Errors to a File</h4>
+<p>Under <code>MS-DOS</code> it can be difficult (though there are ways) to
+redirect the standard-error output of a program to a file. Since NASM
+usually produces its warning and error messages on <code>stderr</code>,
+this can make it hard to capture the errors if (for example) you want to
+load them into an editor.</p>
+<p>NASM therefore provides the <code>-Z</code> option, taking a filename
+argument which causes errors to be sent to the specified files rather than
+standard error. Therefore you can redirect the errors into a file by typing</p>
+<pre>
+nasm -Z myfile.err -f obj myfile.asm
+</pre>
+<p>In earlier versions of NASM, this option was called <code>-E</code>, but
+it was changed since <code>-E</code> is an option conventionally used for
+preprocessing only, with disastrous results. See
+<a href="#section-2.1.22">section 2.1.22</a>.</p>
+<h4 id="section-2.1.17">2.1.17 The <code>-s</code> Option: Send Errors to <code>stdout</code></h4>
+<p>The <code>-s</code> option redirects error messages to
+<code>stdout</code> rather than <code>stderr</code>, so it can be
+redirected under <code>MS-DOS</code>. To assemble the file
+<code>myfile.asm</code> and pipe its output to the <code>more</code>
+program, you can type:</p>
+<pre>
+nasm -s -f obj myfile.asm | more
+</pre>
+<p>See also the <code>-Z</code> option, <a href="#section-2.1.16">section
+2.1.16</a>.</p>
+<h4 id="section-2.1.18">2.1.18 The <code>-i</code> Option: Include File Search Directories</h4>
+<p>When NASM sees the <code>%include</code> or <code>%pathsearch</code>
+directive in a source file (see
+<a href="nasmdoc4.html#section-4.6.1">section 4.6.1</a>,
+<a href="nasmdoc4.html#section-4.6.2">section 4.6.2</a> or
+<a href="nasmdoc3.html#section-3.2.3">section 3.2.3</a>), it will search
+for the given file not only in the current directory, but also in any
+directories specified on the command line by the use of the <code>-i</code>
+option. Therefore you can include files from a macro library, for example,
+by typing</p>
+<pre>
+nasm -ic:\macrolib\ -f obj myfile.asm
+</pre>
+<p>(As usual, a space between <code>-i</code> and the path name is allowed,
+and optional).</p>
+<p>Prior NASM 2.14 a path provided in the option has been considered as a
+verbatim copy and providing a path separator been up to a caller. One could
+implicitly concatenate a search path together with a filename. Still this
+was rather a trick than something useful. Now the trailing path separator
+is made to always present, thus <code>-ifoo</code> will be considered as
+the <code>-ifoo/</code> directory.</p>
+<p>If you want to define a <em>standard</em> include search path, similar
+to <code>/usr/include</code> on Unix systems, you should place one or more
+<code>-i</code> directives in the <code>NASMENV</code> environment variable
+(see <a href="#section-2.1.35">section 2.1.35</a>).</p>
+<p>For Makefile compatibility with many C compilers, this option can also
+be specified as <code>-I</code>.</p>
+<h4 id="section-2.1.19">2.1.19 The <code>-p</code> Option: Pre-Include a File</h4>
+<p>NASM allows you to specify files to be <em>pre-included</em> into your
+source file, by the use of the <code>-p</code> option. So running</p>
+<pre>
+nasm myfile.asm -p myinc.inc
+</pre>
+<p>is equivalent to running <code>nasm myfile.asm</code> and placing the
+directive <code>%include "myinc.inc"</code> at the start of the file.</p>
+<p><code>--include</code> option is also accepted.</p>
+<p>For consistency with the <code>-I</code>, <code>-D</code> and
+<code>-U</code> options, this option can also be specified as
+<code>-P</code>.</p>
+<h4 id="section-2.1.20">2.1.20 The <code>-d</code> Option: Pre-Define a Macro</h4>
+<p>Just as the <code>-p</code> option gives an alternative to placing
+<code>%include</code> directives at the start of a source file, the
+<code>-d</code> option gives an alternative to placing a
+<code>%define</code> directive. You could code</p>
+<pre>
+nasm myfile.asm -dFOO=100
+</pre>
+<p>as an alternative to placing the directive</p>
+<pre>
+%define FOO 100
+</pre>
+<p>at the start of the file. You can miss off the macro value, as well: the
+option <code>-dFOO</code> is equivalent to coding <code>%define FOO</code>.
+This form of the directive may be useful for selecting assembly-time
+options which are then tested using <code>%ifdef</code>, for example
+<code>-dDEBUG</code>.</p>
+<p>For Makefile compatibility with many C compilers, this option can also
+be specified as <code>-D</code>.</p>
+<h4 id="section-2.1.21">2.1.21 The <code>-u</code> Option: Undefine a Macro</h4>
+<p>The <code>-u</code> option undefines a macro that would otherwise have
+been pre-defined, either automatically or by a <code>-p</code> or
+<code>-d</code> option specified earlier on the command lines.</p>
+<p>For example, the following command line:</p>
+<pre>
+nasm myfile.asm -dFOO=100 -uFOO
+</pre>
+<p>would result in <code>FOO</code> <em>not</em> being a predefined macro
+in the program. This is useful to override options specified at a different
+point in a Makefile.</p>
+<p>For Makefile compatibility with many C compilers, this option can also
+be specified as <code>-U</code>.</p>
+<h4 id="section-2.1.22">2.1.22 The <code>-E</code> Option: Preprocess Only</h4>
+<p>NASM allows the preprocessor to be run on its own, up to a point. Using
+the <code>-E</code> option (which requires no arguments) will cause NASM to
+preprocess its input file, expand all the macro references, remove all the
+comments and preprocessor directives, and print the resulting file on
+standard output (or save it to a file, if the <code>-o</code> option is
+also used).</p>
+<p>This option cannot be applied to programs which require the preprocessor
+to evaluate expressions which depend on the values of symbols: so code such
+as</p>
+<pre>
+%assign tablesize ($-tablestart)
+</pre>
+<p>will cause an error in preprocess-only mode.</p>
+<p>For compatiblity with older version of NASM, this option can also be
+written <code>-e</code>. <code>-E</code> in older versions of NASM was the
+equivalent of the current <code>-Z</code> option,
+<a href="#section-2.1.16">section 2.1.16</a>.</p>
+<h4 id="section-2.1.23">2.1.23 The <code>-a</code> Option: Don't Preprocess At All</h4>
+<p>If NASM is being used as the back end to a compiler, it might be
+desirable to suppress preprocessing completely and assume the compiler has
+already done it, to save time and increase compilation speeds. The
+<code>-a</code> option, requiring no argument, instructs NASM to replace
+its powerful preprocessor with a stub preprocessor which does nothing.</p>
+<h4 id="section-2.1.24">2.1.24 The <code>-O</code> Option: Specifying Multipass Optimization</h4>
+<p>Using the <code>-O</code> option, you can tell NASM to carry out
+different levels of optimization. Multiple flags can be specified after the
+<code>-O</code> options, some of which can be combined in a single option,
+e.g. <code>-Oxv</code>.</p>
+<ul>
+<li>
+<p><code>-O0</code>: No optimization. All operands take their long forms,
+if a short form is not specified, except conditional jumps. This is
+intended to match NASM 0.98 behavior.</p>
+</li>
+<li>
+<p><code>-O1</code>: Minimal optimization. As above, but immediate operands
+which will fit in a signed byte are optimized, unless the long form is
+specified. Conditional jumps default to the long form unless otherwise
+specified.</p>
+</li>
+<li>
+<p><code>-Ox</code> (where <code>x</code> is the actual letter
+<code>x</code>): Multipass optimization. Minimize branch offsets and signed
+immediate bytes, overriding size specification unless the
+<code>strict</code> keyword has been used (see
+<a href="nasmdoc3.html#section-3.7">section 3.7</a>). For compatibility
+with earlier releases, the letter <code>x</code> may also be any number
+greater than one. This number has no effect on the actual number of passes.</p>
+</li>
+<li>
+<p><code>-Ov</code>: At the end of assembly, print the number of passes
+actually executed.</p>
+</li>
+</ul>
+<p>The <code>-Ox</code> mode is recommended for most uses, and is the
+default since NASM 2.09.</p>
+<p>Note that this is a capital <code>O</code>, and is different from a
+small <code>o</code>, which is used to specify the output file name. See
+<a href="#section-2.1.1">section 2.1.1</a>.</p>
+<h4 id="section-2.1.25">2.1.25 The <code>-t</code> Option: Enable TASM Compatibility Mode</h4>
+<p>NASM includes a limited form of compatibility with Borland's
+<code>TASM</code>. When NASM's <code>-t</code> option is used, the
+following changes are made:</p>
+<ul>
+<li>
+<p>local labels may be prefixed with <code>@@</code> instead of
+<code>.</code></p>
+</li>
+<li>
+<p>size override is supported within brackets. In TASM compatible mode, a
+size override inside square brackets changes the size of the operand, and
+not the address type of the operand as it does in NASM syntax. E.g.
+<code>mov eax,[DWORD val]</code> is valid syntax in TASM compatibility
+mode. Note that you lose the ability to override the default address type
+for the instruction.</p>
+</li>
+<li>
+<p>unprefixed forms of some directives supported (<code>arg</code>,
+<code>elif</code>, <code>else</code>, <code>endif</code>, <code>if</code>,
+<code>ifdef</code>, <code>ifdifi</code>, <code>ifndef</code>,
+<code>include</code>, <code>local</code>)</p>
+</li>
+</ul>
+<h4 id="section-2.1.26">2.1.26 The <code>-w</code> and <code>-W</code> Options: Enable or Disable Assembly Warnings</h4>
+<p>NASM can observe many conditions during the course of assembly which are
+worth mentioning to the user, but not a sufficiently severe error to
+justify NASM refusing to generate an output file. These conditions are
+reported like errors, but come up with the word `warning' before the
+message. Warnings do not prevent NASM from generating an output file and
+returning a success status to the operating system.</p>
+<p>Some conditions are even less severe than that: they are only sometimes
+worth mentioning to the user. Therefore NASM supports the <code>-w</code>
+command-line option, which enables or disables certain classes of assembly
+warning. Such warning classes are described by a name, for example
+<code>label-orphan</code>; you can enable warnings of this class by the
+command-line option <code>-w+label-orphan</code> and disable it by
+<code>-w-label-orphan</code>.</p>
+<p>The current warning classes are:</p>
+<ul>
+<li>
+<p><code>all</code> is an group alias for <em>all</em> warning classes.
+Thus, <code>-w+all</code> enables all available warnings, and
+<code>-w-all</code> disables warnings entirely (since NASM 2.13).</p>
+</li>
+<li>
+<p><code>bad-pragma</code> is a backwards compatibility alias for
+<code>pragma-bad</code>.</p>
+</li>
+<li>
+<p><code>bnd</code> warns about ineffective use of the <code>BND</code>
+prefix when the <code>JMP</code> instruction is converted to the
+<code>SHORT</code> form. This should be extremely rare since the short
+<code>JMP</code> only is applicable to jumps inside the same module, but if
+it is legitimate, it may be necessary to use <code>bnd jmp dword</code>.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>db-empty</code> warns about a <code>DB</code>, <code>DW</code>,
+etc declaration with no operands, producing no output. This is permitted,
+but often indicative of an error. See
+<a href="nasmdoc3.html#section-3.2.1">section 3.2.1</a>.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>environment</code> warns if a nonexistent environment variable is
+accessed using the <code>%!</code> preprocessor construct (see
+<a href="nasmdoc4.html#section-4.11.2">section 4.11.2</a>.) Such
+environment variables are treated as empty (with this warning issued)
+starting in NASM 2.15; earlier versions of NASM would treat this as an
+error.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>float</code> is a group alias for all warning classes prefixed by
+<code>float-</code>; currently <code>float-denorm</code>,
+<code>float-overflow</code>, <code>float-toolong</code>, and
+<code>float-underflow</code>.</p>
+</li>
+<li>
+<p><code>float-denorm</code> warns about denormal floating point constants.</p>
+<p>Disabled by default.</p>
+</li>
+<li>
+<p><code>float-overflow</code> warns about floating point underflow.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>float-toolong</code> warns about too many digits in floating-point
+numbers.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>float-underflow</code> warns about floating point underflow (a
+nonzero constant rounded to zero.)</p>
+<p>Disabled by default.</p>
+</li>
+<li>
+<p><code>hle</code> warns about invalid use of the HLE
+<code>XACQUIRE</code> or <code>XRELEASE</code> prefixes.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>label</code> is a group alias for all warning classes prefixed by
+<code>label-</code>; currently <code>label-orphan</code>,
+<code>label-redef</code>, and <code>label-redef-late</code>.</p>
+</li>
+<li>
+<p><code>label-orphan</code> warns about source lines which contain no
+instruction but define a label without a trailing colon. This is most
+likely indicative of a typo, but is technically correct NASM syntax (see
+<a href="nasmdoc3.html#section-3.1">section 3.1</a>.)</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>label-redef</code> warns if a label is defined more than once, but
+the value is identical. It is an unconditional error to define the same
+label more than once to <em>different</em> values.</p>
+<p>Disabled by default.</p>
+</li>
+<li>
+<p><code>label-redef-late</code> the value of a label changed during the
+final, code-generation pass. This may be the result of strange use of the
+preprocessor. This is very likely to produce incorrect code and may end up
+being an unconditional error in a future version of NASM.</p>
+<p>Enabled and promoted to error by default.</p>
+</li>
+<li>
+<p><code>lock</code> warns about <code>LOCK</code> prefixes on unlockable
+instructions.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>macro</code> is a group alias for all warning classes prefixed by
+<code>macro-</code>; currently <code>macro-def-case-single</code>,
+<code>macro-def-greedy-single</code>, <code>macro-def-param-single</code>,
+<code>macro-defaults</code>, <code>macro-params-legacy</code>,
+<code>macro-params-multi</code>, and <code>macro-params-single</code>.</p>
+</li>
+<li>
+<p><code>macro-def</code> is a group alias for all warning classes prefixed
+by <code>macro-def-</code>; currently <code>macro-def-case-single</code>,
+<code>macro-def-greedy-single</code>, and
+<code>macro-def-param-single</code>.</p>
+</li>
+<li>
+<p><code>macro-def-case-single</code> warns when a single-line macro is
+defined both case sensitive and case insensitive. The new macro definition
+will override (shadow) the original one, although the original macro is not
+deleted, and will be re-exposed if the new macro is deleted with
+<code>%undef</code>, or, if the original macro is the case insensitive one,
+the macro call is done with a different case.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>macro-def-greedy-single</code> definition shadows greedy macro
+warns when a single-line macro is defined which would match a previously
+existing greedy definition. The new macro definition will override (shadow)
+the original one, although the original macro is not deleted, and will be
+re-exposed if the new macro is deleted with <code>%undef</code>, and will
+be invoked if called with a parameter count that does not match the new
+definition.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>macro-def-param-single</code> warns if the same single-line macro
+is defined with and without parameters. The new macro definition will
+override (shadow) the original one, although the original macro is not
+deleted, and will be re-exposed if the new macro is deleted with
+<code>%undef</code>.</p>
+<p>Enabled and promoted to error by default.</p>
+</li>
+<li>
+<p><code>macro-defaults</code> warns when a macro has more default
+parameters than optional parameters. See
+<a href="nasmdoc4.html#section-4.3.5">section 4.3.5</a> for why might want
+to disable this warning.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>macro-params</code> is a group alias for all warning classes
+prefixed by <code>macro-params-</code>; currently
+<code>macro-params-legacy</code>, <code>macro-params-multi</code>, and
+<code>macro-params-single</code>.</p>
+</li>
+<li>
+<p><code>macro-params-legacy</code> warns about multi-line macros being
+invoked with the wrong number of parameters, but for bug-compatibility with
+NASM versions older than 2.15, NASM tried to fix up the parameters to match
+the legacy behavior and call the macro anyway. This can happen in certain
+cases where there are empty arguments without braces, sometimes as a result
+of macro expansion.</p>
+<p>The legacy behavior is quite strange and highly context-dependent, and
+can be disabled with:</p>
+<pre>
+     %pragma preproc sane_empty_expansion true
+</pre>
+<p>It is highly recommended to use this option in new code.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>macro-params-multi</code> warns about multi-line macros being
+invoked with the wrong number of parameters. See
+<a href="nasmdoc4.html#section-4.3.1">section 4.3.1</a> for an example of
+why you might want to disable this warning.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>macro-params-single</code> warns about single-line macros being
+invoked with the wrong number of parameters.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>negative-rep</code> warns about negative counts given to the
+<code>%rep</code> preprocessor directive.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>not-my-pragma</code> is a backwards compatibility alias for
+<code>pragma-na</code>.</p>
+</li>
+<li>
+<p><code>number-overflow</code> covers warnings about numeric constants
+which don't fit in 64 bits.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>obsolete</code> is a group alias for all warning classes prefixed
+by <code>obsolete-</code>; currently <code>obsolete-nop</code>,
+<code>obsolete-removed</code>, and <code>obsolete-valid</code>.</p>
+</li>
+<li>
+<p><code>obsolete-nop</code> warns for an instruction which has been
+removed from the architecture, but has been architecturally defined to be a
+noop for future CPUs.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>obsolete-removed</code> warns for an instruction which has been
+removed from the architecture, and is no longer included in the CPU
+definition given in the <code>[CPU]</code> directive, for example
+<code>POP CS</code>, the opcode for which, <code>0Fh</code>, instead is an
+opcode prefix on CPUs newer than the first generation 8086.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>obsolete-valid</code> warns for an instruction which has been
+removed from the architecture, but is still valid on the specific CPU given
+in the <code>CPU</code> directive. Code using these instructions is most
+likely not forward compatible.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>orphan-labels</code> is a backwards compatibility alias for
+<code>label-orphan</code>.</p>
+</li>
+<li>
+<p><code>other</code> specifies any warning not included in any specific
+warning class.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>phase</code> warns about symbols having changed values during the
+second-to-last assembly pass. This is not inherently fatal, but may be a
+source of bugs.</p>
+<p>Disabled by default.</p>
+</li>
+<li>
+<p><code>pragma</code> is a group alias for all warning classes prefixed by
+<code>pragma-</code>; currently <code>pragma-bad</code>,
+<code>pragma-empty</code>, <code>pragma-na</code>, and
+<code>pragma-unknown</code>.</p>
+</li>
+<li>
+<p><code>pragma-bad</code> warns about a malformed or otherwise unparsable
+<code>%pragma</code> directive.</p>
+<p>Disabled by default.</p>
+</li>
+<li>
+<p><code>pragma-empty</code> warns about a <code>%pragma</code> directive
+containing nothing. This is treated identically to
+<code>%pragma ignore</code> except for this optional warning.</p>
+<p>Disabled by default.</p>
+</li>
+<li>
+<p><code>pragma-na</code> warns about a <code>%pragma</code> directive
+which is not applicable to this particular assembly session. This is not
+yet implemented.</p>
+<p>Disabled by default.</p>
+</li>
+<li>
+<p><code>pragma-unknown</code> warns about an unknown <code>%pragma</code>
+directive. This is not yet implemented for most cases.</p>
+<p>Disabled by default.</p>
+</li>
+<li>
+<p><code>ptr</code> warns about keywords used in other assemblers that
+might indicate a mistake in the source code. Currently only the MASM
+<code>PTR</code> keyword is recognized. See also
+<a href="nasmdoc6.html#section-6.5">section 6.5</a>.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>regsize</code> warns about a register with implicit size (such as
+<code>EAX</code>, which is always 32 bits) been given an explicit size
+specification which is inconsistent with the size of the named register,
+e.g. <code>WORD EAX</code>. <code>DWORD EAX</code> or <code>WORD AX</code>
+are permitted, and do not trigger this warning. Some registers which <em>do
+not</em> imply a specific size, such as <code>K0</code>, may need this
+specification unless the instruction itself implies the instruction size:</p>
+<pre>
+     KMOVW K0,[foo]          ; Permitted, KMOVW implies 16 bits 
+     KMOV  WORD K0,[foo]     ; Permitted, WORD K0 specifies instruction size 
+     KMOV  K0,WORD [foo]     ; Permitted, WORD [foo] specifies instruction size 
+     KMOV  K0,[foo]          ; Not permitted, instruction size ambiguous
+</pre>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>unknown-pragma</code> is a backwards compatibility alias for
+<code>pragma-unknown</code>.</p>
+</li>
+<li>
+<p><code>unknown-warning</code> warns about a <code>-w</code> or
+<code>-W</code> option or a <code>[WARNING]</code> directive that contains
+an unknown warning name or is otherwise not possible to process.</p>
+<p>Disabled by default.</p>
+</li>
+<li>
+<p><code>user</code> controls output of <code>%warning</code> directives
+(see <a href="nasmdoc4.html#section-4.9">section 4.9</a>).</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>warn-stack-empty</code> a [WARNING POP] directive was executed
+when the warning stack is empty. This is treated as a [WARNING *all]
+directive.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>zeroing</code> a <code>RESx</code> directive was used in a section
+which contains initialized data, and the output format does not support
+this. Instead, this will be replaced with explicit zero content, which may
+produce a large output file.</p>
+<p>Enabled by default.</p>
+</li>
+<li>
+<p><code>zext-reloc</code> warns that a relocation has been zero-extended
+due to limitations in the output format.</p>
+<p>Enabled by default.</p>
+</li>
+</ul>
+<p>Since version 2.15, NASM has group aliases for all prefixed warnings, so
+they can be used to enable or disable all warnings in the group. For
+example, &ndash;w+float enables all warnings with names starting with
+float-*.</p>
+<p>Since version 2.00, NASM has also supported the
+<code>gcc</code>&ndash;like syntax <code>-Wwarning-class</code> and
+<code>-Wno-warning-class</code> instead of <code>-w+warning-class</code>
+and <code>-w-warning-class</code>, respectively; both syntaxes work
+identically.</p>
+<p>The option <code>-w+error</code> or <code>-Werror</code> can be used to
+treat warnings as errors. This can be controlled on a per warning class
+basis (<code>-w+error=</code><em>warning-class</em> or
+<code>-Werror=</code><em>warning-class</em>); if no <em>warning-class</em>
+is specified NASM treats it as <code>-w+error=all</code>; the same applies
+to <code>-w-error</code> or <code>-Wno-error</code>, of course.</p>
+<p>In addition, you can control warnings in the source code itself, using
+the <code>[WARNING]</code> directive. See
+<a href="nasmdoc7.html#section-7.13">section 7.13</a>.</p>
+<h4 id="section-2.1.27">2.1.27 The <code>-v</code> Option: Display Version Info</h4>
+<p>Typing <code>NASM -v</code> will display the version of NASM which you
+are using, and the date on which it was compiled.</p>
+<p>You will need the version number if you report a bug.</p>
+<p>For command-line compatibility with Yasm, the form <code>--v</code> is
+also accepted for this option starting in NASM version 2.11.05.</p>
+<h4 id="section-2.1.28">2.1.28 The <code>--(g|l)prefix</code>, <code>--(g|l)postfix</code> Options.</h4>
+<p>The <code>--(g)prefix</code> options prepend the given argument to all
+<code>extern</code>, <code>common</code>, <code>static</code>, and
+<code>global</code> symbols, and the <code>--lprefix</code> option prepends
+to all other symbols. Similarly, <code>--(g)postfix</code> and
+<code>--lpostfix</code> options append the argument in the exactly same way
+as the <code>--xxprefix</code> options does.</p>
+<p>Running this:</p>
+<pre>
+nasm -f macho --gprefix _
+</pre>
+<p>is equivalent to place the directive with
+<code>%pragma macho gprefix _</code> at the start of the file
+(<a href="nasmdoc7.html#section-7.10">section 7.10</a>). It will prepend
+the underscore to all global and external variables, as C requires it in
+some, but not all, system calling conventions.</p>
+<h4 id="section-2.1.29">2.1.29 The <code>--pragma</code> Option</h4>
+<p>NASM accepts an argument as <code>%pragma</code> option, which is like
+placing a <code>%pragma</code> preprocess statement at the beginning of the
+source. Running this:</p>
+<pre>
+nasm -f macho --pragma "macho gprefix _"
+</pre>
+<p>is equivalent to the example in <a href="#section-2.1.28">section
+2.1.28</a>. See <a href="nasmdoc4.html#section-4.10">section 4.10</a>.</p>
+<h4 id="section-2.1.30">2.1.30 The <code>--before</code> Option</h4>
+<p>A preprocess statement can be accepted with this option. The example
+shown in <a href="#section-2.1.29">section 2.1.29</a> is the same as
+running this:</p>
+<pre>
+nasm -f macho --before "%pragma macho gprefix _"
+</pre>
+<h4 id="section-2.1.31">2.1.31 The <code>--limit-X</code> Option</h4>
+<p>This option allows user to setup various maximum values after which NASM
+will terminate with a fatal error rather than consume arbitrary amount of
+compute time. Each limit can be set to a positive number or
+<code>unlimited</code>.</p>
+<ul>
+<li>
+<p><code>--limit-passes</code>: Number of maximum allowed passes. Default
+is <code>unlimited</code>.</p>
+</li>
+<li>
+<p><code>--limit-stalled-passes</code>: Maximum number of allowed
+unfinished passes. Default is 1000.</p>
+</li>
+<li>
+<p><code>--limit-macro-levels</code>: Define maximum depth of macro
+expansion (in preprocess). Default is 10000</p>
+</li>
+<li>
+<p><code>--limit-macro-tokens</code>: Maximum number of tokens processed
+during single-line macro expansion. Default is 10000000.</p>
+</li>
+<li>
+<p><code>--limit-mmacros</code>: Maximum number of multi-line macros
+processed before returning to the top-level input. Default is 100000.</p>
+</li>
+<li>
+<p><code>--limit-rep</code>: Maximum number of allowed preprocessor loop,
+defined under <code>%rep</code>. Default is 1000000.</p>
+</li>
+<li>
+<p><code>--limit-eval</code>: This number sets the boundary condition of
+allowed expression length. Default is 8192 on most systems.</p>
+</li>
+<li>
+<p><code>--limit-lines</code>: Total number of source lines allowed to be
+processed. Default is 2000000000.</p>
+</li>
+</ul>
+<p>For example, set the maximum line count to 1000:</p>
+<pre>
+nasm --limit-lines 1000
+</pre>
+<p>Limits can also be set via the directive <code>%pragma limit</code>, for
+example:</p>
+<pre>
+%pragma limit lines 1000
+</pre>
+<h4 id="section-2.1.32">2.1.32 The <code>--keep-all</code> Option</h4>
+<p>This option prevents NASM from deleting any output files even if an
+error happens.</p>
+<h4 id="section-2.1.33">2.1.33 The <code>--no-line</code> Option</h4>
+<p>If this option is given, all <code>%line</code> directives in the source
+code are ignored. This can be useful for debugging already preprocessed
+code. See <a href="nasmdoc4.html#section-4.11.1">section 4.11.1</a>.</p>
+<h4 id="section-2.1.34">2.1.34 The <code>--reproducible</code> Option</h4>
+<p>If this option is given, NASM will not emit information that is
+inherently dependent on the NASM version or different from run to run (such
+as timestamps) into the output file.</p>
+<h4 id="section-2.1.35">2.1.35 The <code>NASMENV</code> Environment Variable</h4>
+<p>If you define an environment variable called <code>NASMENV</code>, the
+program will interpret it as a list of extra command-line options, which
+are processed before the real command line. You can use this to define
+standard search directories for include files, by putting <code>-i</code>
+options in the <code>NASMENV</code> variable.</p>
+<p>The value of the variable is split up at white space, so that the value
+<code>-s -ic:\nasmlib\</code> will be treated as two separate options.
+However, that means that the value <code>-dNAME="my name"</code> won't do
+what you might want, because it will be split at the space and the NASM
+command-line processing will get confused by the two nonsensical words
+<code>-dNAME="my</code> and <code>name"</code>.</p>
+<p>To get round this, NASM provides a feature whereby, if you begin the
+<code>NASMENV</code> environment variable with some character that isn't a
+minus sign, then NASM will treat this character as the separator character
+for options. So setting the <code>NASMENV</code> variable to the value
+<code>!-s!-ic:\nasmlib\</code> is equivalent to setting it to
+<code>-s -ic:\nasmlib\</code>, but <code>!-dNAME="my name"</code> will
+work.</p>
+<p>This environment variable was previously called <code>NASM</code>. This
+was changed with version 0.98.31.</p>
+<h3 id="section-2.2">2.2 Quick Start for MASM Users</h3>
+<p>If you're used to writing programs with MASM, or with TASM in
+MASM-compatible (non-Ideal) mode, or with <code>a86</code>, this section
+attempts to outline the major differences between MASM's syntax and NASM's.
+If you're not already used to MASM, it's probably worth skipping this
+section.</p>
+<h4 id="section-2.2.1">2.2.1 NASM Is Case-Sensitive</h4>
+<p>One simple difference is that NASM is case-sensitive. It makes a
+difference whether you call your label <code>foo</code>, <code>Foo</code>
+or <code>FOO</code>. If you're assembling to <code>DOS</code> or
+<code>OS/2</code> <code>.OBJ</code> files, you can invoke the
+<code>UPPERCASE</code> directive (documented in
+<a href="nasmdoc8.html#section-8.4">section 8.4</a>) to ensure that all
+symbols exported to other code modules are forced to be upper case; but
+even then, <em>within</em> a single module, NASM will distinguish between
+labels differing only in case.</p>
+<h4 id="section-2.2.2">2.2.2 NASM Requires Square Brackets For Memory References</h4>
+<p>NASM was designed with simplicity of syntax in mind. One of the design
+goals of NASM is that it should be possible, as far as is practical, for
+the user to look at a single line of NASM code and tell what opcode is
+generated by it. You can't do this in MASM: if you declare, for example,</p>
+<pre>
+foo     equ     1 
+bar     dw      2
+</pre>
+<p>then the two lines of code</p>
+<pre>
+        mov     ax,foo 
+        mov     ax,bar
+</pre>
+<p>generate completely different opcodes, despite having identical-looking
+syntaxes.</p>
+<p>NASM avoids this undesirable situation by having a much simpler syntax
+for memory references. The rule is simply that any access to the
+<em>contents</em> of a memory location requires square brackets around the
+address, and any access to the <em>address</em> of a variable doesn't. So
+an instruction of the form <code>mov ax,foo</code> will <em>always</em>
+refer to a compile-time constant, whether it's an <code>EQU</code> or the
+address of a variable; and to access the <em>contents</em> of the variable
+<code>bar</code>, you must code <code>mov ax,[bar]</code>.</p>
+<p>This also means that NASM has no need for MASM's <code>OFFSET</code>
+keyword, since the MASM code <code>mov ax,offset bar</code> means exactly
+the same thing as NASM's <code>mov ax,bar</code>. If you're trying to get
+large amounts of MASM code to assemble sensibly under NASM, you can always
+code <code>%idefine offset</code> to make the preprocessor treat the
+<code>OFFSET</code> keyword as a no-op.</p>
+<p>This issue is even more confusing in <code>a86</code>, where declaring a
+label with a trailing colon defines it to be a `label' as opposed to a
+`variable' and causes <code>a86</code> to adopt NASM-style semantics; so in
+<code>a86</code>, <code>mov ax,var</code> has different behaviour depending
+on whether <code>var</code> was declared as <code>var: dw 0</code> (a
+label) or <code>var dw 0</code> (a word-size variable). NASM is very simple
+by comparison: <em>everything</em> is a label.</p>
+<p>NASM, in the interests of simplicity, also does not support the hybrid
+syntaxes supported by MASM and its clones, such as
+<code>mov ax,table[bx]</code>, where a memory reference is denoted by one
+portion outside square brackets and another portion inside. The correct
+syntax for the above is <code>mov ax,[table+bx]</code>. Likewise,
+<code>mov ax,es:[di]</code> is wrong and <code>mov ax,[es:di]</code> is
+right.</p>
+<h4 id="section-2.2.3">2.2.3 NASM Doesn't Store Variable Types</h4>
+<p>NASM, by design, chooses not to remember the types of variables you
+declare. Whereas MASM will remember, on seeing <code>var dw 0</code>, that
+you declared <code>var</code> as a word-size variable, and will then be
+able to fill in the ambiguity in the size of the instruction
+<code>mov var,2</code>, NASM will deliberately remember nothing about the
+symbol <code>var</code> except where it begins, and so you must explicitly
+code <code>mov word [var],2</code>.</p>
+<p>For this reason, NASM doesn't support the <code>LODS</code>,
+<code>MOVS</code>, <code>STOS</code>, <code>SCAS</code>, <code>CMPS</code>,
+<code>INS</code>, or <code>OUTS</code> instructions, but only supports the
+forms such as <code>LODSB</code>, <code>MOVSW</code>, and
+<code>SCASD</code>, which explicitly specify the size of the components of
+the strings being manipulated.</p>
+<h4 id="section-2.2.4">2.2.4 NASM Doesn't <code>ASSUME</code></h4>
+<p>As part of NASM's drive for simplicity, it also does not support the
+<code>ASSUME</code> directive. NASM will not keep track of what values you
+choose to put in your segment registers, and will never
+<em>automatically</em> generate a segment override prefix.</p>
+<h4 id="section-2.2.5">2.2.5 NASM Doesn't Support Memory Models</h4>
+<p>NASM also does not have any directives to support different 16-bit
+memory models. The programmer has to keep track of which functions are
+supposed to be called with a far call and which with a near call, and is
+responsible for putting the correct form of <code>RET</code> instruction
+(<code>RETN</code> or <code>RETF</code>; NASM accepts <code>RET</code>
+itself as an alternate form for <code>RETN</code>); in addition, the
+programmer is responsible for coding CALL FAR instructions where necessary
+when calling <em>external</em> functions, and must also keep track of which
+external variable definitions are far and which are near.</p>
+<h4 id="section-2.2.6">2.2.6 Floating-Point Differences</h4>
+<p>NASM uses different names to refer to floating-point registers from
+MASM: where MASM would call them <code>ST(0)</code>, <code>ST(1)</code> and
+so on, and <code>a86</code> would call them simply <code>0</code>,
+<code>1</code> and so on, NASM chooses to call them <code>st0</code>,
+<code>st1</code> etc.</p>
+<p>As of version 0.96, NASM now treats the instructions with `nowait' forms
+in the same way as MASM-compatible assemblers. The idiosyncratic treatment
+employed by 0.95 and earlier was based on a misunderstanding by the
+authors.</p>
+<h4 id="section-2.2.7">2.2.7 Other Differences</h4>
+<p>For historical reasons, NASM uses the keyword <code>TWORD</code> where
+MASM and compatible assemblers use <code>TBYTE</code>.</p>
+<p>Historically, NASM does not declare uninitialized storage in the same
+way as MASM: where a MASM programmer might use
+<code>stack db 64 dup (?)</code>, NASM requires <code>stack resb 64</code>,
+intended to be read as `reserve 64 bytes'. For a limited amount of
+compatibility, since NASM treats <code>?</code> as a valid character in
+symbol names, you can code <code>? equ 0</code> and then writing
+<code>dw ?</code> will at least do something vaguely useful.</p>
+<p>As of NASM 2.15, the MASM syntax is also supported.</p>
+<p>In addition to all of this, macros and directives work completely
+differently to MASM. See <a href="nasmdoc4.html">chapter 4</a> and
+<a href="nasmdoc7.html">chapter 7</a> for further details.</p>
+<h4 id="section-2.2.8">2.2.8 MASM compatibility package</h4>
+<p>See <a href="nasmdoc6.html#section-6.5">section 6.5</a>.</p>
+</div>
+</body>
+</html>

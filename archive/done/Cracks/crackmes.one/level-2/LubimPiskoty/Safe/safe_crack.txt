@@ -1,0 +1,161 @@
+;guessed password at 0x402038
+;the letters here are byte positions with their values
+0x402038
+|       0x40203C
+|       |       0x402040
+|       |       |       0x402044
+|       |       |       |
+A B C D E F G H I J K L M N O P
+
+The password has a length of 16 bytes (bytes not necessarely readable characters)
+then it calculates the sum of the consecutive group of 4 bytes and compares the
+sum of group 1 with group 3 and of group 2 with group 4.  If one of these is different then
+the password is wrong.  The total sum of all the bytes must be 0x42e (1070 decimal).  If this
+isn't true the password is wrong.  The last check is if the sum of group 1 isn't 0xb (11) less
+than the last group (group 4) the password again fails.
+
+The algorithm:
+let the password be : A B C D E F G H I J K L M N O P where each letter represents a character of the password.
+the groups are:
+group 1:  A B C D   group 2:  E F G H   group 3:  I J K L  group 4:  M N O P
+sum of group 1: SG1 = A+B+C+D
+sum of group 2: SG2 = E+F+G+H
+sum of group 3: SG3 = I+J+K+L
+sum of group 4: SG4 = M+N+O+P
+total sum TS = SG1+SG2+SG3+SG4
+
+SG1 = SG3 and SG2 = SG4 and SG1+0xb (11) = SG4 and TS=0x42e (1070)
+we're done but don't have a password to test.
+suppose ,regardless of the possibility to input them with a keyboard,
+for SG1 : 25 + 24 + 23 + 3 equals 75 and for SG3 = 24 + 19 + 14 + 18 also equals 75
+both groups are different but will apply as long as the other rules are satisfied so finding a password
+without assumptions isn't easy.
+
+So suppose SG1 and SG3 are the same bytes in the same order let's say abcd
+and SG2 and SG4 also, let's call them efgh we can write a password:
+abcdefghabcdefgh for which:
+a+b+c+d+e+f+g+h+a+b+c+d+e+f+g+h = 1070
+because SG1 is 0xb (11) less than SG4 we can state
+a+b+c+d+11 = e+f+g+h
+the equation becomes:
+(a+b+c+d)+(a+b+c+d+11)+(a+b+c+d)+(a+b+c+d+11) = 1070
+(a+b+c+d)+(a+b+c+d)+11+(a+b+c+d)+(a+b+c+d)+11 = 1070
+4x(a+b+c+d)+22 = 1070
+a+b+c+d = (1070-22)/4 = 262
+divide, again naively, 262 by 4 we got 65 with a remainder of 2
+65 is the ascii code in decimal of A, add 2 to the last byte we got 'C' (ascii 67), thus group G1 and G3 is AAAC
+now is e+f+g+h = a+b+c+d+11 = 262+11 = 273, dividing this by 4 gives 68 witha remainder of 1
+the ascii code of 68 is 'D' and of 69 is 'E', so SG2 and SG4 = DDDE
+our password could be AAACDDDEAAACDDDE and it works.
+
+remember that this solution is very trivial, other passwords exists, there is no single password solution.
+As long as the conditions are met your good.
+try: AAACEEEBAAACEEEB
+or one with G2 <> G4 regarding the input: AAACEEEBAAACDDDE
+
+The program:
+
+./safe:     file format elf64-x86-64
+
+Disassembly of section .text:
+
+0000000000401000 <_start>:
+  401000:	b8 01 00 00 00       	mov    eax,0x1
+  401005:	bf 01 00 00 00       	mov    edi,0x1
+  40100a:	48 be 00 20 40 00 00 	movabs rsi,0x402000             ;syscall write "Enter your password:",0xa
+  401011:	00 00 00                                              ;part of previous instruction
+  401014:	ba 15 00 00 00       	mov    edx,0x15
+  401019:	0f 05                	syscall 
+
+  40101b:	b8 00 00 00 00       	mov    eax,0x0
+  401020:	bf 00 00 00 00       	mov    edi,0x0
+  401025:	48 be 38 20 40 00 00 	movabs rsi,0x402038             ;read 0x10 (16) bytes from stdin and store in 0x402038
+  40102c:	00 00 00                                              ;part of previous instruction
+  40102f:	ba 10 00 00 00       	mov    edx,0x10
+  401034:	0f 05                	syscall 
+
+
+  401036:	48 b8 38 20 40 00 00 	movabs rax,0x402038             ;rax points to the first group of 8 bytes of input
+  40103d:	00 00 00                                              ;part of previous instruction 
+  401040:	e8 66 00 00 00       	call   4010ab <_verify>         ;make ascii sum
+  401045:	4d 89 fc             	mov    r12,r15                  ;store sum
+  
+  401048:	48 b8 40 20 40 00 00 	movabs rax,0x402040             ;rax points to the third group of 8 bytes of input
+  40104f:	00 00 00                                              ;part of previous instruction
+  401052:	e8 54 00 00 00       	call   4010ab <_verify>         ;make ascii sum
+  401057:	4d 39 fc             	cmp    r12,r15                  ;compare sums of group 1 and 3
+  40105a:	75 3d                	jne    401099 <_jmpwrong>       ;compare both sums, if not the same -> wrong password
+  
+  40105c:	48 b8 3c 20 40 00 00 	movabs rax,0x40203c             ;rax points to the second group of 8 bytes of input             
+  401063:	00 00 00                                              ;part of previous instruction
+  401066:	e8 40 00 00 00       	call   4010ab <_verify>         ;make ascii sum
+  40106b:	4d 89 fe             	mov    r14,r15                  ;store sum
+
+  40106e:	48 b8 44 20 40 00 00 	movabs rax,0x402044             ;rax points to the fourth group of 8 bytes of input
+  401075:	00 00 00                                              ;part of previous instruction 
+  401078:	e8 2e 00 00 00       	call   4010ab <_verify>         ;make ascii sum
+  40107d:	4d 39 fe             	cmp    r14,r15                  ;compare sums of group 2 and 4
+  401080:	75 17                	jne    401099 <_jmpwrong>       ;compare both sums, if not the same -> wrong password
+  
+  401082:	49 81 fd 2e 04 00 00 	cmp    r13,0x42e                ;the Verify subroutine has made the total sum already
+  401089:	75 0e                	jne    401099 <_jmpwrong>       ;if it is not 0x42e (1070) then wrong password
+  40108b:	49 83 c4 0b          	add    r12,0xb                  ;r12 has the sum of group 1, add 0xb (11)
+  40108f:	4d 39 fc             	cmp    r12,r15                  ;compare with sum of group 4
+  401092:	75 05                	jne    401099 <_jmpwrong>       ;if not equal, wrong password
+
+  401094:	e8 34 00 00 00       	call   4010cd <_correct>        ;print correct password
+
+0000000000401099 <_jmpwrong>:
+  401099:	e8 4f 00 00 00       	call   4010ed <_incorrect>      ;print wrong password
+
+000000000040109e <_exit>:
+  40109e:	b8 3c 00 00 00       	mov    eax,0x3c                 ;exit program
+  4010a3:	bf 00 00 00 00       	mov    edi,0x0
+  4010a8:	0f 05                	syscall 
+  4010aa:	c3                   	ret    
+
+00000000004010ab <_verify>:
+;the routine starts with rax pointing at some address
+  4010ab:	51                   	push   rcx                        ;safe original rcx
+  4010ac:	48 31 c9             	xor    rcx,rcx                    ;rcx = 0
+  4010af:	4d 31 ff             	xor    r15,r15                    ;r15 = 0
+  4010b2:	bb 00 00 00 00       	mov    ebx,0x0                    ;ebx = 0
+
+00000000004010b7 <_verifyLoop>:
+  4010b7:	48 ff c3             	inc    rbx                        ;rbx = rbx + 1
+  4010ba:	8a 08                	mov    cl,BYTE PTR [rax]          ;load byte at rax in cl
+  4010bc:	48 ff c0             	inc    rax                        ;point to next byte
+  4010bf:	49 01 cf             	add    r15,rcx                    ;add byte value to r15
+  4010c2:	48 83 fb 04          	cmp    rbx,0x4                    ;4 bytes processed?
+  4010c6:	75 ef                	jne    4010b7 <_verifyLoop>       ;nope, repeat
+  4010c8:	4d 01 fd             	add    r13,r15                    ;add sum to r13
+  4010cb:	59                   	pop    rcx                        ;restore old rcx
+  4010cc:	c3                   	ret                               ;return
+
+00000000004010cd <_correct>:
+  4010cd:	b8 01 00 00 00       	mov    eax,0x1
+  4010d2:	bf 01 00 00 00       	mov    edi,0x1
+  4010d7:	48 be 25 20 40 00 00 	movabs rsi,0x402025
+  4010de:	00 00 00 
+  4010e1:	ba 10 00 00 00       	mov    edx,0x10
+  4010e6:	0f 05                	syscall 
+  4010e8:	e8 b1 ff ff ff       	call   40109e <_exit>             ;don't know why this is a subroutine
+
+00000000004010ed <_incorrect>:
+  4010ed:	b8 01 00 00 00       	mov    eax,0x1
+  4010f2:	bf 01 00 00 00       	mov    edi,0x1
+  4010f7:	48 be 15 20 40 00 00 	movabs rsi,0x402015
+  4010fe:	00 00 00 
+  401101:	ba 10 00 00 00       	mov    edx,0x10
+  401106:	0f 05                	syscall 
+  401108:	e8 91 ff ff ff       	call   40109e <_exit>             ;don't know why this is a subroutine
+
+objdump -s -j .data ./safe
+
+./safe:     file format elf64-x86-64
+
+Contents of section .data:
+ 402000 456e7465 7220796f 75722070 61737377  Enter your passw
+ 402010 6f72643a 2057726f 6e672070 61737377  ord: Wrong passw
+ 402020 6f726421 0a416363 65737320 6772616e  ord!.Access gran
+ 402030 74656421 0a                          ted!.

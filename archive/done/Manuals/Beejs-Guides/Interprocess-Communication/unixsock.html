@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Beej's Guide to Interprocess Communication</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet"> 
+
+  <!-- BG custom styling -->
+  <style type="text/css">
+  /* Fix for line numbers not visible */
+  pre.numberSource code > span {
+      left: -1em;
+  }
+  pre.numberSource {
+      margin-left: initial;
+  }
+
+  /* Put some space after the section numbers */
+  span.toc-section-number::after {
+      content: "\a0\a0\a0";  /* non-breaking whitespace */
+  }
+
+  /* Hide underlines on code number links */
+  pre > code.sourceCode > span > a:first-child::before {
+      text-decoration: none;
+  }
+
+  /* Color the source blocks */
+  div.sourceCode {
+      background-color: #f0f0f0;
+  }
+
+  /* Fix iOS big text rendering issue */
+  pre > code.sourceCode > span {
+      display: initial;
+  }
+
+
+  /* Color the inline code */
+  code:not(.sourceCode) {
+      background: #f0f0f0;
+      padding-left: 0.2em;
+      padding-right: 0.2em;
+      border-radius: 0.2em;
+  }
+
+  /* Keep code tags from wrapping in tables */
+  tbody code {
+      white-space: nowrap;
+  }
+
+  td {
+      vertical-align: top;
+  }
+
+  body {
+      font-size: 12pt;
+      max-width: 43em;
+  }
+
+  figure {
+      text-align: center;
+  }
+  </style>
+  <!-- BG custom styling for the wide body variant -->
+  <!-- Gets appended after bg-css.html -->
+
+  <style type="text/css">
+  body {
+      max-width: inherit;
+  }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div style="text-align:center"><span><a href="mmap.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="references.html">Next</a></span></div><hr>
+<h1 data-number="11" id="unixsock"><span class="header-section-number">11</span> Unix Sockets</h1>
+<p>Remember <a href="fifos.html#fifos">FIFOs</a>? Remember how they can only send data in one direction, just like <a href="pipes.html#pipes">Pipes</a>? Wouldn’t it be grand if you could send data in both directions like you can with a socket?</p>
+<p>Well, hope no longer, because the answer is here: Unix Domain Sockets! In case you’re still wondering what a socket is, well, it’s a two-way communications pipe, which can be used to communicate in a wide variety of <em>domains</em>. One of the most common domains sockets communicate over is the Internet, but we won’t discuss that here. We will, however, be talking about sockets in the Unix domain; that is, sockets that can be used between processes on the same Unix system.</p>
+<p>Unix sockets use many of the same function calls that Internet sockets do, and I won’t be describing all of the calls I use in detail within this document. If the description of a certain call is too vague (or if you just want to learn more about Internet sockets anyway), I arbitrarily suggest <a href="https://beej.us/guide/bgnet">Beej’s Guide to Network Programming using Internet Sockets</a><a href="footnotes.html#fn40" class="footnote-ref" id="fnref40" role="doc-noteref"><sup>40</sup></a>. I know the author personally.</p>
+<h2 data-number="11.1" id="overview"><span class="header-section-number">11.1</span> Overview</h2>
+<p>Like I said before, Unix sockets are just like two-way FIFOs. However, all data communication will be taking place through the sockets interface, instead of through the file interface. Although Unix sockets are a special file in the file system (just like FIFOs), you won’t be using <code>open()</code> and <code>read()</code>—you’ll be using <code>socket()</code>, <code>bind()</code>, <code>recv()</code>, etc.</p>
+<p>When programming with sockets, you’ll usually create server and client programs. The server will sit listening for incoming connections from clients and handle them. This is very similar to the situation that exists with Internet sockets, but with some fine differences.</p>
+<p>For instance, when describing which Unix socket you want to use (that is, the path to the special file that is the socket), you use a <code>struct sockaddr_un</code>, which has the following fields:</p>
+<pre><code>struct sockaddr_un {
+    unsigned short sun_family;  /* AF_UNIX */
+    char sun_path[108];
+}</code></pre>
+<p>This is the structure you will be passing to the <code>bind()</code> function, which associates a socket descriptor (a file descriptor) with a certain file (the name for which is in the <code>sun_path</code> field).</p>
+<h2 data-number="11.2" id="what-to-do-to-be-a-server"><span class="header-section-number">11.2</span> What to do to be a Server</h2>
+<p>Without going into too much detail, I’ll outline the steps a server program usually has to go through to do it’s thing. While I’m at it, I’ll be trying to implement an “echo server” which just echos back everything it gets on the socket.</p>
+<p>Here are the server steps:</p>
+<ol type="1">
+<li><p><strong>Call <code>socket()</code>:</strong> A call to <code>socket()</code> with the proper arguments creates the Unix socket:</p>
+<div class="sourceCode" id="cb67"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb67-1"><a href="unixsock.html#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="dt">unsigned</span> <span class="dt">int</span> s<span class="op">,</span> s2<span class="op">;</span></span>
+<span id="cb67-2"><a href="unixsock.html#cb67-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-3"><a href="unixsock.html#cb67-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> sockaddr_un remote<span class="op">,</span> local <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb67-4"><a href="unixsock.html#cb67-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>sun_family <span class="op">=</span> AF_UNIX<span class="op">,</span></span>
+<span id="cb67-5"><a href="unixsock.html#cb67-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// .sun_path = SOCK_PATH,   // Can&#39;t do assignment to an array</span></span>
+<span id="cb67-6"><a href="unixsock.html#cb67-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb67-7"><a href="unixsock.html#cb67-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-8"><a href="unixsock.html#cb67-8" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> len<span class="op">;</span></span>
+<span id="cb67-9"><a href="unixsock.html#cb67-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-10"><a href="unixsock.html#cb67-10" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> socket<span class="op">(</span>_AF_UNIX_<span class="op">,</span> SOCK_STREAM<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span></code></pre></div>
+<p>The second argument, <code>SOCK_STREAM</code>, tells <code>socket()</code> to create a stream socket. Yes, datagram sockets (<code>SOCK_DGRAM</code>) are supported in the Unix domain, but I’m only going to cover stream sockets here. For the curious, see <a href="https://beej.us/guide/bgnet">Beej’s Guide to Network Programming</a><a href="footnotes.html#fn41" class="footnote-ref" id="fnref41" role="doc-noteref"><sup>41</sup></a> for a good description of unconnected datagram sockets that applies perfectly well to Unix sockets. The only thing that changes is that you’re now using a <code>struct sockaddr_un</code> instead of a <code>struct sockaddr_in</code>.</p>
+<p>One more note: all these calls return <code>-1</code> on error and set the global variable <code>errno</code> to reflect whatever went wrong. Be sure to do your error checking.</p></li>
+<li><p><strong>Call <code>bind()</code>:</strong> You got a socket descriptor from the call to <code>socket()</code>, now you want to bind that to an address in the Unix domain. (That address, as I said before, is a special file on disk.)</p>
+<div class="sourceCode" id="cb68"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb68-1"><a href="unixsock.html#cb68-1" aria-hidden="true" tabindex="-1"></a>strcpy<span class="op">(</span>local<span class="op">.</span>sun_path<span class="op">,</span> <span class="st">&quot;/home/beej/mysocket&quot;</span><span class="op">);</span></span>
+<span id="cb68-2"><a href="unixsock.html#cb68-2" aria-hidden="true" tabindex="-1"></a>unlink<span class="op">(</span>local<span class="op">.</span>sun_path<span class="op">);</span></span>
+<span id="cb68-3"><a href="unixsock.html#cb68-3" aria-hidden="true" tabindex="-1"></a>len <span class="op">=</span> strlen<span class="op">(</span>local<span class="op">.</span>sun_path<span class="op">)</span> <span class="op">+</span> <span class="kw">sizeof</span><span class="op">(</span>local<span class="op">.</span>sun_family<span class="op">);</span></span>
+<span id="cb68-4"><a href="unixsock.html#cb68-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-5"><a href="unixsock.html#cb68-5" aria-hidden="true" tabindex="-1"></a>bind<span class="op">(</span>s<span class="op">,</span> <span class="op">(</span><span class="kw">struct</span> sockaddr <span class="op">*)&amp;</span>local<span class="op">,</span> len<span class="op">);</span></span></code></pre></div>
+<p>This associates the socket descriptor “<code>s</code>” with the Unix socket address “<code>/home/beej/mysocket</code>”. Notice that we called <code>unlink()</code> before <code>bind()</code> to remove the socket if it already exists. You will get an <code>EINVAL</code> error if the file is already there.</p></li>
+<li><p><strong>Call <code>listen()</code>:</strong> This instructs the socket to listen for incoming connections from client programs:</p>
+<pre><code>listen(s, 5);</code></pre>
+<p>The second argument, <code>5</code>, is the number of incoming connections that can be queued before you call <code>accept()</code>, below. If there are this many connections waiting to be accepted, additional clients will generate the error <code>ECONNREFUSED</code>.</p></li>
+<li><p><strong>Call <code>accept()</code>:</strong> This will accept a connection from a client. This function returns <em>another socket descriptor</em>! The old descriptor is still listening for new connections, but this new one is connected to the client:</p>
+<div class="sourceCode" id="cb70"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb70-1"><a href="unixsock.html#cb70-1" aria-hidden="true" tabindex="-1"></a>len <span class="op">=</span> <span class="kw">sizeof</span><span class="op">(</span>remote<span class="op">);</span></span>
+<span id="cb70-2"><a href="unixsock.html#cb70-2" aria-hidden="true" tabindex="-1"></a>s2 <span class="op">=</span> accept<span class="op">(</span>s<span class="op">,</span> <span class="op">&amp;</span>remote<span class="op">,</span> <span class="op">&amp;</span>len<span class="op">);</span></span></code></pre></div>
+<p>When <code>accept()</code> returns, the <code>remote</code> variable will be filled with the remote side’s <code>struct sockaddr_un</code>, and <code>len</code> will be set to its length. The descriptor <code>s2</code> is connected to the client, and is ready for <code>send()</code> and <code>recv()</code>, as described in the <a href="https://beej.us/guide/bgnet">Network Programming Guide</a><a href="footnotes.html#fn42" class="footnote-ref" id="fnref42" role="doc-noteref"><sup>42</sup></a>.</p></li>
+<li><p><strong>Handle the connection and loop back to <code>accept()</code>:</strong> Usually you’ll want to communicate to the client here (we’ll just echo back everything it sends us), close the connection, then <code>accept()</code> a new one.</p>
+<div class="sourceCode" id="cb71"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb71-1"><a href="unixsock.html#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(</span>len <span class="op">=</span> recv<span class="op">(</span>s2<span class="op">,</span> <span class="op">&amp;</span>buf<span class="op">,</span> <span class="dv">100</span><span class="op">,</span> <span class="dv">0</span><span class="op">),</span> len <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb71-2"><a href="unixsock.html#cb71-2" aria-hidden="true" tabindex="-1"></a>    send<span class="op">(</span>s2<span class="op">,</span> <span class="op">&amp;</span>buf<span class="op">,</span> len<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb71-3"><a href="unixsock.html#cb71-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb71-4"><a href="unixsock.html#cb71-4" aria-hidden="true" tabindex="-1"></a><span class="co">/* loop back to accept() from here */</span></span></code></pre></div></li>
+<li><p><strong>Close the connection:</strong> You can close the connection either by calling <code>close()</code>, or by calling <a href="https://man.archlinux.org/man/shutdown.2"><code>shutdown</code></a><a href="footnotes.html#fn43" class="footnote-ref" id="fnref43" role="doc-noteref"><sup>43</sup></a>.</p></li>
+</ol>
+<p>With all that said, here is some source for an echoing server, <a href="https://beej.us/guide/bgipc/source/examples/echos.c"><code>echos.c</code></a><a href="footnotes.html#fn44" class="footnote-ref" id="fnref44" role="doc-noteref"><sup>44</sup></a>. All it does is wait for a connection on a Unix socket (named, in this case, “echo_socket”).</p>
+<div class="sourceCode" id="cb72"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb72-1"><a href="unixsock.html#cb72-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb72-2"><a href="unixsock.html#cb72-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb72-3"><a href="unixsock.html#cb72-3"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
+<span id="cb72-4"><a href="unixsock.html#cb72-4"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb72-5"><a href="unixsock.html#cb72-5"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb72-6"><a href="unixsock.html#cb72-6"></a><span class="pp">#include </span><span class="im">&lt;sys/socket.h&gt;</span></span>
+<span id="cb72-7"><a href="unixsock.html#cb72-7"></a><span class="pp">#include </span><span class="im">&lt;sys/un.h&gt;</span></span>
+<span id="cb72-8"><a href="unixsock.html#cb72-8"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb72-9"><a href="unixsock.html#cb72-9"></a></span>
+<span id="cb72-10"><a href="unixsock.html#cb72-10"></a><span class="pp">#define SOCK_PATH </span><span class="st">&quot;echo_socket&quot;</span></span>
+<span id="cb72-11"><a href="unixsock.html#cb72-11"></a></span>
+<span id="cb72-12"><a href="unixsock.html#cb72-12"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb72-13"><a href="unixsock.html#cb72-13"></a><span class="op">{</span></span>
+<span id="cb72-14"><a href="unixsock.html#cb72-14"></a>    <span class="dt">int</span> s<span class="op">,</span> s2<span class="op">,</span> len<span class="op">;</span></span>
+<span id="cb72-15"><a href="unixsock.html#cb72-15"></a>    <span class="kw">struct</span> sockaddr_un remote<span class="op">,</span> local <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb72-16"><a href="unixsock.html#cb72-16"></a>            <span class="op">.</span>sun_family <span class="op">=</span> AF_UNIX<span class="op">,</span></span>
+<span id="cb72-17"><a href="unixsock.html#cb72-17"></a>            <span class="co">// .sun_path = SOCK_PATH,   // Can&#39;t do assignment to an array</span></span>
+<span id="cb72-18"><a href="unixsock.html#cb72-18"></a>    <span class="op">};</span></span>
+<span id="cb72-19"><a href="unixsock.html#cb72-19"></a>    <span class="dt">char</span> str<span class="op">[</span><span class="dv">100</span><span class="op">];</span></span>
+<span id="cb72-20"><a href="unixsock.html#cb72-20"></a></span>
+<span id="cb72-21"><a href="unixsock.html#cb72-21"></a>    <span class="cf">if</span> <span class="op">((</span>s <span class="op">=</span> socket<span class="op">(</span>AF_UNIX<span class="op">,</span> SOCK_STREAM<span class="op">,</span> <span class="dv">0</span><span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb72-22"><a href="unixsock.html#cb72-22"></a>            perror<span class="op">(</span><span class="st">&quot;socket&quot;</span><span class="op">);</span></span>
+<span id="cb72-23"><a href="unixsock.html#cb72-23"></a>            exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb72-24"><a href="unixsock.html#cb72-24"></a>    <span class="op">}</span></span>
+<span id="cb72-25"><a href="unixsock.html#cb72-25"></a></span>
+<span id="cb72-26"><a href="unixsock.html#cb72-26"></a>    strcpy<span class="op">(</span>local<span class="op">.</span>sun_path<span class="op">,</span> SOCK_PATH<span class="op">);</span></span>
+<span id="cb72-27"><a href="unixsock.html#cb72-27"></a>    unlink<span class="op">(</span>local<span class="op">.</span>sun_path<span class="op">);</span></span>
+<span id="cb72-28"><a href="unixsock.html#cb72-28"></a>    len <span class="op">=</span> strlen<span class="op">(</span>local<span class="op">.</span>sun_path<span class="op">)</span> <span class="op">+</span> <span class="kw">sizeof</span><span class="op">(</span>local<span class="op">.</span>sun_family<span class="op">);</span></span>
+<span id="cb72-29"><a href="unixsock.html#cb72-29"></a>    <span class="cf">if</span> <span class="op">(</span>bind<span class="op">(</span>s<span class="op">,</span> <span class="op">(</span><span class="kw">struct</span> sockaddr <span class="op">*)&amp;</span>local<span class="op">,</span> len<span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb72-30"><a href="unixsock.html#cb72-30"></a>            perror<span class="op">(</span><span class="st">&quot;bind&quot;</span><span class="op">);</span></span>
+<span id="cb72-31"><a href="unixsock.html#cb72-31"></a>            exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb72-32"><a href="unixsock.html#cb72-32"></a>    <span class="op">}</span></span>
+<span id="cb72-33"><a href="unixsock.html#cb72-33"></a></span>
+<span id="cb72-34"><a href="unixsock.html#cb72-34"></a>    <span class="cf">if</span> <span class="op">(</span>listen<span class="op">(</span>s<span class="op">,</span> <span class="dv">5</span><span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb72-35"><a href="unixsock.html#cb72-35"></a>            perror<span class="op">(</span><span class="st">&quot;listen&quot;</span><span class="op">);</span></span>
+<span id="cb72-36"><a href="unixsock.html#cb72-36"></a>            exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb72-37"><a href="unixsock.html#cb72-37"></a>    <span class="op">}</span></span>
+<span id="cb72-38"><a href="unixsock.html#cb72-38"></a></span>
+<span id="cb72-39"><a href="unixsock.html#cb72-39"></a>    <span class="cf">for</span><span class="op">(;;)</span> <span class="op">{</span></span>
+<span id="cb72-40"><a href="unixsock.html#cb72-40"></a>            <span class="dt">int</span> done<span class="op">,</span> n<span class="op">;</span></span>
+<span id="cb72-41"><a href="unixsock.html#cb72-41"></a>            printf<span class="op">(</span><span class="st">&quot;Waiting for a connection...</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb72-42"><a href="unixsock.html#cb72-42"></a>            socklen_t slen <span class="op">=</span> <span class="kw">sizeof</span><span class="op">(</span>remote<span class="op">);</span></span>
+<span id="cb72-43"><a href="unixsock.html#cb72-43"></a>            <span class="cf">if</span> <span class="op">((</span>s2 <span class="op">=</span> accept<span class="op">(</span>s<span class="op">,</span> <span class="op">(</span><span class="kw">struct</span> sockaddr <span class="op">*)&amp;</span>remote<span class="op">,</span> <span class="op">&amp;</span>slen<span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb72-44"><a href="unixsock.html#cb72-44"></a>                    perror<span class="op">(</span><span class="st">&quot;accept&quot;</span><span class="op">);</span></span>
+<span id="cb72-45"><a href="unixsock.html#cb72-45"></a>                    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb72-46"><a href="unixsock.html#cb72-46"></a>            <span class="op">}</span></span>
+<span id="cb72-47"><a href="unixsock.html#cb72-47"></a></span>
+<span id="cb72-48"><a href="unixsock.html#cb72-48"></a>            printf<span class="op">(</span><span class="st">&quot;Connected.</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb72-49"><a href="unixsock.html#cb72-49"></a></span>
+<span id="cb72-50"><a href="unixsock.html#cb72-50"></a>            done <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb72-51"><a href="unixsock.html#cb72-51"></a>            <span class="cf">do</span> <span class="op">{</span></span>
+<span id="cb72-52"><a href="unixsock.html#cb72-52"></a>                    n <span class="op">=</span> recv<span class="op">(</span>s2<span class="op">,</span> str<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span>str<span class="op">),</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb72-53"><a href="unixsock.html#cb72-53"></a>                    <span class="cf">if</span> <span class="op">(</span>n <span class="op">&lt;=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb72-54"><a href="unixsock.html#cb72-54"></a>                            <span class="cf">if</span> <span class="op">(</span>n <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span> perror<span class="op">(</span><span class="st">&quot;recv&quot;</span><span class="op">);</span></span>
+<span id="cb72-55"><a href="unixsock.html#cb72-55"></a>                            done <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb72-56"><a href="unixsock.html#cb72-56"></a>                    <span class="op">}</span></span>
+<span id="cb72-57"><a href="unixsock.html#cb72-57"></a></span>
+<span id="cb72-58"><a href="unixsock.html#cb72-58"></a>                    <span class="cf">if</span> <span class="op">(!</span>done<span class="op">)</span> </span>
+<span id="cb72-59"><a href="unixsock.html#cb72-59"></a>                            <span class="cf">if</span> <span class="op">(</span>send<span class="op">(</span>s2<span class="op">,</span> str<span class="op">,</span> n<span class="op">,</span> <span class="dv">0</span><span class="op">)</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb72-60"><a href="unixsock.html#cb72-60"></a>                                    perror<span class="op">(</span><span class="st">&quot;send&quot;</span><span class="op">);</span></span>
+<span id="cb72-61"><a href="unixsock.html#cb72-61"></a>                                    done <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb72-62"><a href="unixsock.html#cb72-62"></a>                            <span class="op">}</span></span>
+<span id="cb72-63"><a href="unixsock.html#cb72-63"></a>            <span class="op">}</span> <span class="cf">while</span> <span class="op">(!</span>done<span class="op">);</span></span>
+<span id="cb72-64"><a href="unixsock.html#cb72-64"></a></span>
+<span id="cb72-65"><a href="unixsock.html#cb72-65"></a>            close<span class="op">(</span>s2<span class="op">);</span></span>
+<span id="cb72-66"><a href="unixsock.html#cb72-66"></a>    <span class="op">}</span></span>
+<span id="cb72-67"><a href="unixsock.html#cb72-67"></a></span>
+<span id="cb72-68"><a href="unixsock.html#cb72-68"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb72-69"><a href="unixsock.html#cb72-69"></a><span class="op">}</span></span></code></pre></div>
+<p>As you can see, all the aforementioned steps are included in this program: call <code>socket()</code>, call <code>bind()</code>, call <code>listen()</code>, call <code>accept()</code>, and do some network <code>send()</code>s and <code>recv()</code>s.</p>
+<h2 data-number="11.3" id="what-to-do-to-be-a-client"><span class="header-section-number">11.3</span> What to do to be a client</h2>
+<p>There needs to be a program to talk to the above server, right? Except with the client, it’s a lot easier because you don’t have to do any pesky <code>listen()</code>ing or <code>accept()</code>ing. Here are the steps:</p>
+<ol type="1">
+<li><p>Call <code>socket()</code> to get a Unix domain socket to communicate through.</p></li>
+<li><p>Set up a <code>struct sockaddr_un</code> with the remote address (where the server is listening) and call <code>connect()</code> with that as an argument.</p></li>
+<li><p>Assuming no errors, you’re connected to the remote side! Use <code>send()</code> and <code>recv()</code> to your heart’s content!</p></li>
+</ol>
+<p>How about code to talk to the echo server, above? No sweat, friends, here is <a href="https://beej.us/guide/bgipc/source/examples/echoc.c"><code>echoc.c</code></a><a href="footnotes.html#fn45" class="footnote-ref" id="fnref45" role="doc-noteref"><sup>45</sup></a>:</p>
+<div class="sourceCode" id="cb73"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb73-1"><a href="unixsock.html#cb73-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb73-2"><a href="unixsock.html#cb73-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb73-3"><a href="unixsock.html#cb73-3"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
+<span id="cb73-4"><a href="unixsock.html#cb73-4"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb73-5"><a href="unixsock.html#cb73-5"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb73-6"><a href="unixsock.html#cb73-6"></a><span class="pp">#include </span><span class="im">&lt;sys/socket.h&gt;</span></span>
+<span id="cb73-7"><a href="unixsock.html#cb73-7"></a><span class="pp">#include </span><span class="im">&lt;sys/un.h&gt;</span></span>
+<span id="cb73-8"><a href="unixsock.html#cb73-8"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb73-9"><a href="unixsock.html#cb73-9"></a></span>
+<span id="cb73-10"><a href="unixsock.html#cb73-10"></a><span class="pp">#define SOCK_PATH </span><span class="st">&quot;echo_socket&quot;</span></span>
+<span id="cb73-11"><a href="unixsock.html#cb73-11"></a></span>
+<span id="cb73-12"><a href="unixsock.html#cb73-12"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb73-13"><a href="unixsock.html#cb73-13"></a><span class="op">{</span></span>
+<span id="cb73-14"><a href="unixsock.html#cb73-14"></a>    <span class="dt">int</span> s<span class="op">,</span> len<span class="op">;</span></span>
+<span id="cb73-15"><a href="unixsock.html#cb73-15"></a>    <span class="kw">struct</span> sockaddr_un remote <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb73-16"><a href="unixsock.html#cb73-16"></a>        <span class="op">.</span>sun_family <span class="op">=</span> AF_UNIX<span class="op">,</span></span>
+<span id="cb73-17"><a href="unixsock.html#cb73-17"></a>        <span class="co">// .sun_path = SOCK_PATH,   // Can&#39;t do assignment to an array</span></span>
+<span id="cb73-18"><a href="unixsock.html#cb73-18"></a>    <span class="op">};</span></span>
+<span id="cb73-19"><a href="unixsock.html#cb73-19"></a>    <span class="dt">char</span> str<span class="op">[</span><span class="dv">100</span><span class="op">];</span></span>
+<span id="cb73-20"><a href="unixsock.html#cb73-20"></a></span>
+<span id="cb73-21"><a href="unixsock.html#cb73-21"></a>    <span class="cf">if</span> <span class="op">((</span>s <span class="op">=</span> socket<span class="op">(</span>AF_UNIX<span class="op">,</span> SOCK_STREAM<span class="op">,</span> <span class="dv">0</span><span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb73-22"><a href="unixsock.html#cb73-22"></a>        perror<span class="op">(</span><span class="st">&quot;socket&quot;</span><span class="op">);</span></span>
+<span id="cb73-23"><a href="unixsock.html#cb73-23"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb73-24"><a href="unixsock.html#cb73-24"></a>    <span class="op">}</span></span>
+<span id="cb73-25"><a href="unixsock.html#cb73-25"></a></span>
+<span id="cb73-26"><a href="unixsock.html#cb73-26"></a>    printf<span class="op">(</span><span class="st">&quot;Trying to connect...</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb73-27"><a href="unixsock.html#cb73-27"></a></span>
+<span id="cb73-28"><a href="unixsock.html#cb73-28"></a>    strcpy<span class="op">(</span>remote<span class="op">.</span>sun_path<span class="op">,</span> SOCK_PATH<span class="op">);</span></span>
+<span id="cb73-29"><a href="unixsock.html#cb73-29"></a>    len <span class="op">=</span> strlen<span class="op">(</span>remote<span class="op">.</span>sun_path<span class="op">)</span> <span class="op">+</span> <span class="kw">sizeof</span><span class="op">(</span>remote<span class="op">.</span>sun_family<span class="op">);</span></span>
+<span id="cb73-30"><a href="unixsock.html#cb73-30"></a>    <span class="cf">if</span> <span class="op">(</span>connect<span class="op">(</span>s<span class="op">,</span> <span class="op">(</span><span class="kw">struct</span> sockaddr <span class="op">*)&amp;</span>remote<span class="op">,</span> len<span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb73-31"><a href="unixsock.html#cb73-31"></a>        perror<span class="op">(</span><span class="st">&quot;connect&quot;</span><span class="op">);</span></span>
+<span id="cb73-32"><a href="unixsock.html#cb73-32"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb73-33"><a href="unixsock.html#cb73-33"></a>    <span class="op">}</span></span>
+<span id="cb73-34"><a href="unixsock.html#cb73-34"></a></span>
+<span id="cb73-35"><a href="unixsock.html#cb73-35"></a>    printf<span class="op">(</span><span class="st">&quot;Connected.</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb73-36"><a href="unixsock.html#cb73-36"></a></span>
+<span id="cb73-37"><a href="unixsock.html#cb73-37"></a>    <span class="co">/* size in fgets() includes the null byte */</span></span>
+<span id="cb73-38"><a href="unixsock.html#cb73-38"></a>    <span class="cf">while</span><span class="op">(</span>printf<span class="op">(</span><span class="st">&quot;&gt; &quot;</span><span class="op">),</span> fgets<span class="op">(</span>str<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span>str<span class="op">),</span> stdin<span class="op">),</span> <span class="op">!</span>feof<span class="op">(</span>stdin<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb73-39"><a href="unixsock.html#cb73-39"></a>        <span class="cf">if</span> <span class="op">(</span>send<span class="op">(</span>s<span class="op">,</span> str<span class="op">,</span> strlen<span class="op">(</span>str<span class="op">)+</span><span class="dv">1</span><span class="op">,</span> <span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb73-40"><a href="unixsock.html#cb73-40"></a>            perror<span class="op">(</span><span class="st">&quot;send&quot;</span><span class="op">);</span></span>
+<span id="cb73-41"><a href="unixsock.html#cb73-41"></a>            exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb73-42"><a href="unixsock.html#cb73-42"></a>        <span class="op">}</span></span>
+<span id="cb73-43"><a href="unixsock.html#cb73-43"></a></span>
+<span id="cb73-44"><a href="unixsock.html#cb73-44"></a>        <span class="cf">if</span> <span class="op">((</span>len<span class="op">=</span>recv<span class="op">(</span>s<span class="op">,</span> str<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span>str<span class="op">)-</span><span class="dv">1</span><span class="op">,</span> <span class="dv">0</span><span class="op">))</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb73-45"><a href="unixsock.html#cb73-45"></a>            str<span class="op">[</span>len<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span><span class="op">;</span></span>
+<span id="cb73-46"><a href="unixsock.html#cb73-46"></a>            printf<span class="op">(</span><span class="st">&quot;echo&gt; </span><span class="sc">%s</span><span class="st">&quot;</span><span class="op">,</span> str<span class="op">);</span></span>
+<span id="cb73-47"><a href="unixsock.html#cb73-47"></a>        <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb73-48"><a href="unixsock.html#cb73-48"></a>            <span class="cf">if</span> <span class="op">(</span>len <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span> perror<span class="op">(</span><span class="st">&quot;recv&quot;</span><span class="op">);</span></span>
+<span id="cb73-49"><a href="unixsock.html#cb73-49"></a>            <span class="cf">else</span> printf<span class="op">(</span><span class="st">&quot;Server closed connection</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb73-50"><a href="unixsock.html#cb73-50"></a>            exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb73-51"><a href="unixsock.html#cb73-51"></a>        <span class="op">}</span></span>
+<span id="cb73-52"><a href="unixsock.html#cb73-52"></a>    <span class="op">}</span></span>
+<span id="cb73-53"><a href="unixsock.html#cb73-53"></a></span>
+<span id="cb73-54"><a href="unixsock.html#cb73-54"></a>    close<span class="op">(</span>s<span class="op">);</span></span>
+<span id="cb73-55"><a href="unixsock.html#cb73-55"></a></span>
+<span id="cb73-56"><a href="unixsock.html#cb73-56"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb73-57"><a href="unixsock.html#cb73-57"></a><span class="op">}</span></span></code></pre></div>
+<p>In the client code, of course you’ll notice that there are only a few system calls used to set things up: <code>socket()</code> and <code>connect()</code>. Since the client isn’t going to be <code>accept()</code>ing any incoming connections, there’s no need for it to <code>listen()</code>. Of course, the client still uses <code>send()</code> and <code>recv()</code> for transferring data. That about sums it up.</p>
+<h2 data-number="11.4" id="socketpairquick-full-duplex-pipes"><span class="header-section-number">11.4</span> <code>socketpair()</code>—quick full-duplex pipes</h2>
+<p>What if you wanted a <a href="pipes.html#pipes"><code>pipe()</code></a>, but you wanted to use a single pipe to send and recieve data from <em>both sides</em>? Since pipes are unidirectional (with exceptions in SYSV), you can’t do it! There is a solution, though: use a Unix domain socket, since they can handle bi-directional data.</p>
+<p>What a pain, though! Setting up all that code with <code>listen()</code> and <code>connect()</code> and all that just to pass data both ways! But guess what! You don’t have to!</p>
+<p>That’s right, there’s a beauty of a system call known as <code>socketpair()</code> this is nice enough to return to you a pair of <em>already connected sockets</em>! No extra work is needed on your part; you can immediately use these socket descriptors for interprocess communication.</p>
+<p>For instance, lets set up two processes. The first sends a <code>char</code> to the second, and the second changes the character to uppercase and returns it. Here is some simple code to do just that, called <a href="https://beej.us/guide/bgipc/source/examples/spair.c"><code>spair.c</code></a><a href="footnotes.html#fn46" class="footnote-ref" id="fnref46" role="doc-noteref"><sup>46</sup></a> (with no error checking for clarity):</p>
+<div class="sourceCode" id="cb74"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb74-1"><a href="unixsock.html#cb74-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb74-2"><a href="unixsock.html#cb74-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb74-3"><a href="unixsock.html#cb74-3"></a><span class="pp">#include </span><span class="im">&lt;ctype.h&gt;</span></span>
+<span id="cb74-4"><a href="unixsock.html#cb74-4"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
+<span id="cb74-5"><a href="unixsock.html#cb74-5"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb74-6"><a href="unixsock.html#cb74-6"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb74-7"><a href="unixsock.html#cb74-7"></a><span class="pp">#include </span><span class="im">&lt;sys/socket.h&gt;</span></span>
+<span id="cb74-8"><a href="unixsock.html#cb74-8"></a></span>
+<span id="cb74-9"><a href="unixsock.html#cb74-9"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb74-10"><a href="unixsock.html#cb74-10"></a><span class="op">{</span></span>
+<span id="cb74-11"><a href="unixsock.html#cb74-11"></a>    <span class="dt">int</span> sv<span class="op">[</span><span class="dv">2</span><span class="op">];</span> <span class="co">/* the pair of socket descriptors */</span></span>
+<span id="cb74-12"><a href="unixsock.html#cb74-12"></a>    <span class="dt">char</span> buf<span class="op">;</span> <span class="co">/* for data exchange between processes */</span></span>
+<span id="cb74-13"><a href="unixsock.html#cb74-13"></a></span>
+<span id="cb74-14"><a href="unixsock.html#cb74-14"></a>    <span class="cf">if</span> <span class="op">(</span>socketpair<span class="op">(</span>AF_UNIX<span class="op">,</span> SOCK_STREAM<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> sv<span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb74-15"><a href="unixsock.html#cb74-15"></a>            perror<span class="op">(</span><span class="st">&quot;socketpair&quot;</span><span class="op">);</span></span>
+<span id="cb74-16"><a href="unixsock.html#cb74-16"></a>            exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb74-17"><a href="unixsock.html#cb74-17"></a>    <span class="op">}</span></span>
+<span id="cb74-18"><a href="unixsock.html#cb74-18"></a></span>
+<span id="cb74-19"><a href="unixsock.html#cb74-19"></a>    <span class="cf">if</span> <span class="op">(!</span>fork<span class="op">())</span> <span class="op">{</span>  <span class="co">/* child */</span></span>
+<span id="cb74-20"><a href="unixsock.html#cb74-20"></a>            read<span class="op">(</span>sv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> <span class="op">&amp;</span>buf<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb74-21"><a href="unixsock.html#cb74-21"></a>            printf<span class="op">(</span><span class="st">&quot;child: read &#39;</span><span class="sc">%c</span><span class="st">&#39;</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> buf<span class="op">);</span></span>
+<span id="cb74-22"><a href="unixsock.html#cb74-22"></a>            buf <span class="op">=</span> toupper<span class="op">(</span>buf<span class="op">);</span>  <span class="co">/* make it uppercase */</span></span>
+<span id="cb74-23"><a href="unixsock.html#cb74-23"></a>            write<span class="op">(</span>sv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> <span class="op">&amp;</span>buf<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb74-24"><a href="unixsock.html#cb74-24"></a>            printf<span class="op">(</span><span class="st">&quot;child: sent &#39;</span><span class="sc">%c</span><span class="st">&#39;</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> buf<span class="op">);</span></span>
+<span id="cb74-25"><a href="unixsock.html#cb74-25"></a></span>
+<span id="cb74-26"><a href="unixsock.html#cb74-26"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span> <span class="co">/* parent */</span></span>
+<span id="cb74-27"><a href="unixsock.html#cb74-27"></a>            write<span class="op">(</span>sv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> <span class="st">&quot;b&quot;</span><span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb74-28"><a href="unixsock.html#cb74-28"></a>            printf<span class="op">(</span><span class="st">&quot;parent: sent &#39;b&#39;</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb74-29"><a href="unixsock.html#cb74-29"></a>            read<span class="op">(</span>sv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> <span class="op">&amp;</span>buf<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb74-30"><a href="unixsock.html#cb74-30"></a>            printf<span class="op">(</span><span class="st">&quot;parent: read &#39;</span><span class="sc">%c</span><span class="st">&#39;</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> buf<span class="op">);</span></span>
+<span id="cb74-31"><a href="unixsock.html#cb74-31"></a>            wait<span class="op">(</span>NULL<span class="op">);</span> <span class="co">/* wait for child to die */</span></span>
+<span id="cb74-32"><a href="unixsock.html#cb74-32"></a>    <span class="op">}</span></span>
+<span id="cb74-33"><a href="unixsock.html#cb74-33"></a></span>
+<span id="cb74-34"><a href="unixsock.html#cb74-34"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb74-35"><a href="unixsock.html#cb74-35"></a><span class="op">}</span></span></code></pre></div>
+<p>Sure, it’s an expensive way to change a character to uppercase, but it’s the fact that you have simple communication going on here that really matters.</p>
+<p>One more thing to notice is that <code>socketpair()</code> takes both a domain (<code>AF_UNIX</code>) and socket type (<code>SOCK_STREAM</code>). These can be any legal values at all, depending on which routines in the kernel you want to handle your code, and whether you want stream or datagram sockets. I chose <code>AF_UNIX</code> sockets because this is a Unix sockets document and they’re a bit faster than <code>AF_INET</code> sockets, I hear.</p>
+<p>Finally, you might be curious as to why I’m using <code>write()</code> and <code>read()</code> instead of <code>send()</code> and <code>recv()</code>. Well, in short, I was being lazy. See, by using these system calls, I don’t have to enter the <code>flags</code> argument that <code>send()</code> and <code>recv()</code> use, and I always set it to zero anyway. Of course, socket descriptors are just file descriptors like any other, so they respond just fine to many file manipulation system calls.</p>
+<!-- Beej's guide to IPC
+
+# vim: ts=4:sw=4:nosi:et:tw=72
+-->
+<!-- ======================================================= -->
+<!-- References -->
+<!-- ======================================================= -->
+<hr><div style="text-align:center"><span><a href="mmap.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="references.html">Next</a></span></div></body>
+</html>

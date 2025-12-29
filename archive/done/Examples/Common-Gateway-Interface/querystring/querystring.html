@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CGI : get URL parameters</title>
+    </head>
+<body>
+<form name="geturlparams" action="/bin/geturlparams" method="get">
+<pre><h1>Get URL parameters</h1>
+<span>First name:</span>
+<input type="text" name="fname" />
+<span>Last name:</span>
+<input type="text" name="lname" />
+<span>Some Text:</span>
+<textarea style="width:176px; height:113px" multiline="multiline" name="text"></textarea>
+select a car
+ <select name="cars">
+  <option value="volvo">Volvo</option>
+  <option value="saab">Saab</option>
+  <option value="mercedes">Mercedes</option>
+  <option value="audi">Audi</option>
+</select>
+Gender?
+<input type="radio" name="gender" value="male" checked>Male
+<input type="radio" name="gender" value="female">Female
+Transport?
+<input type="checkbox" name="vehicle" value="Bike"> I have a bike <input type="checkbox" name="vehicle" value="Car" checked> I have a car
+
+<input type="submit" value="Submit" />
+</pre></form>
+</body>
+</html>

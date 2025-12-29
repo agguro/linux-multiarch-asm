@@ -1,0 +1,1848 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NASM - The Netwide Assembler</title>
+<link href="nasmdoc.css" rel="stylesheet" type="text/css" />
+<link href="local.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<ul class="navbar">
+<li class="first"><a class="prev" href="nasmdoc3.html">Chapter 3</a></li>
+<li><a class="next" href="nasmdoc5.html">Chapter 5</a></li>
+<li><a class="toc" href="nasmdoc0.html">Contents</a></li>
+<li class="last"><a class="index" href="nasmdoci.html">Index</a></li>
+</ul>
+<div class="title">
+<h1>NASM - The Netwide Assembler</h1>
+<span class="subtitle">version 2.15.05</span>
+</div>
+<div class="contents"
+>
+<h2 id="chapter-4">Chapter 4: The NASM Preprocessor</h2>
+<p>NASM contains a powerful macro processor, which supports conditional
+assembly, multi-level file inclusion, two forms of macro (single-line and
+multi-line), and a `context stack' mechanism for extra macro power.
+Preprocessor directives all begin with a <code>%</code> sign.</p>
+<p>The preprocessor collapses all lines which end with a backslash (\)
+character into a single line. Thus:</p>
+<pre>
+%define THIS_VERY_LONG_MACRO_NAME_IS_DEFINED_TO \ 
+        THIS_VALUE
+</pre>
+<p>will work like a single-line macro without the backslash-newline
+sequence.</p>
+<h3 id="section-4.1">4.1 Single-Line Macros</h3>
+<h4 id="section-4.1.1">4.1.1 The Normal Way: <code>%define</code></h4>
+<p>Single-line macros are defined using the <code>%define</code>
+preprocessor directive. The definitions work in a similar way to C; so you
+can do things like</p>
+<pre>
+%define ctrl    0x1F &amp; 
+%define param(a,b) ((a)+(a)*(b)) 
+
+        mov     byte [param(2,ebx)], ctrl 'D'
+</pre>
+<p>which will expand to</p>
+<pre>
+        mov     byte [(2)+(2)*(ebx)], 0x1F &amp; 'D'
+</pre>
+<p>When the expansion of a single-line macro contains tokens which invoke
+another macro, the expansion is performed at invocation time, not at
+definition time. Thus the code</p>
+<pre>
+%define a(x)    1+b(x) 
+%define b(x)    2*x 
+
+        mov     ax,a(8)
+</pre>
+<p>will evaluate in the expected way to <code>mov ax,1+2*8</code>, even
+though the macro <code>b</code> wasn't defined at the time of definition of
+<code>a</code>.</p>
+<p>Note that single-line macro argument list cannot be preceded by
+whitespace. Otherwise it will be treated as an expansion. For example:</p>
+<pre>
+   %define foo (a,b)               ; no arguments, (a,b) is the expansion 
+   %define bar(a,b)                ; two arguments, empty expansion
+</pre>
+<p>Macros defined with <code>%define</code> are case sensitive: after
+<code>%define foo bar</code>, only <code>foo</code> will expand to
+<code>bar</code>: <code>Foo</code> or <code>FOO</code> will not. By using
+<code>%idefine</code> instead of <code>%define</code> (the `i' stands for
+`insensitive') you can define all the case variants of a macro at once, so
+that <code>%idefine foo bar</code> would cause <code>foo</code>,
+<code>Foo</code>, <code>FOO</code>, <code>fOO</code> and so on all to
+expand to <code>bar</code>.</p>
+<p>There is a mechanism which detects when a macro call has occurred as a
+result of a previous expansion of the same macro, to guard against circular
+references and infinite loops. If this happens, the preprocessor will only
+expand the first occurrence of the macro. Hence, if you code</p>
+<pre>
+%define a(x)    1+a(x) 
+
+        mov     ax,a(3)
+</pre>
+<p>the macro <code>a(3)</code> will expand once, becoming
+<code>1+a(3)</code>, and will then expand no further. This behaviour can be
+useful: see <a href="nasmdo10.html#section-10.1">section 10.1</a> for an
+example of its use.</p>
+<p>You can overload single-line macros: if you write</p>
+<pre>
+%define foo(x)   1+x 
+%define foo(x,y) 1+x*y
+</pre>
+<p>the preprocessor will be able to handle both types of macro call, by
+counting the parameters you pass; so <code>foo(3)</code> will become
+<code>1+3</code> whereas <code>foo(ebx,2)</code> will become
+<code>1+ebx*2</code>. However, if you define</p>
+<pre>
+%define foo bar
+</pre>
+<p>then no other definition of <code>foo</code> will be accepted: a macro
+with no parameters prohibits the definition of the same name as a macro
+<em>with</em> parameters, and vice versa.</p>
+<p>This doesn't prevent single-line macros being <em>redefined</em>: you
+can perfectly well define a macro with</p>
+<pre>
+%define foo bar
+</pre>
+<p>and then re-define it later in the same source file with</p>
+<pre>
+%define foo baz
+</pre>
+<p>Then everywhere the macro <code>foo</code> is invoked, it will be
+expanded according to the most recent definition. This is particularly
+useful when defining single-line macros with <code>%assign</code> (see
+<a href="#section-4.1.8">section 4.1.8</a>).</p>
+<p>The following additional features were added in NASM 2.15:</p>
+<p>It is possible to define an empty string instead of an argument name if
+the argument is never used. For example:</p>
+<pre>
+   %define ereg(foo,) e %+ foo 
+     mov eax,ereg(dx,cx)
+</pre>
+<p>A single pair of parentheses is a subcase of a single, unused argument:</p>
+<pre>
+   %define myreg() eax 
+     mov edx,myreg()
+</pre>
+<p>This is similar to the behavior of the C preprocessor.</p>
+<ul>
+<li>
+<p>If declared with an <code>=</code>, NASM will evaluate the argument as
+an expression after expansion.</p>
+</li>
+<li>
+<p>If an argument declared with an <code>&amp;</code>, a macro parameter
+will be turned into a quoted string after expansion.</p>
+</li>
+<li>
+<p>If declared with a <code>+</code>, it is a greedy or variadic parameter;
+it includes any subsequent commas and parameters.</p>
+</li>
+<li>
+<p>If declared with an <code>!</code>, NASM will not strip whitespace and
+braces (useful in conjunction with <code>&amp;</code>).</p>
+</li>
+</ul>
+<p>For example:</p>
+<pre>
+    %define xyzzy(=expr,&amp;val) expr, str 
+    %define plugh(x) xyzzy(x,x) 
+    db plugh(3+5), `\0` ; Expands to: db 8, "3+5", `\0`
+</pre>
+<p>You can pre-define single-line macros using the `-d' option on the NASM
+command line: see <a href="nasmdoc2.html#section-2.1.20">section
+2.1.20</a>.</p>
+<h4 id="section-4.1.2">4.1.2 Resolving <code>%define</code>: <code>%xdefine</code></h4>
+<p>To have a reference to an embedded single-line macro resolved at the
+time that the embedding macro is <em>defined</em>, as opposed to when the
+embedding macro is <em>expanded</em>, you need a different mechanism to the
+one offered by <code>%define</code>. The solution is to use
+<code>%xdefine</code>, or it's case-insensitive counterpart
+<code>%ixdefine</code>.</p>
+<p>Suppose you have the following code:</p>
+<pre>
+%define  isTrue  1 
+%define  isFalse isTrue 
+%define  isTrue  0 
+
+val1:    db      isFalse 
+
+%define  isTrue  1 
+
+val2:    db      isFalse
+</pre>
+<p>In this case, <code>val1</code> is equal to 0, and <code>val2</code> is
+equal to 1. This is because, when a single-line macro is defined using
+<code>%define</code>, it is expanded only when it is called. As
+<code>isFalse</code> expands to <code>isTrue</code>, the expansion will be
+the current value of <code>isTrue</code>. The first time it is called that
+is 0, and the second time it is 1.</p>
+<p>If you wanted <code>isFalse</code> to expand to the value assigned to
+the embedded macro <code>isTrue</code> at the time that
+<code>isFalse</code> was defined, you need to change the above code to use
+<code>%xdefine</code>.</p>
+<pre>
+%xdefine isTrue  1 
+%xdefine isFalse isTrue 
+%xdefine isTrue  0 
+
+val1:    db      isFalse 
+
+%xdefine isTrue  1 
+
+val2:    db      isFalse
+</pre>
+<p>Now, each time that <code>isFalse</code> is called, it expands to 1, as
+that is what the embedded macro <code>isTrue</code> expanded to at the time
+that <code>isFalse</code> was defined.</p>
+<p><code>%xdefine</code> and <code>%ixdefine</code> supports argument
+expansion exactly the same way that <code>%define</code> and
+<code>%idefine</code> does.</p>
+<h4 id="section-4.1.3">4.1.3 Macro Indirection: <code>%[...]</code></h4>
+<p>The <code>%[...]</code> construct can be used to expand macros in
+contexts where macro expansion would otherwise not occur, including in the
+names other macros. For example, if you have a set of macros named
+<code>Foo16</code>, <code>Foo32</code> and <code>Foo64</code>, you could
+write:</p>
+<pre>
+     mov ax,Foo%[__?BITS?__] ; The Foo value
+</pre>
+<p>to use the builtin macro <code>__?BITS?__</code> (see
+<a href="nasmdoc5.html#section-5.3">section 5.3</a>) to automatically
+select between them. Similarly, the two statements:</p>
+<pre>
+%xdefine Bar         Quux    ; Expands due to %xdefine 
+%define  Bar         %[Quux] ; Expands due to %[...]
+</pre>
+<p>have, in fact, exactly the same effect.</p>
+<p><code>%[...]</code> concatenates to adjacent tokens in the same way that
+multi-line macro parameters do, see <a href="#section-4.3.9">section
+4.3.9</a> for details.</p>
+<h4 id="section-4.1.4">4.1.4 Concatenating Single Line Macro Tokens: <code>%+</code></h4>
+<p>Individual tokens in single line macros can be concatenated, to produce
+longer tokens for later processing. This can be useful if there are several
+similar macros that perform similar functions.</p>
+<p>Please note that a space is required after <code>%+</code>, in order to
+disambiguate it from the syntax <code>%+1</code> used in multiline macros.</p>
+<p>As an example, consider the following:</p>
+<pre>
+%define BDASTART 400h                ; Start of BIOS data area
+
+struc   tBIOSDA                      ; its structure 
+        .COM1addr       RESW    1 
+        .COM2addr       RESW    1 
+        ; ..and so on 
+endstruc
+</pre>
+<p>Now, if we need to access the elements of tBIOSDA in different places,
+we can end up with:</p>
+<pre>
+        mov     ax,BDASTART + tBIOSDA.COM1addr 
+        mov     bx,BDASTART + tBIOSDA.COM2addr
+</pre>
+<p>This will become pretty ugly (and tedious) if used in many places, and
+can be reduced in size significantly by using the following macro:</p>
+<pre>
+; Macro to access BIOS variables by their names (from tBDA):
+
+%define BDA(x)  BDASTART + tBIOSDA. %+ x
+</pre>
+<p>Now the above code can be written as:</p>
+<pre>
+        mov     ax,BDA(COM1addr) 
+        mov     bx,BDA(COM2addr)
+</pre>
+<p>Using this feature, we can simplify references to a lot of macros (and,
+in turn, reduce typing errors).</p>
+<h4 id="section-4.1.5">4.1.5 The Macro Name Itself: <code>%?</code> and <code>%??</code></h4>
+<p>The special symbols <code>%?</code> and <code>%??</code> can be used to
+reference the macro name itself inside a macro expansion, this is supported
+for both single-and multi-line macros. <code>%?</code> refers to the macro
+name as <em>invoked</em>, whereas <code>%??</code> refers to the macro name
+as <em>declared</em>. The two are always the same for case-sensitive
+macros, but for case-insensitive macros, they can differ.</p>
+<p>For example:</p>
+<pre>
+%imacro Foo 0 
+        mov %?,%?? 
+%endmacro 
+
+        foo 
+        FOO
+</pre>
+<p>will expand to:</p>
+<pre>
+        mov foo,Foo 
+        mov FOO,Foo
+</pre>
+<p>These tokens can be used for single-line macros <em>if defined outside
+any multi-line macros.</em> See below.</p>
+<h4 id="section-4.1.6">4.1.6 The Single-Line Macro Name: <code>%*?</code> and <code>%*??</code></h4>
+<p>If the tokens <code>%?</code> and <code>%??</code> are used inside a
+multi-line macro, they are expanded before any directives are processed. As
+a result,</p>
+<pre>
+%imacro Foo 0 
+      %idefine Bar _%? 
+      mov BAR,bAr 
+%endmacro 
+
+      foo 
+      mov eax,bar
+</pre>
+<p>will expand to:</p>
+<pre>
+      mov _foo,_foo 
+      mov eax,_foo
+</pre>
+<p>which may or may not be what you expected. The tokens <code>%*?</code>
+and <code>%*??</code> behave like <code>%?</code> and <code>%??</code> but
+are only expanded inside single-line macros. Thus:</p>
+<pre>
+%imacro Foo 0 
+      %idefine Bar _%*? 
+      mov BAR,bAr 
+%endmacro 
+
+      foo 
+      mov eax,bar
+</pre>
+<p>will expand to:</p>
+<pre>
+      mov _BAR,_bAr 
+      mov eax,_bar
+</pre>
+<p>The <code>%*?</code> can be used to make a keyword "disappear", for
+example in case a new instruction has been used as a label in older code.
+For example:</p>
+<pre>
+%idefine pause $%*?                 ; Hide the PAUSE instruction
+</pre>
+<p><code>%*?</code> and <code>%*??</code> were introduced in NASM 2.15.04.</p>
+<h4 id="section-4.1.7">4.1.7 Undefining Single-Line Macros: <code>%undef</code></h4>
+<p>Single-line macros can be removed with the <code>%undef</code>
+directive. For example, the following sequence:</p>
+<pre>
+%define foo bar 
+%undef  foo 
+
+        mov     eax, foo
+</pre>
+<p>will expand to the instruction <code>mov eax, foo</code>, since after
+<code>%undef</code> the macro <code>foo</code> is no longer defined.</p>
+<p>Macros that would otherwise be pre-defined can be undefined on the
+command-line using the `-u' option on the NASM command line: see
+<a href="nasmdoc2.html#section-2.1.21">section 2.1.21</a>.</p>
+<h4 id="section-4.1.8">4.1.8 Preprocessor Variables: <code>%assign</code></h4>
+<p>An alternative way to define single-line macros is by means of the
+<code>%assign</code> command (and its case-insensitive counterpart
+<code>%iassign</code>, which differs from <code>%assign</code> in exactly
+the same way that <code>%idefine</code> differs from <code>%define</code>).</p>
+<p><code>%assign</code> is used to define single-line macros which take no
+parameters and have a numeric value. This value can be specified in the
+form of an expression, and it will be evaluated once, when the
+<code>%assign</code> directive is processed.</p>
+<p>Like <code>%define</code>, macros defined using <code>%assign</code> can
+be re-defined later, so you can do things like</p>
+<pre>
+%assign i i+1
+</pre>
+<p>to increment the numeric value of a macro.</p>
+<p><code>%assign</code> is useful for controlling the termination of
+<code>%rep</code> preprocessor loops: see <a href="#section-4.5">section
+4.5</a> for an example of this. Another use for <code>%assign</code> is
+given in <a href="nasmdoc9.html#section-9.4">section 9.4</a> and
+<a href="nasmdo10.html#section-10.1">section 10.1</a>.</p>
+<p>The expression passed to <code>%assign</code> is a critical expression
+(see <a href="nasmdoc3.html#section-3.8">section 3.8</a>), and must also
+evaluate to a pure number (rather than a relocatable reference such as a
+code or data address, or anything involving a register).</p>
+<h4 id="section-4.1.9">4.1.9 Defining Strings: <code>%defstr</code></h4>
+<p><code>%defstr</code>, and its case-insensitive counterpart
+<code>%idefstr</code>, define or redefine a single-line macro without
+parameters but converts the entire right-hand side, after macro expansion,
+to a quoted string before definition.</p>
+<p>For example:</p>
+<pre>
+%defstr test TEST
+</pre>
+<p>is equivalent to</p>
+<pre>
+%define test 'TEST'
+</pre>
+<p>This can be used, for example, with the <code>%!</code> construct (see
+<a href="#section-4.11.2">section 4.11.2</a>):</p>
+<pre>
+%defstr PATH %!PATH          ; The operating system PATH variable
+</pre>
+<h4 id="section-4.1.10">4.1.10 Defining Tokens: <code>%deftok</code></h4>
+<p><code>%deftok</code>, and its case-insensitive counterpart
+<code>%ideftok</code>, define or redefine a single-line macro without
+parameters but converts the second parameter, after string conversion, to a
+sequence of tokens.</p>
+<p>For example:</p>
+<pre>
+%deftok test 'TEST'
+</pre>
+<p>is equivalent to</p>
+<pre>
+%define test TEST
+</pre>
+<h4 id="section-4.1.11">4.1.11 Defining Aliases: <code>%defalias</code></h4>
+<p><code>%defalias</code>, and its case-insensitive counterpart
+<code>%idefalias</code>, define an alias to a macro, i.e. equivalent of a
+symbolic link.</p>
+<p>When used with various macro defining and undefining directives, it
+affects the aliased macro. This functionality is intended for being able to
+rename macros while retaining the legacy names.</p>
+<p>When an alias is defined, but the aliased macro is then undefined, the
+aliases can legitimately point to nonexistent macros.</p>
+<p>The alias can be undefined using the <code>%undefalias</code> directive.
+<em>All</em> aliases can be undefined using the
+<code>%clear defalias</code> directive. This includes backwards
+compatibility aliases defined by NASM itself.</p>
+<p>To disable aliases without undefining them, use the
+<code>%aliases off</code> directive.</p>
+<p>To check whether an alias is defined, regardless of the existence of the
+aliased macro, use <code>%ifdefalias</code>.</p>
+<p>For example:</p>
+<pre>
+%defalias OLD NEW 
+   ; OLD and NEW both undefined 
+%define NEW 123 
+   ; OLD and NEW both 123 
+%undef OLD 
+   ; OLD and NEW both undefined 
+%define OLD 456 
+   ; OLD and NEW both 456 
+%undefalias OLD 
+   ; OLD undefined, NEW defined to 456
+</pre>
+<h4 id="section-4.1.12">4.1.12 Conditional Comma Operator: <code>%,</code></h4>
+<p>As of version 2.15, NASM has a conditional comma operator
+<code>%,</code> that expands to a comma <em>unless</em> followed by a null
+expansion, which allows suppressing the comma before an empty argument.
+This is especially useful with greedy single-line macros.</p>
+<p>For example, all the expressions below are valid:</p>
+<pre>
+%define greedy(a,b,c+) a + 66 %, b * 3 %, c 
+
+       db greedy(1,2)          ; db 1 + 66, 2 * 3 
+       db greedy(1,2,3)        ; db 1 + 66, 2 * 3, 3 
+       db greedy(1,2,3,4)      ; db 1 + 66, 2 * 3, 3, 4 
+       db greedy(1,2,3,4,5)    ; db 1 + 66, 2 * 3, 3, 4, 5
+</pre>
+<h3 id="section-4.2">4.2 String Manipulation in Macros</h3>
+<p>It's often useful to be able to handle strings in macros. NASM supports
+a few simple string handling macro operators from which more complex
+operations can be constructed.</p>
+<p>All the string operators define or redefine a value (either a string or
+a numeric value) to a single-line macro. When producing a string value, it
+may change the style of quoting of the input string or strings, and
+possibly use <code>\</code>&ndash;escapes inside
+<code>`</code>&ndash;quoted strings.</p>
+<h4 id="section-4.2.1">4.2.1 Concatenating Strings: <code>%strcat</code></h4>
+<p>The <code>%strcat</code> operator concatenates quoted strings and assign
+them to a single-line macro.</p>
+<p>For example:</p>
+<pre>
+%strcat alpha "Alpha: ", '12" screen'
+</pre>
+<p>... would assign the value <code>'Alpha: 12" screen'</code> to
+<code>alpha</code>. Similarly:</p>
+<pre>
+%strcat beta '"foo"\', "'bar'"
+</pre>
+<p>... would assign the value <code>`"foo"\\'bar'`</code> to
+<code>beta</code>.</p>
+<p>The use of commas to separate strings is permitted but optional.</p>
+<h4 id="section-4.2.2">4.2.2 String Length: <code>%strlen</code></h4>
+<p>The <code>%strlen</code> operator assigns the length of a string to a
+macro. For example:</p>
+<pre>
+%strlen charcnt 'my string'
+</pre>
+<p>In this example, <code>charcnt</code> would receive the value 9, just as
+if an <code>%assign</code> had been used. In this example,
+<code>'my string'</code> was a literal string but it could also have been a
+single-line macro that expands to a string, as in the following example:</p>
+<pre>
+%define sometext 'my string' 
+%strlen charcnt sometext
+</pre>
+<p>As in the first case, this would result in <code>charcnt</code> being
+assigned the value of 9.</p>
+<h4 id="section-4.2.3">4.2.3 Extracting Substrings: <code>%substr</code></h4>
+<p>Individual letters or substrings in strings can be extracted using the
+<code>%substr</code> operator. An example of its use is probably more
+useful than the description:</p>
+<pre>
+%substr mychar 'xyzw' 1       ; equivalent to %define mychar 'x' 
+%substr mychar 'xyzw' 2       ; equivalent to %define mychar 'y' 
+%substr mychar 'xyzw' 3       ; equivalent to %define mychar 'z' 
+%substr mychar 'xyzw' 2,2     ; equivalent to %define mychar 'yz' 
+%substr mychar 'xyzw' 2,-1    ; equivalent to %define mychar 'yzw' 
+%substr mychar 'xyzw' 2,-2    ; equivalent to %define mychar 'yz'
+</pre>
+<p>As with <code>%strlen</code> (see <a href="#section-4.2.2">section
+4.2.2</a>), the first parameter is the single-line macro to be created and
+the second is the string. The third parameter specifies the first character
+to be selected, and the optional fourth parameter preceeded by comma) is
+the length. Note that the first index is 1, not 0 and the last index is
+equal to the value that <code>%strlen</code> would assign given the same
+string. Index values out of range result in an empty string. A negative
+length means "until N-1 characters before the end of string", i.e.
+<code>-1</code> means until end of string, <code>-2</code> until one
+character before, etc.</p>
+<h3 id="section-4.3">4.3 Multi-Line Macros: <code>%macro</code></h3>
+<p>Multi-line macros are much more like the type of macro seen in MASM and
+TASM: a multi-line macro definition in NASM looks something like this.</p>
+<pre>
+%macro  prologue 1 
+
+        push    ebp 
+        mov     ebp,esp 
+        sub     esp,%1 
+
+%endmacro
+</pre>
+<p>This defines a C-like function prologue as a macro: so you would invoke
+the macro with a call such as:</p>
+<pre>
+myfunc:   prologue 12
+</pre>
+<p>which would expand to the three lines of code</p>
+<pre>
+myfunc: push    ebp 
+        mov     ebp,esp 
+        sub     esp,12
+</pre>
+<p>The number <code>1</code> after the macro name in the
+<code>%macro</code> line defines the number of parameters the macro
+<code>prologue</code> expects to receive. The use of <code>%1</code> inside
+the macro definition refers to the first parameter to the macro call. With
+a macro taking more than one parameter, subsequent parameters would be
+referred to as <code>%2</code>, <code>%3</code> and so on.</p>
+<p>Multi-line macros, like single-line macros, are case-sensitive, unless
+you define them using the alternative directive <code>%imacro</code>.</p>
+<p>If you need to pass a comma as <em>part</em> of a parameter to a
+multi-line macro, you can do that by enclosing the entire parameter in
+braces. So you could code things like:</p>
+<pre>
+%macro  silly 2 
+
+    %2: db      %1 
+
+%endmacro 
+
+        silly 'a', letter_a             ; letter_a:  db 'a' 
+        silly 'ab', string_ab           ; string_ab: db 'ab' 
+        silly {13,10}, crlf             ; crlf:      db 13,10
+</pre>
+<p>The behavior with regards to empty arguments at the end of multi-line
+macros before NASM 2.15 was often very strange. For backwards
+compatibility, NASM attempts to recognize cases where the legacy behavior
+would give unexpected results, and issues a warning, but largely tries to
+match the legacy behavior. This can be disabled with the
+<code>%pragma</code> (see <a href="#section-4.10.1">section 4.10.1</a>):</p>
+<pre>
+%pragma preproc sane_empty_expansion
+</pre>
+<h4 id="section-4.3.1">4.3.1 Overloading Multi-Line Macros</h4>
+<p>As with single-line macros, multi-line macros can be overloaded by
+defining the same macro name several times with different numbers of
+parameters. This time, no exception is made for macros with no parameters
+at all. So you could define</p>
+<pre>
+%macro  prologue 0 
+
+        push    ebp 
+        mov     ebp,esp 
+
+%endmacro
+</pre>
+<p>to define an alternative form of the function prologue which allocates
+no local stack space.</p>
+<p>Sometimes, however, you might want to `overload' a machine instruction;
+for example, you might want to define</p>
+<pre>
+%macro  push 2 
+
+        push    %1 
+        push    %2 
+
+%endmacro
+</pre>
+<p>so that you could code</p>
+<pre>
+        push    ebx             ; this line is not a macro call 
+        push    eax,ecx         ; but this one is
+</pre>
+<p>Ordinarily, NASM will give a warning for the first of the above two
+lines, since <code>push</code> is now defined to be a macro, and is being
+invoked with a number of parameters for which no definition has been given.
+The correct code will still be generated, but the assembler will give a
+warning. This warning can be disabled by the use of the
+<code>-w-macro-params</code> command-line option (see
+<a href="nasmdoc2.html#section-2.1.26">section 2.1.26</a>).</p>
+<h4 id="section-4.3.2">4.3.2 Macro-Local Labels</h4>
+<p>NASM allows you to define labels within a multi-line macro definition in
+such a way as to make them local to the macro call: so calling the same
+macro multiple times will use a different label each time. You do this by
+prefixing <code>%%</code> to the label name. So you can invent an
+instruction which executes a <code>RET</code> if the <code>Z</code> flag is
+set by doing this:</p>
+<pre>
+%macro  retz 0 
+
+        jnz     %%skip 
+        ret 
+    %%skip: 
+
+%endmacro
+</pre>
+<p>You can call this macro as many times as you want, and every time you
+call it NASM will make up a different `real' name to substitute for the
+label <code>%%skip</code>. The names NASM invents are of the form
+<code>..@2345.skip</code>, where the number 2345 changes with every macro
+call. The <code>..@</code> prefix prevents macro-local labels from
+interfering with the local label mechanism, as described in
+<a href="nasmdoc3.html#section-3.9">section 3.9</a>. You should avoid
+defining your own labels in this form (the <code>..@</code> prefix, then a
+number, then another period) in case they interfere with macro-local
+labels.</p>
+<p>These labels are really macro-local <em>tokens</em>, and can be used for
+other purposes where a token unique to each macro invocation is desired,
+e.g. to name single-line macros without using the context feature
+(<a href="#section-4.7.2">section 4.7.2</a>).</p>
+<h4 id="section-4.3.3">4.3.3 Greedy Macro Parameters</h4>
+<p>Occasionally it is useful to define a macro which lumps its entire
+command line into one parameter definition, possibly after extracting one
+or two smaller parameters from the front. An example might be a macro to
+write a text string to a file in MS-DOS, where you might want to be able to
+write</p>
+<pre>
+        writefile [filehandle],"hello, world",13,10
+</pre>
+<p>NASM allows you to define the last parameter of a macro to be
+<em>greedy</em>, meaning that if you invoke the macro with more parameters
+than it expects, all the spare parameters get lumped into the last defined
+one along with the separating commas. So if you code:</p>
+<pre>
+%macro  writefile 2+ 
+
+        jmp     %%endstr 
+  %%str:        db      %2 
+  %%endstr: 
+        mov     dx,%%str 
+        mov     cx,%%endstr-%%str 
+        mov     bx,%1 
+        mov     ah,0x40 
+        int     0x21 
+
+%endmacro
+</pre>
+<p>then the example call to <code>writefile</code> above will work as
+expected: the text before the first comma, <code>[filehandle]</code>, is
+used as the first macro parameter and expanded when <code>%1</code> is
+referred to, and all the subsequent text is lumped into <code>%2</code> and
+placed after the <code>db</code>.</p>
+<p>The greedy nature of the macro is indicated to NASM by the use of the
+<code>+</code> sign after the parameter count on the <code>%macro</code>
+line.</p>
+<p>If you define a greedy macro, you are effectively telling NASM how it
+should expand the macro given <em>any</em> number of parameters from the
+actual number specified up to infinity; in this case, for example, NASM now
+knows what to do when it sees a call to <code>writefile</code> with 2, 3, 4
+or more parameters. NASM will take this into account when overloading
+macros, and will not allow you to define another form of
+<code>writefile</code> taking 4 parameters (for example).</p>
+<p>Of course, the above macro could have been implemented as a non-greedy
+macro, in which case the call to it would have had to look like</p>
+<pre>
+          writefile [filehandle], {"hello, world",13,10}
+</pre>
+<p>NASM provides both mechanisms for putting commas in macro parameters,
+and you choose which one you prefer for each macro definition.</p>
+<p>See <a href="nasmdoc7.html#section-7.3.1">section 7.3.1</a> for a better
+way to write the above macro.</p>
+<h4 id="section-4.3.4">4.3.4 Macro Parameters Range</h4>
+<p>NASM allows you to expand parameters via special construction
+<code>%{x:y}</code> where <code>x</code> is the first parameter index and
+<code>y</code> is the last. Any index can be either negative or positive
+but must never be zero.</p>
+<p>For example</p>
+<pre>
+%macro mpar 1-* 
+     db %{3:5} 
+%endmacro 
+
+mpar 1,2,3,4,5,6
+</pre>
+<p>expands to <code>3,4,5</code> range.</p>
+<p>Even more, the parameters can be reversed so that</p>
+<pre>
+%macro mpar 1-* 
+     db %{5:3} 
+%endmacro 
+
+mpar 1,2,3,4,5,6
+</pre>
+<p>expands to <code>5,4,3</code> range.</p>
+<p>But even this is not the last. The parameters can be addressed via
+negative indices so NASM will count them reversed. The ones who know Python
+may see the analogue here.</p>
+<pre>
+%macro mpar 1-* 
+     db %{-1:-3} 
+%endmacro 
+
+mpar 1,2,3,4,5,6
+</pre>
+<p>expands to <code>6,5,4</code> range.</p>
+<p>Note that NASM uses comma to separate parameters being expanded.</p>
+<p>By the way, here is a trick &ndash; you might use the index
+<code>%{-1:-1</code>} which gives you the last argument passed to a macro.</p>
+<h4 id="section-4.3.5">4.3.5 Default Macro Parameters</h4>
+<p>NASM also allows you to define a multi-line macro with a <em>range</em>
+of allowable parameter counts. If you do this, you can specify defaults for
+omitted parameters. So, for example:</p>
+<pre>
+%macro  die 0-1 "Painful program death has occurred." 
+
+        writefile 2,%1 
+        mov     ax,0x4c01 
+        int     0x21 
+
+%endmacro
+</pre>
+<p>This macro (which makes use of the <code>writefile</code> macro defined
+in <a href="#section-4.3.3">section 4.3.3</a>) can be called with an
+explicit error message, which it will display on the error output stream
+before exiting, or it can be called with no parameters, in which case it
+will use the default error message supplied in the macro definition.</p>
+<p>In general, you supply a minimum and maximum number of parameters for a
+macro of this type; the minimum number of parameters are then required in
+the macro call, and then you provide defaults for the optional ones. So if
+a macro definition began with the line</p>
+<pre>
+%macro foobar 1-3 eax,[ebx+2]
+</pre>
+<p>then it could be called with between one and three parameters, and
+<code>%1</code> would always be taken from the macro call. <code>%2</code>,
+if not specified by the macro call, would default to <code>eax</code>, and
+<code>%3</code> if not specified would default to <code>[ebx+2]</code>.</p>
+<p>You can provide extra information to a macro by providing too many
+default parameters:</p>
+<pre>
+%macro quux 1 something
+</pre>
+<p>This will trigger a warning by default; see
+<a href="nasmdoc2.html#section-2.1.26">section 2.1.26</a> for more
+information. When <code>quux</code> is invoked, it receives not one but two
+parameters. <code>something</code> can be referred to as <code>%2</code>.
+The difference between passing <code>something</code> this way and writing
+<code>something</code> in the macro body is that with this way
+<code>something</code> is evaluated when the macro is defined, not when it
+is expanded.</p>
+<p>You may omit parameter defaults from the macro definition, in which case
+the parameter default is taken to be blank. This can be useful for macros
+which can take a variable number of parameters, since the <code>%0</code>
+token (see <a href="#section-4.3.6">section 4.3.6</a>) allows you to
+determine how many parameters were really passed to the macro call.</p>
+<p>This defaulting mechanism can be combined with the greedy-parameter
+mechanism; so the <code>die</code> macro above could be made more powerful,
+and more useful, by changing the first line of the definition to</p>
+<pre>
+%macro die 0-1+ "Painful program death has occurred.",13,10
+</pre>
+<p>The maximum parameter count can be infinite, denoted by <code>*</code>.
+In this case, of course, it is impossible to provide a <em>full</em> set of
+default parameters. Examples of this usage are shown in
+<a href="#section-4.3.8">section 4.3.8</a>.</p>
+<h4 id="section-4.3.6">4.3.6 <code>%0</code>: Macro Parameter Counter</h4>
+<p>The parameter reference <code>%0</code> will return a numeric constant
+giving the number of parameters received, that is, if <code>%0</code> is n
+then <code>%</code>n is the last parameter. <code>%0</code> is mostly
+useful for macros that can take a variable number of parameters. It can be
+used as an argument to <code>%rep</code> (see
+<a href="#section-4.5">section 4.5</a>) in order to iterate through all the
+parameters of a macro. Examples are given in
+<a href="#section-4.3.8">section 4.3.8</a>.</p>
+<h4 id="section-4.3.7">4.3.7 <code>%00</code>: Label Preceeding Macro</h4>
+<p><code>%00</code> will return the label preceeding the macro invocation,
+if any. The label must be on the same line as the macro invocation, may be
+a local label (see <a href="nasmdoc3.html#section-3.9">section 3.9</a>),
+and need not end in a colon.</p>
+<p>If <code>%00</code> is present anywhere in the macro body, the label
+itself will not be emitted by NASM. You can, of course, put
+<code>%00:</code> explicitly at the beginning of your macro.</p>
+<h4 id="section-4.3.8">4.3.8 <code>%rotate</code>: Rotating Macro Parameters</h4>
+<p>Unix shell programmers will be familiar with the <code>shift</code>
+shell command, which allows the arguments passed to a shell script
+(referenced as <code>$1</code>, <code>$2</code> and so on) to be moved left
+by one place, so that the argument previously referenced as <code>$2</code>
+becomes available as <code>$1</code>, and the argument previously
+referenced as <code>$1</code> is no longer available at all.</p>
+<p>NASM provides a similar mechanism, in the form of <code>%rotate</code>.
+As its name suggests, it differs from the Unix <code>shift</code> in that
+no parameters are lost: parameters rotated off the left end of the argument
+list reappear on the right, and vice versa.</p>
+<p><code>%rotate</code> is invoked with a single numeric argument (which
+may be an expression). The macro parameters are rotated to the left by that
+many places. If the argument to <code>%rotate</code> is negative, the macro
+parameters are rotated to the right.</p>
+<p>So a pair of macros to save and restore a set of registers might work as
+follows:</p>
+<pre>
+%macro  multipush 1-* 
+
+  %rep  %0 
+        push    %1 
+  %rotate 1 
+  %endrep 
+
+%endmacro
+</pre>
+<p>This macro invokes the <code>PUSH</code> instruction on each of its
+arguments in turn, from left to right. It begins by pushing its first
+argument, <code>%1</code>, then invokes <code>%rotate</code> to move all
+the arguments one place to the left, so that the original second argument
+is now available as <code>%1</code>. Repeating this procedure as many times
+as there were arguments (achieved by supplying <code>%0</code> as the
+argument to <code>%rep</code>) causes each argument in turn to be pushed.</p>
+<p>Note also the use of <code>*</code> as the maximum parameter count,
+indicating that there is no upper limit on the number of parameters you may
+supply to the <code>multipush</code> macro.</p>
+<p>It would be convenient, when using this macro, to have a
+<code>POP</code> equivalent, which <em>didn't</em> require the arguments to
+be given in reverse order. Ideally, you would write the
+<code>multipush</code> macro call, then cut-and-paste the line to where the
+pop needed to be done, and change the name of the called macro to
+<code>multipop</code>, and the macro would take care of popping the
+registers in the opposite order from the one in which they were pushed.</p>
+<p>This can be done by the following definition:</p>
+<pre>
+%macro  multipop 1-* 
+
+  %rep %0 
+  %rotate -1 
+        pop     %1 
+  %endrep 
+
+%endmacro
+</pre>
+<p>This macro begins by rotating its arguments one place to the
+<em>right</em>, so that the original <em>last</em> argument appears as
+<code>%1</code>. This is then popped, and the arguments are rotated right
+again, so the second-to-last argument becomes <code>%1</code>. Thus the
+arguments are iterated through in reverse order.</p>
+<h4 id="section-4.3.9">4.3.9 Concatenating Macro Parameters</h4>
+<p>NASM can concatenate macro parameters and macro indirection constructs
+on to other text surrounding them. This allows you to declare a family of
+symbols, for example, in a macro definition. If, for example, you wanted to
+generate a table of key codes along with offsets into the table, you could
+code something like</p>
+<pre>
+%macro keytab_entry 2 
+
+    keypos%1    equ     $-keytab 
+                db      %2 
+
+%endmacro 
+
+keytab: 
+          keytab_entry F1,128+1 
+          keytab_entry F2,128+2 
+          keytab_entry Return,13
+</pre>
+<p>which would expand to</p>
+<pre>
+keytab: 
+keyposF1        equ     $-keytab 
+                db     128+1 
+keyposF2        equ     $-keytab 
+                db      128+2 
+keyposReturn    equ     $-keytab 
+                db      13
+</pre>
+<p>You can just as easily concatenate text on to the other end of a macro
+parameter, by writing <code>%1foo</code>.</p>
+<p>If you need to append a <em>digit</em> to a macro parameter, for example
+defining labels <code>foo1</code> and <code>foo2</code> when passed the
+parameter <code>foo</code>, you can't code <code>%11</code> because that
+would be taken as the eleventh macro parameter. Instead, you must code
+<code>%{1}1</code>, which will separate the first <code>1</code> (giving
+the number of the macro parameter) from the second (literal text to be
+concatenated to the parameter).</p>
+<p>This concatenation can also be applied to other preprocessor in-line
+objects, such as macro-local labels (<a href="#section-4.3.2">section
+4.3.2</a>) and context-local labels (<a href="#section-4.7.2">section
+4.7.2</a>). In all cases, ambiguities in syntax can be resolved by
+enclosing everything after the <code>%</code> sign and before the literal
+text in braces: so <code>%{%foo}bar</code> concatenates the text
+<code>bar</code> to the end of the real name of the macro-local label
+<code>%%foo</code>. (This is unnecessary, since the form NASM uses for the
+real names of macro-local labels means that the two usages
+<code>%{%foo}bar</code> and <code>%%foobar</code> would both expand to the
+same thing anyway; nevertheless, the capability is there.)</p>
+<p>The single-line macro indirection construct, <code>%[...]</code>
+(<a href="#section-4.1.3">section 4.1.3</a>), behaves the same way as macro
+parameters for the purpose of concatenation.</p>
+<p>See also the <code>%+</code> operator, <a href="#section-4.1.4">section
+4.1.4</a>.</p>
+<h4 id="section-4.3.10">4.3.10 Condition Codes as Macro Parameters</h4>
+<p>NASM can give special treatment to a macro parameter which contains a
+condition code. For a start, you can refer to the macro parameter
+<code>%1</code> by means of the alternative syntax <code>%+1</code>, which
+informs NASM that this macro parameter is supposed to contain a condition
+code, and will cause the preprocessor to report an error message if the
+macro is called with a parameter which is <em>not</em> a valid condition
+code.</p>
+<p>Far more usefully, though, you can refer to the macro parameter by means
+of <code>%-1</code>, which NASM will expand as the <em>inverse</em>
+condition code. So the <code>retz</code> macro defined in
+<a href="#section-4.3.2">section 4.3.2</a> can be replaced by a general
+conditional-return macro like this:</p>
+<pre>
+%macro  retc 1 
+
+        j%-1    %%skip 
+        ret 
+  %%skip: 
+
+%endmacro
+</pre>
+<p>This macro can now be invoked using calls like <code>retc ne</code>,
+which will cause the conditional-jump instruction in the macro expansion to
+come out as <code>JE</code>, or <code>retc po</code> which will make the
+jump a <code>JPE</code>.</p>
+<p>The <code>%+1</code> macro-parameter reference is quite happy to
+interpret the arguments <code>CXZ</code> and <code>ECXZ</code> as valid
+condition codes; however, <code>%-1</code> will report an error if passed
+either of these, because no inverse condition code exists.</p>
+<h4 id="section-4.3.11">4.3.11 Disabling Listing Expansion</h4>
+<p>When NASM is generating a listing file from your program, it will
+generally expand multi-line macros by means of writing the macro call and
+then listing each line of the expansion. This allows you to see which
+instructions in the macro expansion are generating what code; however, for
+some macros this clutters the listing up unnecessarily.</p>
+<p>NASM therefore provides the <code>.nolist</code> qualifier, which you
+can include in a macro definition to inhibit the expansion of the macro in
+the listing file. The <code>.nolist</code> qualifier comes directly after
+the number of parameters, like this:</p>
+<pre>
+%macro foo 1.nolist
+</pre>
+<p>Or like this:</p>
+<pre>
+%macro bar 1-5+.nolist a,b,c,d,e,f,g,h
+</pre>
+<h4 id="section-4.3.12">4.3.12 Undefining Multi-Line Macros: <code>%unmacro</code></h4>
+<p>Multi-line macros can be removed with the <code>%unmacro</code>
+directive. Unlike the <code>%undef</code> directive, however,
+<code>%unmacro</code> takes an argument specification, and will only remove
+exact matches with that argument specification.</p>
+<p>For example:</p>
+<pre>
+%macro foo 1-3 
+        ; Do something 
+%endmacro 
+%unmacro foo 1-3
+</pre>
+<p>removes the previously defined macro <code>foo</code>, but</p>
+<pre>
+%macro bar 1-3 
+        ; Do something 
+%endmacro 
+%unmacro bar 1
+</pre>
+<p>does <em>not</em> remove the macro <code>bar</code>, since the argument
+specification does not match exactly.</p>
+<h3 id="section-4.4">4.4 Conditional Assembly</h3>
+<p>Similarly to the C preprocessor, NASM allows sections of a source file
+to be assembled only if certain conditions are met. The general syntax of
+this feature looks like this:</p>
+<pre>
+%if&lt;condition&gt; 
+    ; some code which only appears if &lt;condition&gt; is met 
+%elif&lt;condition2&gt; 
+    ; only appears if &lt;condition&gt; is not met but &lt;condition2&gt; is 
+%else 
+    ; this appears if neither &lt;condition&gt; nor &lt;condition2&gt; was met 
+%endif
+</pre>
+<p>The inverse forms <code>%ifn</code> and <code>%elifn</code> are also
+supported.</p>
+<p>The <code>%else</code> clause is optional, as is the <code>%elif</code>
+clause. You can have more than one <code>%elif</code> clause as well.</p>
+<p>There are a number of variants of the <code>%if</code> directive. Each
+has its corresponding <code>%elif</code>, <code>%ifn</code>, and
+<code>%elifn</code> directives; for example, the equivalents to the
+<code>%ifdef</code> directive are <code>%elifdef</code>,
+<code>%ifndef</code>, and <code>%elifndef</code>.</p>
+<h4 id="section-4.4.1">4.4.1 <code>%ifdef</code>: Testing Single-Line Macro Existence</h4>
+<p>Beginning a conditional-assembly block with the line
+<code>%ifdef MACRO</code> will assemble the subsequent code if, and only
+if, a single-line macro called <code>MACRO</code> is defined. If not, then
+the <code>%elif</code> and <code>%else</code> blocks (if any) will be
+processed instead.</p>
+<p>For example, when debugging a program, you might want to write code such
+as</p>
+<pre>
+          ; perform some function 
+%ifdef DEBUG 
+          writefile 2,"Function performed successfully",13,10 
+%endif 
+          ; go and do something else
+</pre>
+<p>Then you could use the command-line option <code>-dDEBUG</code> to
+create a version of the program which produced debugging messages, and
+remove the option to generate the final release version of the program.</p>
+<p>You can test for a macro <em>not</em> being defined by using
+<code>%ifndef</code> instead of <code>%ifdef</code>. You can also test for
+macro definitions in <code>%elif</code> blocks by using
+<code>%elifdef</code> and <code>%elifndef</code>.</p>
+<h4 id="section-4.4.2">4.4.2 <code>%ifmacro</code>: Testing Multi-Line Macro Existence</h4>
+<p>The <code>%ifmacro</code> directive operates in the same way as the
+<code>%ifdef</code> directive, except that it checks for the existence of a
+multi-line macro.</p>
+<p>For example, you may be working with a large project and not have
+control over the macros in a library. You may want to create a macro with
+one name if it doesn't already exist, and another name if one with that
+name does exist.</p>
+<p>The <code>%ifmacro</code> is considered true if defining a macro with
+the given name and number of arguments would cause a definitions conflict.
+For example:</p>
+<pre>
+%ifmacro MyMacro 1-3 
+
+     %error "MyMacro 1-3" causes a conflict with an existing macro. 
+
+%else 
+
+     %macro MyMacro 1-3 
+
+             ; insert code to define the macro 
+
+     %endmacro 
+
+%endif
+</pre>
+<p>This will create the macro "MyMacro 1-3" if no macro already exists
+which would conflict with it, and emits a warning if there would be a
+definition conflict.</p>
+<p>You can test for the macro not existing by using the
+<code>%ifnmacro</code> instead of <code>%ifmacro</code>. Additional tests
+can be performed in <code>%elif</code> blocks by using
+<code>%elifmacro</code> and <code>%elifnmacro</code>.</p>
+<h4 id="section-4.4.3">4.4.3 <code>%ifctx</code>: Testing the Context Stack</h4>
+<p>The conditional-assembly construct <code>%ifctx</code> will cause the
+subsequent code to be assembled if and only if the top context on the
+preprocessor's context stack has the same name as one of the arguments. As
+with <code>%ifdef</code>, the inverse and <code>%elif</code> forms
+<code>%ifnctx</code>, <code>%elifctx</code> and <code>%elifnctx</code> are
+also supported.</p>
+<p>For more details of the context stack, see
+<a href="#section-4.7">section 4.7</a>. For a sample use of
+<code>%ifctx</code>, see <a href="#section-4.7.6">section 4.7.6</a>.</p>
+<h4 id="section-4.4.4">4.4.4 <code>%if</code>: Testing Arbitrary Numeric Expressions</h4>
+<p>The conditional-assembly construct <code>%if expr</code> will cause the
+subsequent code to be assembled if and only if the value of the numeric
+expression <code>expr</code> is non-zero. An example of the use of this
+feature is in deciding when to break out of a <code>%rep</code>
+preprocessor loop: see <a href="#section-4.5">section 4.5</a> for a
+detailed example.</p>
+<p>The expression given to <code>%if</code>, and its counterpart
+<code>%elif</code>, is a critical expression (see
+<a href="nasmdoc3.html#section-3.8">section 3.8</a>).</p>
+<p>Like other <code>%if</code> constructs, <code>%if</code> has a
+counterpart <code>%elif</code>, and negative forms <code>%ifn</code> and
+<code>%elifn</code>.</p>
+<h4 id="section-4.4.5">4.4.5 <code>%ifidn</code> and <code>%ifidni</code>: Testing Exact Text Identity</h4>
+<p>The construct <code>%ifidn text1,text2</code> will cause the subsequent
+code to be assembled if and only if <code>text1</code> and
+<code>text2</code>, after expanding single-line macros, are identical
+pieces of text. Differences in white space are not counted.</p>
+<p><code>%ifidni</code> is similar to <code>%ifidn</code>, but is
+case-insensitive.</p>
+<p>For example, the following macro pushes a register or number on the
+stack, and allows you to treat <code>IP</code> as a real register:</p>
+<pre>
+%macro  pushparam 1 
+
+  %ifidni %1,ip 
+        call    %%label 
+  %%label: 
+  %else 
+        push    %1 
+  %endif 
+
+%endmacro
+</pre>
+<p>Like other <code>%if</code> constructs, <code>%ifidn</code> has a
+counterpart <code>%elifidn</code>, and negative forms <code>%ifnidn</code>
+and <code>%elifnidn</code>. Similarly, <code>%ifidni</code> has
+counterparts <code>%elifidni</code>, <code>%ifnidni</code> and
+<code>%elifnidni</code>.</p>
+<h4 id="section-4.4.6">4.4.6 <code>%ifid</code>, <code>%ifnum</code>, <code>%ifstr</code>: Testing Token Types</h4>
+<p>Some macros will want to perform different tasks depending on whether
+they are passed a number, a string, or an identifier. For example, a string
+output macro might want to be able to cope with being passed either a
+string constant or a pointer to an existing string.</p>
+<p>The conditional assembly construct <code>%ifid</code>, taking one
+parameter (which may be blank), assembles the subsequent code if and only
+if the first token in the parameter exists and is an identifier.
+<code>%ifnum</code> works similarly, but tests for the token being a
+numeric constant; <code>%ifstr</code> tests for it being a string.</p>
+<p>For example, the <code>writefile</code> macro defined in
+<a href="#section-4.3.3">section 4.3.3</a> can be extended to take
+advantage of <code>%ifstr</code> in the following fashion:</p>
+<pre>
+%macro writefile 2-3+ 
+
+  %ifstr %2 
+        jmp     %%endstr 
+    %if %0 = 3 
+      %%str:    db      %2,%3 
+    %else 
+      %%str:    db      %2 
+    %endif 
+      %%endstr: mov     dx,%%str 
+                mov     cx,%%endstr-%%str 
+  %else 
+                mov     dx,%2 
+                mov     cx,%3 
+  %endif 
+                mov     bx,%1 
+                mov     ah,0x40 
+                int     0x21 
+
+%endmacro
+</pre>
+<p>Then the <code>writefile</code> macro can cope with being called in
+either of the following two ways:</p>
+<pre>
+        writefile [file], strpointer, length 
+        writefile [file], "hello", 13, 10
+</pre>
+<p>In the first, <code>strpointer</code> is used as the address of an
+already-declared string, and <code>length</code> is used as its length; in
+the second, a string is given to the macro, which therefore declares it
+itself and works out the address and length for itself.</p>
+<p>Note the use of <code>%if</code> inside the <code>%ifstr</code>: this is
+to detect whether the macro was passed two arguments (so the string would
+be a single string constant, and <code>db %2</code> would be adequate) or
+more (in which case, all but the first two would be lumped together into
+<code>%3</code>, and <code>db %2,%3</code> would be required).</p>
+<p>The usual <code>%elif</code>..., <code>%ifn</code>..., and
+<code>%elifn</code>... versions exist for each of <code>%ifid</code>,
+<code>%ifnum</code> and <code>%ifstr</code>.</p>
+<h4 id="section-4.4.7">4.4.7 <code>%iftoken</code>: Test for a Single Token</h4>
+<p>Some macros will want to do different things depending on if it is
+passed a single token (e.g. paste it to something else using
+<code>%+</code>) versus a multi-token sequence.</p>
+<p>The conditional assembly construct <code>%iftoken</code> assembles the
+subsequent code if and only if the expanded parameters consist of exactly
+one token, possibly surrounded by whitespace.</p>
+<p>For example:</p>
+<pre>
+%iftoken 1
+</pre>
+<p>will assemble the subsequent code, but</p>
+<pre>
+%iftoken -1
+</pre>
+<p>will not, since <code>-1</code> contains two tokens: the unary minus
+operator <code>-</code>, and the number <code>1</code>.</p>
+<p>The usual <code>%eliftoken</code>, <code>%ifntoken</code>, and
+<code>%elifntoken</code> variants are also provided.</p>
+<h4 id="section-4.4.8">4.4.8 <code>%ifempty</code>: Test for Empty Expansion</h4>
+<p>The conditional assembly construct <code>%ifempty</code> assembles the
+subsequent code if and only if the expanded parameters do not contain any
+tokens at all, whitespace excepted.</p>
+<p>The usual <code>%elifempty</code>, <code>%ifnempty</code>, and
+<code>%elifnempty</code> variants are also provided.</p>
+<h4 id="section-4.4.9">4.4.9 <code>%ifenv</code>: Test If Environment Variable Exists</h4>
+<p>The conditional assembly construct <code>%ifenv</code> assembles the
+subsequent code if and only if the environment variable referenced by the
+<code>%!</code><em>variable</em> directive exists.</p>
+<p>The usual <code>%elifenv</code>, <code>%ifnenv</code>, and
+<code>%elifnenv</code> variants are also provided.</p>
+<p>Just as for <code>%!</code><em>variable</em> the argument should be
+written as a string if it contains characters that would not be legal in an
+identifier. See <a href="#section-4.11.2">section 4.11.2</a>.</p>
+<h3 id="section-4.5">4.5 Preprocessor Loops: <code>%rep</code></h3>
+<p>NASM's <code>TIMES</code> prefix, though useful, cannot be used to
+invoke a multi-line macro multiple times, because it is processed by NASM
+after macros have already been expanded. Therefore NASM provides another
+form of loop, this time at the preprocessor level: <code>%rep</code>.</p>
+<p>The directives <code>%rep</code> and <code>%endrep</code>
+(<code>%rep</code> takes a numeric argument, which can be an expression;
+<code>%endrep</code> takes no arguments) can be used to enclose a chunk of
+code, which is then replicated as many times as specified by the
+preprocessor:</p>
+<pre>
+%assign i 0 
+%rep    64 
+        inc     word [table+2*i] 
+%assign i i+1 
+%endrep
+</pre>
+<p>This will generate a sequence of 64 <code>INC</code> instructions,
+incrementing every word of memory from <code>[table]</code> to
+<code>[table+126]</code>.</p>
+<p>For more complex termination conditions, or to break out of a repeat
+loop part way along, you can use the <code>%exitrep</code> directive to
+terminate the loop, like this:</p>
+<pre>
+fibonacci: 
+%assign i 0 
+%assign j 1 
+%rep 100 
+%if j &gt; 65535 
+    %exitrep 
+%endif 
+        dw j 
+%assign k j+i 
+%assign i j 
+%assign j k 
+%endrep 
+
+fib_number equ ($-fibonacci)/2
+</pre>
+<p>This produces a list of all the Fibonacci numbers that will fit in 16
+bits. Note that a maximum repeat count must still be given to
+<code>%rep</code>. This is to prevent the possibility of NASM getting into
+an infinite loop in the preprocessor, which (on multitasking or multi-user
+systems) would typically cause all the system memory to be gradually used
+up and other applications to start crashing.</p>
+<p>Note the maximum repeat count is limited to the value specified by the
+<code>--limit-rep</code> option or <code>%pragma limit rep</code>, see
+<a href="nasmdoc2.html#section-2.1.31">section 2.1.31</a>.</p>
+<h3 id="section-4.6">4.6 Source Files and Dependencies</h3>
+<p>These commands allow you to split your sources into multiple files.</p>
+<h4 id="section-4.6.1">4.6.1 <code>%include</code>: Including Other Files</h4>
+<p>Using, once again, a very similar syntax to the C preprocessor, NASM's
+preprocessor lets you include other source files into your code. This is
+done by the use of the <code>%include</code> directive:</p>
+<pre>
+%include "macros.mac"
+</pre>
+<p>will include the contents of the file <code>macros.mac</code> into the
+source file containing the <code>%include</code> directive.</p>
+<p>Include files are searched for in the current directory (the directory
+you're in when you run NASM, as opposed to the location of the NASM
+executable or the location of the source file), plus any directories
+specified on the NASM command line using the <code>-i</code> option.</p>
+<p>The standard C idiom for preventing a file being included more than once
+is just as applicable in NASM: if the file <code>macros.mac</code> has the
+form</p>
+<pre>
+%ifndef MACROS_MAC 
+    %define MACROS_MAC 
+    ; now define some macros 
+%endif
+</pre>
+<p>then including the file more than once will not cause errors, because
+the second time the file is included nothing will happen because the macro
+<code>MACROS_MAC</code> will already be defined.</p>
+<p>You can force a file to be included even if there is no
+<code>%include</code> directive that explicitly includes it, by using the
+<code>-p</code> option on the NASM command line (see
+<a href="nasmdoc2.html#section-2.1.19">section 2.1.19</a>).</p>
+<h4 id="section-4.6.2">4.6.2 <code>%pathsearch</code>: Search the Include Path</h4>
+<p>The <code>%pathsearch</code> directive takes a single-line macro name
+and a filename, and declare or redefines the specified single-line macro to
+be the include-path-resolved version of the filename, if the file exists
+(otherwise, it is passed unchanged.)</p>
+<p>For example,</p>
+<pre>
+%pathsearch MyFoo "foo.bin"
+</pre>
+<p>... with <code>-Ibins/</code> in the include path may end up defining
+the macro <code>MyFoo</code> to be <code>"bins/foo.bin"</code>.</p>
+<h4 id="section-4.6.3">4.6.3 <code>%depend</code>: Add Dependent Files</h4>
+<p>The <code>%depend</code> directive takes a filename and adds it to the
+list of files to be emitted as dependency generation when the
+<code>-M</code> options and its relatives (see
+<a href="nasmdoc2.html#section-2.1.5">section 2.1.5</a>) are used. It
+produces no output.</p>
+<p>This is generally used in conjunction with <code>%pathsearch</code>. For
+example, a simplified version of the standard macro wrapper for the
+<code>INCBIN</code> directive looks like:</p>
+<pre>
+%imacro incbin 1-2+ 0 
+%pathsearch dep %1 
+%depend dep 
+        incbin dep,%2 
+%endmacro
+</pre>
+<p>This first resolves the location of the file into the macro
+<code>dep</code>, then adds it to the dependency lists, and finally issues
+the assembler-level <code>INCBIN</code> directive.</p>
+<h4 id="section-4.6.4">4.6.4 <code>%use</code>: Include Standard Macro Package</h4>
+<p>The <code>%use</code> directive is similar to <code>%include</code>, but
+rather than including the contents of a file, it includes a named standard
+macro package. The standard macro packages are part of NASM, and are
+described in <a href="nasmdoc6.html">chapter 6</a>.</p>
+<p>Unlike the <code>%include</code> directive, package names for the
+<code>%use</code> directive do not require quotes, but quotes are
+permitted. In NASM 2.04 and 2.05 the unquoted form would be macro-expanded;
+this is no longer true. Thus, the following lines are equivalent:</p>
+<pre>
+%use altreg 
+%use 'altreg'
+</pre>
+<p>Standard macro packages are protected from multiple inclusion. When a
+standard macro package is used, a testable single-line macro of the form
+<code>__?USE_</code><em>package</em><code>?__</code> is also defined, see
+<a href="nasmdoc5.html#section-5.7">section 5.7</a>.</p>
+<h3 id="section-4.7">4.7 The Context Stack</h3>
+<p>Having labels that are local to a macro definition is sometimes not
+quite powerful enough: sometimes you want to be able to share labels
+between several macro calls. An example might be a <code>REPEAT</code> ...
+<code>UNTIL</code> loop, in which the expansion of the <code>REPEAT</code>
+macro would need to be able to refer to a label which the
+<code>UNTIL</code> macro had defined. However, for such a macro you would
+also want to be able to nest these loops.</p>
+<p>NASM provides this level of power by means of a <em>context stack</em>.
+The preprocessor maintains a stack of <em>contexts</em>, each of which is
+characterized by a name. You add a new context to the stack using the
+<code>%push</code> directive, and remove one using <code>%pop</code>. You
+can define labels that are local to a particular context on the stack.</p>
+<h4 id="section-4.7.1">4.7.1 <code>%push</code> and <code>%pop</code>: Creating and Removing Contexts</h4>
+<p>The <code>%push</code> directive is used to create a new context and
+place it on the top of the context stack. <code>%push</code> takes an
+optional argument, which is the name of the context. For example:</p>
+<pre>
+%push    foobar
+</pre>
+<p>This pushes a new context called <code>foobar</code> on the stack. You
+can have several contexts on the stack with the same name: they can still
+be distinguished. If no name is given, the context is unnamed (this is
+normally used when both the <code>%push</code> and the <code>%pop</code>
+are inside a single macro definition.)</p>
+<p>The directive <code>%pop</code>, taking one optional argument, removes
+the top context from the context stack and destroys it, along with any
+labels associated with it. If an argument is given, it must match the name
+of the current context, otherwise it will issue an error.</p>
+<h4 id="section-4.7.2">4.7.2 Context-Local Labels</h4>
+<p>Just as the usage <code>%%foo</code> defines a label which is local to
+the particular macro call in which it is used, the usage <code>%$foo</code>
+is used to define a label which is local to the context on the top of the
+context stack. So the <code>REPEAT</code> and <code>UNTIL</code> example
+given above could be implemented by means of:</p>
+<pre>
+%macro repeat 0 
+
+    %push   repeat 
+    %$begin: 
+
+%endmacro 
+
+%macro until 1 
+
+        j%-1    %$begin 
+    %pop 
+
+%endmacro
+</pre>
+<p>and invoked by means of, for example,</p>
+<pre>
+        mov     cx,string 
+        repeat 
+        add     cx,3 
+        scasb 
+        until   e
+</pre>
+<p>which would scan every fourth byte of a string in search of the byte in
+<code>AL</code>.</p>
+<p>If you need to define, or access, labels local to the context
+<em>below</em> the top one on the stack, you can use <code>%$$foo</code>,
+or <code>%$$$foo</code> for the context below that, and so on.</p>
+<h4 id="section-4.7.3">4.7.3 Context-Local Single-Line Macros</h4>
+<p>NASM also allows you to define single-line macros which are local to a
+particular context, in just the same way:</p>
+<pre>
+%define %$localmac 3
+</pre>
+<p>will define the single-line macro <code>%$localmac</code> to be local to
+the top context on the stack. Of course, after a subsequent
+<code>%push</code>, it can then still be accessed by the name
+<code>%$$localmac</code>.</p>
+<h4 id="section-4.7.4">4.7.4 Context Fall-Through Lookup <em>(deprecated)</em></h4>
+<p>Context fall-through lookup (automatic searching of outer contexts) is a
+feature that was added in NASM version 0.98.03. Unfortunately, this feature
+is unintuitive and can result in buggy code that would have otherwise been
+prevented by NASM's error reporting. As a result, this feature has been
+<em>deprecated</em>. NASM version 2.09 will issue a warning when usage of
+this <em>deprecated</em> feature is detected. Starting with NASM version
+2.10, usage of this <em>deprecated</em> feature will simply result in an
+<em>expression syntax error</em>.</p>
+<p>An example usage of this <em>deprecated</em> feature follows:</p>
+<pre>
+%macro ctxthru 0 
+%push ctx1 
+    %assign %$external 1 
+        %push ctx2 
+            %assign %$internal 1 
+            mov eax, %$external 
+            mov eax, %$internal 
+        %pop 
+%pop 
+%endmacro
+</pre>
+<p>As demonstrated, <code>%$external</code> is being defined in the
+<code>ctx1</code> context and referenced within the <code>ctx2</code>
+context. With context fall-through lookup, referencing an undefined
+context-local macro like this implicitly searches through all outer
+contexts until a match is made or isn't found in any context. As a result,
+<code>%$external</code> referenced within the <code>ctx2</code> context
+would implicitly use <code>%$external</code> as defined in
+<code>ctx1</code>. Most people would expect NASM to issue an error in this
+situation because <code>%$external</code> was never defined within
+<code>ctx2</code> and also isn't qualified with the proper context depth,
+<code>%$$external</code>.</p>
+<p>Here is a revision of the above example with proper context depth:</p>
+<pre>
+%macro ctxthru 0 
+%push ctx1 
+    %assign %$external 1 
+        %push ctx2 
+            %assign %$internal 1 
+            mov eax, %$$external 
+            mov eax, %$internal 
+        %pop 
+%pop 
+%endmacro
+</pre>
+<p>As demonstrated, <code>%$external</code> is still being defined in the
+<code>ctx1</code> context and referenced within the <code>ctx2</code>
+context. However, the reference to <code>%$external</code> within
+<code>ctx2</code> has been fully qualified with the proper context depth,
+<code>%$$external</code>, and thus is no longer ambiguous, unintuitive or
+erroneous.</p>
+<h4 id="section-4.7.5">4.7.5 <code>%repl</code>: Renaming a Context</h4>
+<p>If you need to change the name of the top context on the stack (in
+order, for example, to have it respond differently to <code>%ifctx</code>),
+you can execute a <code>%pop</code> followed by a <code>%push</code>; but
+this will have the side effect of destroying all context-local labels and
+macros associated with the context that was just popped.</p>
+<p>NASM provides the directive <code>%repl</code>, which <em>replaces</em>
+a context with a different name, without touching the associated macros and
+labels. So you could replace the destructive code</p>
+<pre>
+%pop 
+%push   newname
+</pre>
+<p>with the non-destructive version <code>%repl newname</code>.</p>
+<h4 id="section-4.7.6">4.7.6 Example Use of the Context Stack: Block IFs</h4>
+<p>This example makes use of almost all the context-stack features,
+including the conditional-assembly construct <code>%ifctx</code>, to
+implement a block IF statement as a set of macros.</p>
+<pre>
+%macro if 1 
+
+    %push if 
+    j%-1  %$ifnot 
+
+%endmacro 
+
+%macro else 0 
+
+  %ifctx if 
+        %repl   else 
+        jmp     %$ifend 
+        %$ifnot: 
+  %else 
+        %error  "expected `if' before `else'" 
+  %endif 
+
+%endmacro 
+
+%macro endif 0 
+
+  %ifctx if 
+        %$ifnot: 
+        %pop 
+  %elifctx      else 
+        %$ifend: 
+        %pop 
+  %else 
+        %error  "expected `if' or `else' before `endif'" 
+  %endif 
+
+%endmacro
+</pre>
+<p>This code is more robust than the <code>REPEAT</code> and
+<code>UNTIL</code> macros given in <a href="#section-4.7.2">section
+4.7.2</a>, because it uses conditional assembly to check that the macros
+are issued in the right order (for example, not calling <code>endif</code>
+before <code>if</code>) and issues a <code>%error</code> if they're not.</p>
+<p>In addition, the <code>endif</code> macro has to be able to cope with
+the two distinct cases of either directly following an <code>if</code>, or
+following an <code>else</code>. It achieves this, again, by using
+conditional assembly to do different things depending on whether the
+context on top of the stack is <code>if</code> or <code>else</code>.</p>
+<p>The <code>else</code> macro has to preserve the context on the stack, in
+order to have the <code>%$ifnot</code> referred to by the <code>if</code>
+macro be the same as the one defined by the <code>endif</code> macro, but
+has to change the context's name so that <code>endif</code> will know there
+was an intervening <code>else</code>. It does this by the use of
+<code>%repl</code>.</p>
+<p>A sample usage of these macros might look like:</p>
+<pre>
+        cmp     ax,bx 
+
+        if ae 
+               cmp     bx,cx 
+
+               if ae 
+                       mov     ax,cx 
+               else 
+                       mov     ax,bx 
+               endif 
+
+        else 
+               cmp     ax,cx 
+
+               if ae 
+                       mov     ax,cx 
+               endif 
+
+        endif
+</pre>
+<p>The block-<code>IF</code> macros handle nesting quite happily, by means
+of pushing another context, describing the inner <code>if</code>, on top of
+the one describing the outer <code>if</code>; thus <code>else</code> and
+<code>endif</code> always refer to the last unmatched <code>if</code> or
+<code>else</code>.</p>
+<h3 id="section-4.8">4.8 Stack Relative Preprocessor Directives</h3>
+<p>The following preprocessor directives provide a way to use labels to
+refer to local variables allocated on the stack.</p>
+<ul>
+<li>
+<p><code>%arg</code> (see <a href="#section-4.8.1">section 4.8.1</a>)</p>
+</li>
+<li>
+<p><code>%stacksize</code> (see <a href="#section-4.8.2">section 4.8.2</a>)</p>
+</li>
+<li>
+<p><code>%local</code> (see <a href="#section-4.8.3">section 4.8.3</a>)</p>
+</li>
+</ul>
+<h4 id="section-4.8.1">4.8.1 <code>%arg</code> Directive</h4>
+<p>The <code>%arg</code> directive is used to simplify the handling of
+parameters passed on the stack. Stack based parameter passing is used by
+many high level languages, including C, C++ and Pascal.</p>
+<p>While NASM has macros which attempt to duplicate this functionality (see
+<a href="nasmdoc9.html#section-9.4.5">section 9.4.5</a>), the syntax is not
+particularly convenient to use and is not TASM compatible. Here is an
+example which shows the use of <code>%arg</code> without any external
+macros:</p>
+<pre>
+some_function: 
+
+    %push     mycontext        ; save the current context 
+    %stacksize large           ; tell NASM to use bp 
+    %arg      i:word, j_ptr:word 
+
+        mov     ax,[i] 
+        mov     bx,[j_ptr] 
+        add     ax,[bx] 
+        ret 
+
+    %pop                       ; restore original context
+</pre>
+<p>This is similar to the procedure defined in
+<a href="nasmdoc9.html#section-9.4.5">section 9.4.5</a> and adds the value
+in i to the value pointed to by j_ptr and returns the sum in the ax
+register. See <a href="#section-4.7.1">section 4.7.1</a> for an explanation
+of <code>push</code> and <code>pop</code> and the use of context stacks.</p>
+<h4 id="section-4.8.2">4.8.2 <code>%stacksize</code> Directive</h4>
+<p>The <code>%stacksize</code> directive is used in conjunction with the
+<code>%arg</code> (see <a href="#section-4.8.1">section 4.8.1</a>) and the
+<code>%local</code> (see <a href="#section-4.8.3">section 4.8.3</a>)
+directives. It tells NASM the default size to use for subsequent
+<code>%arg</code> and <code>%local</code> directives. The
+<code>%stacksize</code> directive takes one required argument which is one
+of <code>flat</code>, <code>flat64</code>, <code>large</code> or
+<code>small</code>.</p>
+<pre>
+%stacksize flat
+</pre>
+<p>This form causes NASM to use stack-based parameter addressing relative
+to <code>ebp</code> and it assumes that a near form of call was used to get
+to this label (i.e. that <code>eip</code> is on the stack).</p>
+<pre>
+%stacksize flat64
+</pre>
+<p>This form causes NASM to use stack-based parameter addressing relative
+to <code>rbp</code> and it assumes that a near form of call was used to get
+to this label (i.e. that <code>rip</code> is on the stack).</p>
+<pre>
+%stacksize large
+</pre>
+<p>This form uses <code>bp</code> to do stack-based parameter addressing
+and assumes that a far form of call was used to get to this address (i.e.
+that <code>ip</code> and <code>cs</code> are on the stack).</p>
+<pre>
+%stacksize small
+</pre>
+<p>This form also uses <code>bp</code> to address stack parameters, but it
+is different from <code>large</code> because it also assumes that the old
+value of bp is pushed onto the stack (i.e. it expects an <code>ENTER</code>
+instruction). In other words, it expects that <code>bp</code>,
+<code>ip</code> and <code>cs</code> are on the top of the stack, underneath
+any local space which may have been allocated by <code>ENTER</code>. This
+form is probably most useful when used in combination with the
+<code>%local</code> directive (see <a href="#section-4.8.3">section
+4.8.3</a>).</p>
+<h4 id="section-4.8.3">4.8.3 <code>%local</code> Directive</h4>
+<p>The <code>%local</code> directive is used to simplify the use of local
+temporary stack variables allocated in a stack frame. Automatic local
+variables in C are an example of this kind of variable. The
+<code>%local</code> directive is most useful when used with the
+<code>%stacksize</code> (see <a href="#section-4.8.2">section 4.8.2</a> and
+is also compatible with the <code>%arg</code> directive (see
+<a href="#section-4.8.1">section 4.8.1</a>). It allows simplified reference
+to variables on the stack which have been allocated typically by using the
+<code>ENTER</code> instruction. An example of its use is the following:</p>
+<pre>
+silly_swap: 
+
+    %push mycontext             ; save the current context 
+    %stacksize small            ; tell NASM to use bp 
+    %assign %$localsize 0       ; see text for explanation 
+    %local old_ax:word, old_dx:word 
+
+        enter   %$localsize,0   ; see text for explanation 
+        mov     [old_ax],ax     ; swap ax &amp; bx 
+        mov     [old_dx],dx     ; and swap dx &amp; cx 
+        mov     ax,bx 
+        mov     dx,cx 
+        mov     bx,[old_ax] 
+        mov     cx,[old_dx] 
+        leave                   ; restore old bp 
+        ret                     ; 
+
+    %pop                        ; restore original context
+</pre>
+<p>The <code>%$localsize</code> variable is used internally by the
+<code>%local</code> directive and <em>must</em> be defined within the
+current context before the <code>%local</code> directive may be used.
+Failure to do so will result in one expression syntax error for each
+<code>%local</code> variable declared. It then may be used in the
+construction of an appropriately sized ENTER instruction as shown in the
+example.</p>
+<h3 id="section-4.9">4.9 Reporting User-Defined Errors: <code>%error</code>, <code>%warning</code>, <code>%fatal</code></h3>
+<p>The preprocessor directive <code>%error</code> will cause NASM to report
+an error if it occurs in assembled code. So if other users are going to try
+to assemble your source files, you can ensure that they define the right
+macros by means of code like this:</p>
+<pre>
+%ifdef F1 
+    ; do some setup 
+%elifdef F2 
+    ; do some different setup 
+%else 
+    %error "Neither F1 nor F2 was defined." 
+%endif
+</pre>
+<p>Then any user who fails to understand the way your code is supposed to
+be assembled will be quickly warned of their mistake, rather than having to
+wait until the program crashes on being run and then not knowing what went
+wrong.</p>
+<p>Similarly, <code>%warning</code> issues a warning, but allows assembly
+to continue:</p>
+<pre>
+%ifdef F1 
+    ; do some setup 
+%elifdef F2 
+    ; do some different setup 
+%else 
+    %warning "Neither F1 nor F2 was defined, assuming F1." 
+    %define F1 
+%endif
+</pre>
+<p><code>%error</code> and <code>%warning</code> are issued only on the
+final assembly pass. This makes them safe to use in conjunction with tests
+that depend on symbol values.</p>
+<p><code>%fatal</code> terminates assembly immediately, regardless of pass.
+This is useful when there is no point in continuing the assembly further,
+and doing so is likely just going to cause a spew of confusing error
+messages.</p>
+<p>It is optional for the message string after <code>%error</code>,
+<code>%warning</code> or <code>%fatal</code> to be quoted. If it is
+<em>not</em>, then single-line macros are expanded in it, which can be used
+to display more information to the user. For example:</p>
+<pre>
+%if foo &gt; 64 
+    %assign foo_over foo-64 
+    %error foo is foo_over bytes too large 
+%endif
+</pre>
+<h3 id="section-4.10">4.10 <code>%pragma</code>: Setting Options</h3>
+<p>The <code>%pragma</code> directive controls a number of options in NASM.
+Pragmas are intended to remain backwards compatible, and therefore an
+unknown <code>%pragma</code> directive is not an error.</p>
+<p>The various pragmas are documented with the options they affect.</p>
+<p>The general structure of a NASM pragma is:</p>
+<p><code>%pragma</code> <em>namespace</em> <em>directive</em>
+[<em>arguments...</em>]</p>
+<p>Currently defined namespaces are:</p>
+<ul>
+<li>
+<p><code>ignore</code>: this <code>%pragma</code> is unconditionally
+ignored.</p>
+</li>
+<li>
+<p><code>preproc</code>: preprocessor, see
+<a href="#section-4.10.1">section 4.10.1</a>.</p>
+</li>
+<li>
+<p><code>limit</code>: resource limits, see
+<a href="nasmdoc2.html#section-2.1.31">section 2.1.31</a>.</p>
+</li>
+<li>
+<p><code>asm</code>: the parser and assembler proper. Currently no such
+pragmas are defined.</p>
+</li>
+<li>
+<p><code>list</code>: listing options, see
+<a href="nasmdoc2.html#section-2.1.4">section 2.1.4</a>.</p>
+</li>
+<li>
+<p><code>file</code>: general file handling options. Currently no such
+pragmas are defined.</p>
+</li>
+<li>
+<p><code>input</code>: input file handling options. Currently no such
+pragmas are defined.</p>
+</li>
+<li>
+<p><code>output</code>: output format options.</p>
+</li>
+<li>
+<p><code>debug</code>: debug format options.</p>
+</li>
+</ul>
+<p>In addition, the name of any output or debug format, and sometimes
+groups thereof, also constitue <code>%pragma</code> namespaces. The
+namespaces <code>output</code> and <code>debug</code> simply refer to
+<em>any</em> output or debug format, respectively.</p>
+<p>For example, to prepend an underscore to global symbols regardless of
+the output format (see <a href="nasmdoc7.html#section-7.10">section
+7.10</a>):</p>
+<pre>
+%pragma output gprefix _
+</pre>
+<p>... whereas to prepend an underscore to global symbols only when the
+output is either <code>win32</code> or <code>win64</code>:</p>
+<pre>
+%pragma win gprefix _
+</pre>
+<h4 id="section-4.10.1">4.10.1 Preprocessor Pragmas</h4>
+<p>The only preprocessor <code>%pragma</code> defined in NASM 2.15 is:</p>
+<ul>
+<li>
+<p><code>%pragma preproc sane_empty_expansion</code>: disables legacy
+compatibility handling of braceless empty arguments to multi-line macros.
+See <a href="#section-4.3">section 4.3</a> and
+<a href="nasmdoc2.html#section-2.1.26">section 2.1.26</a>.</p>
+</li>
+</ul>
+<h3 id="section-4.11">4.11 Other Preprocessor Directives</h3>
+<h4 id="section-4.11.1">4.11.1 <code>%line</code> Directive</h4>
+<p>The <code>%line</code> directive is used to notify NASM that the input
+line corresponds to a specific line number in another file. Typically this
+other file would be an original source file, with the current NASM input
+being the output of a pre-processor. The <code>%line</code> directive
+allows NASM to output messages which indicate the line number of the
+original source file, instead of the file that is being read by NASM.</p>
+<p>This preprocessor directive is not generally used directly by
+programmers, but may be of interest to preprocessor authors. The usage of
+the <code>%line</code> preprocessor directive is as follows:</p>
+<pre>
+%line nnn[+mmm] [filename]
+</pre>
+<p>In this directive, <code>nnn</code> identifies the line of the original
+source file which this line corresponds to. <code>mmm</code> is an optional
+parameter which specifies a line increment value; each line of the input
+file read in is considered to correspond to <code>mmm</code> lines of the
+original source file. Finally, <code>filename</code> is an optional
+parameter which specifies the file name of the original source file. It may
+be a quoted string, in which case any additional argument after the quoted
+string will be ignored.</p>
+<p>After reading a <code>%line</code> preprocessor directive, NASM will
+report all file name and line numbers relative to the values specified
+therein.</p>
+<p>If the command line option <code>--no-line</code> is given, all
+<code>%line</code> directives are ignored. This may be useful for debugging
+preprocessed code. See <a href="nasmdoc2.html#section-2.1.33">section
+2.1.33</a>.</p>
+<p>Starting in NASM 2.15, <code>%line</code> directives are processed
+before any other processing takes place.</p>
+<p>For compatibility with the output from some other preprocessors,
+including many C preprocessors, a <code>#</code> character followed by
+whitespace <em>at the very beginning of a line</em> is also treated as a
+<code>%line</code> directive, except that double quotes surrounding the
+filename are treated like NASM backquotes, with
+<code>\</code>&ndash;escaped sequences decoded.</p>
+<h4 id="section-4.11.2">4.11.2 <code>%!</code><em>variable</em>: Read an Environment Variable.</h4>
+<p>The <code>%!</code><em>variable</em> directive makes it possible to read
+the value of an environment variable at assembly time. This could, for
+example, be used to store the contents of an environment variable into a
+string, which could be used at some other point in your code.</p>
+<p>For example, suppose that you have an environment variable
+<code>FOO</code>, and you want the contents of <code>FOO</code> to be
+embedded in your program as a quoted string. You could do that as follows:</p>
+<pre>
+%defstr FOO          %!FOO
+</pre>
+<p>See <a href="#section-4.1.9">section 4.1.9</a> for notes on the
+<code>%defstr</code> directive.</p>
+<p>If the name of the environment variable contains non-identifier
+characters, you can use string quotes to surround the name of the variable,
+for example:</p>
+<pre>
+%defstr C_colon      %!'C:'
+</pre>
+<h4 id="section-4.11.3">4.11.3 <code>%clear</code>: Clear All Macro Definitions</h4>
+<p>The directive <code>%clear</code> clears all definitions of a certain
+type, <em>including the ones defined by NASM itself.</em> This can be
+useful when preprocessing non-NASM code, or to drop backwards compatibility
+aliases.</p>
+<p>The syntax is:</p>
+<pre>
+   %clear [global|context] type...
+</pre>
+<p>... where <code>context</code> indicates that this applies to
+context-local macros only; the default is <code>global</code>.</p>
+<p><code>type</code> can be one or more of:</p>
+<ul>
+<li>
+<p><code>define</code> single-line macros</p>
+</li>
+<li>
+<p><code>defalias</code> single-line macro aliases (useful to remove
+backwards compatibility aliases)</p>
+</li>
+<li>
+<p><code>alldefine</code> same as <code>define defalias</code></p>
+</li>
+<li>
+<p><code>macro</code> multi-line macros</p>
+</li>
+<li>
+<p><code>all</code> same as <code>alldefine macro</code> (default)</p>
+</li>
+</ul>
+<p>In NASM 2.14 and earlier, only the single syntax <code>%clear</code> was
+supported, which is equivalent to <code>%clear global all</code>.</p>
+</div>
+</body>
+</html>

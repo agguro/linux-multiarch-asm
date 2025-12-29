@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NASM - The Netwide Assembler</title>
+<link href="nasmdoc.css" rel="stylesheet" type="text/css" />
+<link href="local.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<ul class="navbar">
+<li class="first"><a class="prev" href="nasmdo13.html">Chapter 13</a></li>
+<li><a class="next" href="nasmdocb.html">Appendix B</a></li>
+<li><a class="toc" href="nasmdoc0.html">Contents</a></li>
+<li class="last"><a class="index" href="nasmdoci.html">Index</a></li>
+</ul>
+<div class="title">
+<h1>NASM - The Netwide Assembler</h1>
+<span class="subtitle">version 2.15.05</span>
+</div>
+<div class="contents"
+>
+<h2 id="appendix-A">Appendix A: Ndisasm</h2>
+<p>The Netwide Disassembler, NDISASM</p>
+<h3 id="section-A.1">A.1 Introduction</h3>
+<p>The Netwide Disassembler is a small companion program to the Netwide
+Assembler, NASM. It seemed a shame to have an x86 assembler, complete with
+a full instruction table, and not make as much use of it as possible, so
+here's a disassembler which shares the instruction table (and some other
+bits of code) with NASM.</p>
+<p>The Netwide Disassembler does nothing except to produce disassemblies of
+<em>binary</em> source files. NDISASM does not have any understanding of
+object file formats, like <code>objdump</code>, and it will not understand
+<code>DOS .EXE</code> files like <code>debug</code> will. It just
+disassembles.</p>
+<h3 id="section-A.2">A.2 Running NDISASM</h3>
+<p>To disassemble a file, you will typically use a command of the form</p>
+<pre>
+       ndisasm -b {16|32|64} filename
+</pre>
+<p>NDISASM can disassemble 16-, 32- or 64-bit code equally easily, provided
+of course that you remember to specify which it is to work with. If no
+<code>-b</code> switch is present, NDISASM works in 16-bit mode by default.
+The <code>-u</code> switch (for USE32) also invokes 32-bit mode.</p>
+<p>Two more command line options are <code>-r</code> which reports the
+version number of NDISASM you are running, and <code>-h</code> which gives
+a short summary of command line options.</p>
+<h4 id="section-A.2.1">A.2.1 COM Files: Specifying an Origin</h4>
+<p>To disassemble a <code>DOS .COM</code> file correctly, a disassembler
+must assume that the first instruction in the file is loaded at address
+<code>0x100</code>, rather than at zero. NDISASM, which assumes by default
+that any file you give it is loaded at zero, will therefore need to be
+informed of this.</p>
+<p>The <code>-o</code> option allows you to declare a different origin for
+the file you are disassembling. Its argument may be expressed in any of the
+NASM numeric formats: decimal by default, if it begins with
+`<code>$</code>' or `<code>0x</code>' or ends in `<code>H</code>' it's
+<code>hex</code>, if it ends in `<code>Q</code>' it's <code>octal</code>,
+and if it ends in `<code>B</code>' it's <code>binary</code>.</p>
+<p>Hence, to disassemble a <code>.COM</code> file:</p>
+<pre>
+       ndisasm -o100h filename.com
+</pre>
+<p>will do the trick.</p>
+<h4 id="section-A.2.2">A.2.2 Code Following Data: Synchronization</h4>
+<p>Suppose you are disassembling a file which contains some data which
+isn't machine code, and <em>then</em> contains some machine code. NDISASM
+will faithfully plough through the data section, producing machine
+instructions wherever it can (although most of them will look bizarre, and
+some may have unusual prefixes, e.g. `<code>FS OR AX,0x240A</code>'), and
+generating `DB' instructions ever so often if it's totally stumped. Then it
+will reach the code section.</p>
+<p>Supposing NDISASM has just finished generating a strange machine
+instruction from part of the data section, and its file position is now one
+byte <em>before</em> the beginning of the code section. It's entirely
+possible that another spurious instruction will get generated, starting
+with the final byte of the data section, and then the correct first
+instruction in the code section will not be seen because the starting point
+skipped over it. This isn't really ideal.</p>
+<p>To avoid this, you can specify a `synchronization' point, or indeed as
+many synchronization points as you like (although NDISASM can only handle
+2147483647 sync points internally). The definition of a sync point is this:
+NDISASM guarantees to hit sync points exactly during disassembly. If it is
+thinking about generating an instruction which would cause it to jump over
+a sync point, it will discard that instruction and output a
+`<code>db</code>' instead. So it <em>will</em> start disassembly exactly
+from the sync point, and so you <em>will</em> see all the instructions in
+your code section.</p>
+<p>Sync points are specified using the <code>-s</code> option: they are
+measured in terms of the program origin, not the file position. So if you
+want to synchronize after 32 bytes of a <code>.COM</code> file, you would
+have to do</p>
+<pre>
+       ndisasm -o100h -s120h file.com
+</pre>
+<p>rather than</p>
+<pre>
+       ndisasm -o100h -s20h file.com
+</pre>
+<p>As stated above, you can specify multiple sync markers if you need to,
+just by repeating the <code>-s</code> option.</p>
+<h4 id="section-A.2.3">A.2.3 Mixed Code and Data: Automatic (Intelligent) Synchronization </h4>
+<p>Suppose you are disassembling the boot sector of a <code>DOS</code>
+floppy (maybe it has a virus, and you need to understand the virus so that
+you know what kinds of damage it might have done you). Typically, this will
+contain a <code>JMP</code> instruction, then some data, then the rest of
+the code. So there is a very good chance of NDISASM being
+<em>misaligned</em> when the data ends and the code begins. Hence a sync
+point is needed.</p>
+<p>On the other hand, why should you have to specify the sync point
+manually? What you'd do in order to find where the sync point would be,
+surely, would be to read the <code>JMP</code> instruction, and then to use
+its target address as a sync point. So can NDISASM do that for you?</p>
+<p>The answer, of course, is yes: using either of the synonymous switches
+<code>-a</code> (for automatic sync) or <code>-i</code> (for intelligent
+sync) will enable <code>auto-sync</code> mode. Auto-sync mode automatically
+generates a sync point for any forward-referring PC-relative jump or call
+instruction that NDISASM encounters. (Since NDISASM is one-pass, if it
+encounters a PC-relative jump whose target has already been processed,
+there isn't much it can do about it...)</p>
+<p>Only PC-relative jumps are processed, since an absolute jump is either
+through a register (in which case NDISASM doesn't know what the register
+contains) or involves a segment address (in which case the target code
+isn't in the same segment that NDISASM is working in, and so the sync point
+can't be placed anywhere useful).</p>
+<p>For some kinds of file, this mechanism will automatically put sync
+points in all the right places, and save you from having to place any sync
+points manually. However, it should be stressed that auto-sync mode is
+<em>not</em> guaranteed to catch all the sync points, and you may still
+have to place some manually.</p>
+<p>Auto-sync mode doesn't prevent you from declaring manual sync points: it
+just adds automatically generated ones to the ones you provide. It's
+perfectly feasible to specify <code>-i</code> <em>and</em> some
+<code>-s</code> options.</p>
+<p>Another caveat with auto-sync mode is that if, by some unpleasant fluke,
+something in your data section should disassemble to a PC-relative call or
+jump instruction, NDISASM may obediently place a sync point in a totally
+random place, for example in the middle of one of the instructions in your
+code section. So you may end up with a wrong disassembly even if you use
+auto-sync. Again, there isn't much I can do about this. If you have
+problems, you'll have to use manual sync points, or use the <code>-k</code>
+option (documented below) to suppress disassembly of the data area.</p>
+<h4 id="section-A.2.4">A.2.4 Other Options</h4>
+<p>The <code>-e</code> option skips a header on the file, by ignoring the
+first N bytes. This means that the header is <em>not</em> counted towards
+the disassembly offset: if you give <code>-e10 -o10</code>, disassembly
+will start at byte 10 in the file, and this will be given offset 10, not
+20.</p>
+<p>The <code>-k</code> option is provided with two comma-separated numeric
+arguments, the first of which is an assembly offset and the second is a
+number of bytes to skip. This <em>will</em> count the skipped bytes towards
+the assembly offset: its use is to suppress disassembly of a data section
+which wouldn't contain anything you wanted to see anyway.</p>
+</div>
+</body>
+</html>

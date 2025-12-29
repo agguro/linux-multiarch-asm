@@ -1,0 +1,291 @@
+./timo#1:     file format elf64-x86-64
+
+Disassembly of section .text:
+
+0000000000401000 <_start>:
+  ;syscall write,stdout,0x40203e,0x24
+  401000:	b8 01 00 00 00       	mov    eax,0x1
+  401005:	bf 01 00 00 00       	mov    edi,0x1
+  40100a:	be 3e 20 40 00       	mov    esi,0x40203e
+  40100f:	ba 24 00 00 00       	mov    edx,0x24
+  401014:	0f 05                	syscall
+  ;syscall read,stdin,0x4020e8,0xa 
+  401016:	b8 00 00 00 00       	mov    eax,0x0
+  40101b:	bf 00 00 00 00       	mov    edi,0x0
+  401020:	be e8 20 40 00       	mov    esi,0x4020e8
+  401025:	ba 0a 00 00 00       	mov    edx,0xa
+  40102a:	0f 05                	syscall
+  ;this is a decoy. The instruction actually checks if the last byte of the input is a 0x0A
+  ;which is, my opinion, always true
+
+  40102c:	67 80 b8 e7 20 40 00 	cmp    BYTE PTR [eax+0x4020e7],0xa
+  401033:	0a
+
+  ;if true then skip garbage
+  401034:	74 27                	je     40105d <_garbage_end>
+  
+            ;ignore following code until "garbage_end"
+            ;this code is triggered when just ENTER is pressed
+              401036:	bf 00 00 00 00       	mov    edi,0x0
+              40103b:	48 be b0 21 40 00 00 	movabs rsi,0x4021b0
+              401042:	00 00 00 
+              401045:	ba 01 00 00 00       	mov    edx,0x1
+
+            000000000040104a <_garbage>:
+              40104a:	b8 00 00 00 00       	mov    eax,0x0
+              40104f:	0f 05                	syscall 
+              401051:	80 3c 25 b0 21 40 00 	cmp    BYTE PTR ds:0x4021b0,0xa
+              401058:	0a 
+              401059:	74 02                	je     40105d <_garbage_end>
+              40105b:	eb ed                	jmp    40104a <_garbage>
+
+
+000000000040105d <_garbage_end>:
+  ;string starts at 0x4020e8
+  40105d:	bf e8 20 40 00       	mov    edi,0x4020e8                         ;start of string
+  401062:	29 c9                	sub    ecx,ecx                              ;ecx = 0
+  401064:	28 c0                	sub    al,al                                ;al = 0, byte to look for
+  401066:	f7 d1                	not    ecx                                  ;max 32 bits stringlength
+  401068:	fc                   	cld    
+  401069:	f2 ae                	repnz scas al,BYTE PTR es:[rdi]             ;search for zero byte
+  40106b:	f7 d1                	not    ecx                                  ;calculate string length
+  40106d:	ff c9                	dec    ecx                                  ;adjust length (exclude trailing zero byte)
+  40106f:	89 c8                	mov    eax,ecx                              ;stringlength in eax = stringlength + trailing 0xa
+  401071:	83 f8 03             	cmp    eax,0x3                              ;is length <= 3?
+  401074:	0f 8e de 00 00 00    	jle    401158 <out>                         ;it's 3 or less, bail out
+  40107a:	ff c8                	dec    eax                                  ;adjust length, excluding trailing 0xa
+  40107c:	31 db                	xor    ebx,ebx                              ;ebx = 0
+  40107e:	ba 39 05 00 00       	mov    edx,0x539                            ;edx = 0x539
+  401083:	b9 e8 20 40 00       	mov    ecx,0x4020e8                         ;start of string in ecx
+  401088:	89 ce                	mov    esi,ecx                              ;and in esi
+
+000000000040108a <__>:
+  ;start reading byte 2 byte 3 and the trailing 0x0A in from the input
+  40108a:	67 8a 59 01          	mov    bl,BYTE PTR [ecx+0x1]                ;read byte
+  40108e:	01 da                	add    edx,ebx                              ;edx = edx + ebx
+  ;next byte
+  401090:	ff c1                	inc    ecx                                  ;next byte
+  401092:	ff c8                	dec    eax                                  ;decrement bytecounter
+  401094:	75 f4                	jne    40108a <__>                          ;byte counter zero?
+  ;here we have edx = 0x539 + byte 2 + byte 3 + 0x0A
+  401096:	01 d2                	add    edx,edx                              ;edx = 2*edx
+  ;edx is now edx + edx (or edx * 2), move edx into eax
+  401098:	89 d0                	mov    eax,edx                              ;eax = edx
+  ;make edx zero
+  40109a:	31 d2                	xor    edx,edx                              ;edx = 0
+  ;ecx = 0x11 (17 decimal)
+  40109c:	b9 11 00 00 00       	mov    ecx,0x11                             ;
+  ;eax / 0x11 => edx remainder, eax = quotient
+  4010a1:	f7 f1                	div    ecx                                  ;divide eax by ecx (17)
+  ;make ascii from remainder
+  4010a3:	80 c2 30             	add    dl,0x30                              ;make dl ascii
+  ;read byte 1 in al
+  4010a6:	67 8a 06             	mov    al,BYTE PTR [esi]                    ;byte 0 in al
+  ;dl = dl - al
+  4010a9:	28 c2                	sub    dl,al                                ;subtract from dl
+  ;if zero then pincode is ok, otherwise just stop (no is wrong message)
+  4010ab:	84 d2                	test   dl,dl                                ;if dl = 0?
+  4010ad:	74 05                	je     4010b4 <go_on>                       ;yes, dl is zero
+  4010af:	e9 a4 00 00 00       	jmp    401158 <out>                         ;no, bail out
+
+;summary: the solution is a pincode that matches following equation
+;byte1, byte2 and byte3 in ascii
+;byte1 = ((0x539 + byte2 + byte3 + 0x0A) * 2) mod 0x11 + 0x30
+;using the decimal values only:
+;x1 = ((0x539 + 0x30 + 0x30 + 0x0A) * 2) mod 17 + ((x2 + x3) * 2) mod 17
+;in decimal
+;x1 = 13 mod 17 + (x2 + x3) * 2 mod 17
+;x1 = (13 + 2 * (x2 + x3)) mod 17
+;vertical x3, horizontal x2, the crosspoint is the value for x1
+
+;   0  1  2  3  4  5  6  7  8  9
+;0  .  .  0  2  4  6  8  .  .  .
+;1  .  0  2  4  6  8  .  .  .  .
+;2  0  2  4  6  8  .  .  .  .  1
+;3  2  4  6  8  .  .  .  .  1  3
+;4  4  6  8  .  .  .  .  1  3  5
+;5  6  8  .  .  .  .  1  3  5  7
+;6  8  -  .  .  .  1  3  5  7  9
+;7  .  .  .  .  1  3  5  7  9  . 
+;8  .  .  .  1  3  5  7  9  .  .
+;9  .  .  1  3  5  7  9  .  .  .
+
+;there are more combinations if we take the readable ascii codes in consideration.  In extremis
+;all ascii values for byte2 and byte3 have a coresponding value for byte1 between 0 and 16 both included.
+
+;we got the right pincode, browsing the internet gives us the right answer +HCU.
+;hints are "Fravia" +HCU : High Cracking University
+
+00000000004010b4 <go_on>:
+  ;syscall write,stdout,0x402063,0x21
+  4010b4:	b8 01 00 00 00       	mov    eax,0x1
+  4010b9:	bf 01 00 00 00       	mov    edi,0x1
+  4010be:	be 63 20 40 00       	mov    esi,0x402063
+  4010c3:	ba 21 00 00 00       	mov    edx,0x21
+  4010c8:	0f 05                	syscall
+  :syscall read,stdin,0x40214c,0x0a 
+  4010ca:	b8 00 00 00 00       	mov    eax,0x0
+  4010cf:	bf 00 00 00 00       	mov    edi,0x0
+  4010d4:	be 4c 21 40 00       	mov    esi,0x40214c
+  4010d9:	ba 0a 00 00 00       	mov    edx,0xa
+  4010de:	0f 05                	syscall 
+  4010e0:	67 80 b8 4b 21 40 00 	cmp    BYTE PTR [eax+0x40214b],0xa
+  4010e7:	0a 
+  4010e8:	74 27                	je     401111 <_garbage_end2>
+
+          4010ea:	bf 00 00 00 00       	mov    edi,0x0
+          4010ef:	48 be b0 21 40 00 00 	movabs rsi,0x4021b0
+          4010f6:	00 00 00 
+          4010f9:	ba 01 00 00 00       	mov    edx,0x1
+
+        00000000004010fe <_garbage2>:
+          4010fe:	b8 00 00 00 00       	mov    eax,0x0
+          401103:	0f 05                	syscall 
+          401105:	80 3c 25 b0 21 40 00 	cmp    BYTE PTR ds:0x4021b0,0xa
+          40110c:	0a 
+          40110d:	74 02                	je     401111 <_garbage_end2>
+          40110f:	eb ed                	jmp    4010fe <_garbage2>
+
+
+0000000000401111 <_garbage_end2>:
+  401111:	be 85 20 40 00       	mov    esi,0x402085
+  401116:	be 4c 21 40 00       	mov    esi,0x40214c
+  40111b:	b9 04 00 00 00       	mov    ecx,0x4
+  401120:	b8 c5 9d 1c 81       	mov    eax,0x811c9dc5
+  401125:	bf 93 01 00 01       	mov    edi,0x1000193
+  40112a:	31 db                	xor    ebx,ebx
+
+000000000040112c <nextbyte>:
+  40112c:	f7 e7                	mul    edi
+  40112e:	67 8a 1e             	mov    bl,BYTE PTR [esi]
+  401131:	31 d8                	xor    eax,ebx
+  401133:	ff c6                	inc    esi
+  401135:	ff c9                	dec    ecx
+  401137:	75 f3                	jne    40112c <nextbyte>
+  401139:	3d f8 dc cf 86       	cmp    eax,0x86cfdcf8
+  40113e:	75 18                	jne    401158 <out>
+  401140:	be b9 20 40 00       	mov    esi,0x4020b9
+  401145:	eb 00                	jmp    401147 <goodway>
+
+0000000000401147 <goodway>:
+  401147:	b8 01 00 00 00       	mov    eax,0x1
+  40114c:	bf 01 00 00 00       	mov    edi,0x1
+  401151:	ba 2f 00 00 00       	mov    edx,0x2f
+  401156:	0f 05                	syscall 
+
+0000000000401158 <out>:
+  ;syscall exit,0
+  401158:	b8 3c 00 00 00       	mov    eax,0x3c
+  40115d:	48 31 ff             	xor    rdi,rdi
+  401160:	0f 05                	syscall 
+
+
+Disassembly of section .data:
+
+0000000000402000 <Credit>:
+  402000:	2e 5f                	cs pop rdi
+  402002:	3a 74 69 6d          	cmp    dh,BYTE PTR [rcx+rbp*2+0x6d]
+  402006:	6f                   	outs   dx,DWORD PTR ds:[rsi]
+  402007:	74 65                	je     40206e <message2+0xb>
+  402009:	69 20 63 72 61 63    	imul   esp,DWORD PTR [rax],0x63617263
+  40200f:	6b 6d 65 23          	imul   ebp,DWORD PTR [rbp+0x65],0x23
+  402013:	31 3a                	xor    DWORD PTR [rdx],edi
+  402015:	5f                   	pop    rdi
+  402016:	2e 2e 2e 74 68       	cs cs cs je 402083 <message2+0x20>
+  40201b:	61                   	(bad)  
+  40201c:	6e                   	outs   dx,BYTE PTR ds:[rsi]
+  40201d:	6b 73 20 47          	imul   esi,DWORD PTR [rbx+0x20],0x47
+  402021:	72 62                	jb     402085 <message2_help>
+  402023:	61                   	(bad)  
+  402024:	76 61                	jbe    402087 <message2_help+0x2>
+  402026:	43 69 67 6c 61 20 66 	rex.XB imul esp,DWORD PTR [r15+0x6c],0x6f662061
+  40202d:	6f 
+  40202e:	72 20                	jb     402050 <message+0x12>
+  402030:	62                   	(bad)  
+  402031:	65 74 61             	gs je  402095 <message2_help+0x10>
+  402034:	20 74 65 73          	and    BYTE PTR [rbp+riz*2+0x73],dh
+  402038:	74 69                	je     4020a3 <message2_help+0x1e>
+  40203a:	6e                   	outs   dx,BYTE PTR ds:[rsi]
+  40203b:	67 21 00             	and    DWORD PTR [eax],eax
+
+000000000040203e <message>:
+  40203e:	2e 3a 6b 6e          	cmp    ch,BYTE PTR cs:[rbx+0x6e]
+  402042:	6f                   	outs   dx,DWORD PTR ds:[rsi]
+  402043:	63 6b 2c             	movsxd ebp,DWORD PTR [rbx+0x2c]
+  402046:	6b 6e 6f 63          	imul   ebp,DWORD PTR [rsi+0x6f],0x63
+  40204a:	6b 2e 2e             	imul   ebp,DWORD PTR [rsi],0x2e
+  40204d:	2e 79 6f             	cs jns 4020bf <good+0x6>
+  402050:	75 72                	jne    4020c4 <good+0xb>
+  402052:	20 70 69             	and    BYTE PTR [rax+0x69],dh
+  402055:	6e                   	outs   dx,BYTE PTR ds:[rsi]
+  402056:	20 70 6c             	and    BYTE PTR [rax+0x6c],dh
+  402059:	65 61                	gs (bad) 
+  40205b:	73 65                	jae    4020c2 <good+0x9>
+  40205d:	2e 2e 2e 3a 20       	cs cs cmp ah,BYTE PTR cs:[rax]
+  402062:	0a                 	or     ch,BYTE PTR [rsi]
+
+0000000000402063 <message2>:
+  402063:	2e 3a 57 68          	cmp    dl,BYTE PTR cs:[rdi+0x68]
+  402067:	65 72 65             	gs jb  4020cf <good+0x16>
+  40206a:	20 64 69 64          	and    BYTE PTR [rcx+rbp*2+0x64],ah
+  40206e:	20 2b                	and    BYTE PTR [rbx],ch
+  402070:	46 72 61             	rex.RX jb 4020d4 <good+0x1b>
+  402073:	76 69                	jbe    4020de <good+0x25>
+  402075:	61                   	(bad)  
+  402076:	20 74 61 75          	and    BYTE PTR [rcx+riz*2+0x75],dh
+  40207a:	67 68 74 20 75 73    	addr32 push 0x73752074
+  402080:	3f                   	(bad)  
+  402081:	20 3a                	and    BYTE PTR [rdx],bh
+  402083:	20 0a                	and    BYTE PTR [rdx],cl
+
+0000000000402085 <message2_help>:
+  402085:	4e 6f                	rex.WRX outs dx,DWORD PTR ds:[rsi]
+  402087:	20 6e 65             	and    BYTE PTR [rsi+0x65],ch
+  40208a:	65 64 20 74 6f 20    	gs and BYTE PTR fs:[rdi+rbp*2+0x20],dh
+  402090:	70 61                	jo     4020f3 <buffer+0xb>
+  402092:	74 63                	je     4020f7 <buffer+0xf>
+  402094:	68 20 6f 72 20       	push   0x20726f20
+  402099:	62 72 75 74 65       	(bad)
+  40209e:	66 6f                	outs   dx,WORD PTR ds:[rsi]
+  4020a0:	72 63                	jb     402105 <buffer+0x1d>
+  4020a2:	65 2c 20             	gs sub al,0x20
+  4020a5:	65 78 70             	gs js  402118 <buffer+0x30>
+  4020a8:	6c                   	ins    BYTE PTR es:[rdi],dx
+  4020a9:	6f                   	outs   dx,DWORD PTR ds:[rsi]
+  4020aa:	72 65                	jb     402111 <buffer+0x29>
+  4020ac:	20 74 68 65          	and    BYTE PTR [rax+rbp*2+0x65],dh
+  4020b0:	20 77 65             	and    BYTE PTR [rdi+0x65],dh
+  4020b3:	62                   	(bad)  
+  4020b4:	2e 2e 2e 00 0a       	cs cs add BYTE PTR cs:[rdx],cl
+
+00000000004020b9 <good>:
+  4020b9:	2e 3a 47 6f          	cmp    al,BYTE PTR cs:[rdi+0x6f]
+  4020bd:	6f                   	outs   dx,DWORD PTR ds:[rsi]
+  4020be:	64 2c 20             	fs sub al,0x20
+  4020c1:	74 68                	je     40212b <buffer+0x43>
+  4020c3:	61                   	(bad)  
+  4020c4:	74 27                	je     4020ed <buffer+0x5>
+  4020c6:	73 20                	jae    4020e8 <buffer>
+  4020c8:	61                   	(bad)  
+  4020c9:	6c                   	ins    BYTE PTR es:[rdi],dx
+  4020ca:	6c                   	ins    BYTE PTR es:[rdi],dx
+  4020cb:	20 66 6f             	and    BYTE PTR [rsi+0x6f],ah
+  4020ce:	72 20                	jb     4020f0 <buffer+0x8>
+  4020d0:	68 69 73 74 6f       	push   0x6f747369
+  4020d5:	72 79                	jb     402150 <buffer2+0x4>
+  4020d7:	20 6c 65 73          	and    BYTE PTR [rbp+riz*2+0x73],ch
+  4020db:	73 6f                	jae    40214c <buffer2>
+  4020dd:	6e                   	outs   dx,BYTE PTR ds:[rsi]
+  4020de:	20 74 6f 64          	and    BYTE PTR [rdi+rbp*2+0x64],dh
+  4020e2:	61                   	(bad)  
+  4020e3:	79 3a                	jns    40211f <buffer+0x37>
+  4020e5:	2d 29 0a            	sub    eax,0xa29
+
+00000000004020e8 <buffer>:
+	...
+
+000000000040214c <buffer2>:
+	...
+
+00000000004021b0 <dummy>:
+	...

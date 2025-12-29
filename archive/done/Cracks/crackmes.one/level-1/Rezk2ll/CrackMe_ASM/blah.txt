@@ -1,0 +1,3 @@
+crackme by ReZK2LL
+
+NASM & LD 

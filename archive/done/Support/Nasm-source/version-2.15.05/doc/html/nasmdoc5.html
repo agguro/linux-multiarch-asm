@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NASM - The Netwide Assembler</title>
+<link href="nasmdoc.css" rel="stylesheet" type="text/css" />
+<link href="local.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<ul class="navbar">
+<li class="first"><a class="prev" href="nasmdoc4.html">Chapter 4</a></li>
+<li><a class="next" href="nasmdoc6.html">Chapter 6</a></li>
+<li><a class="toc" href="nasmdoc0.html">Contents</a></li>
+<li class="last"><a class="index" href="nasmdoci.html">Index</a></li>
+</ul>
+<div class="title">
+<h1>NASM - The Netwide Assembler</h1>
+<span class="subtitle">version 2.15.05</span>
+</div>
+<div class="contents"
+>
+<h2 id="chapter-5">Chapter 5: Standard Macros</h2>
+<p>NASM defines a set of standard macros, which are already defined when it
+starts to process any source file. If you really need a program to be
+assembled with no pre-defined macros, you can use the <code>%clear</code>
+directive to empty the preprocessor of everything but context-local
+preprocessor variables and single-line macros, see
+<a href="nasmdoc4.html#section-4.11.3">section 4.11.3</a>.</p>
+<p>Most user-level directives (see <a href="nasmdoc7.html">chapter 7</a>)
+are implemented as macros which invoke primitive directives; these are
+described in <a href="nasmdoc7.html">chapter 7</a>. The rest of the
+standard macro set is described here.</p>
+<p>For compability with NASM versions before NASM 2.15, most standard
+macros of the form <code>__?foo?__</code> have aliases of form
+<code>__foo__</code> (see <a href="nasmdoc4.html#section-4.1.11">section
+4.1.11</a>). These can be removed with the directive
+<code>%clear defalias</code>.</p>
+<h3 id="section-5.1">5.1 NASM Version Macros</h3>
+<p>The single-line macros <code>__?NASM_MAJOR?__</code>,
+<code>__?NASM_MINOR?__</code>, <code>__?NASM_SUBMINOR?__</code> and
+<code>__?NASM_PATCHLEVEL?__</code> expand to the major, minor, subminor and
+patch level parts of the version number of NASM being used. So, under NASM
+0.98.32p1 for example, <code>__?NASM_MAJOR?__</code> would be defined to be
+0, <code>__?NASM_MINOR?__</code> would be defined as 98,
+<code>__?NASM_SUBMINOR?__</code> would be defined to 32, and
+<code>__?NASM_PATCHLEVEL?__</code> would be defined as 1.</p>
+<p>Additionally, the macro <code>__?NASM_SNAPSHOT?__</code> is defined for
+automatically generated snapshot releases <em>only</em>.</p>
+<h4 id="section-5.1.1">5.1.1 <code>__?NASM_VERSION_ID?__</code>: NASM Version ID</h4>
+<p>The single-line macro <code>__?NASM_VERSION_ID?__</code> expands to a
+dword integer representing the full version number of the version of nasm
+being used. The value is the equivalent to <code>__?NASM_MAJOR?__</code>,
+<code>__?NASM_MINOR?__</code>, <code>__?NASM_SUBMINOR?__</code> and
+<code>__?NASM_PATCHLEVEL?__</code> concatenated to produce a single
+doubleword. Hence, for 0.98.32p1, the returned number would be equivalent
+to:</p>
+<pre>
+        dd      0x00622001
+</pre>
+<p>or</p>
+<pre>
+        db      1,32,98,0
+</pre>
+<p>Note that the above lines are generate exactly the same code, the second
+line is used just to give an indication of the order that the separate
+values will be present in memory.</p>
+<h4 id="section-5.1.2">5.1.2 <code>__?NASM_VER?__</code>: NASM Version String</h4>
+<p>The single-line macro <code>__?NASM_VER?__</code> expands to a string
+which defines the version number of nasm being used. So, under NASM 0.98.32
+for example,</p>
+<pre>
+        db      __?NASM_VER?__
+</pre>
+<p>would expand to</p>
+<pre>
+        db      "0.98.32"
+</pre>
+<h3 id="section-5.2">5.2 <code>__?FILE?__</code> and <code>__?LINE?__</code>: File Name and Line Number</h3>
+<p>Like the C preprocessor, NASM allows the user to find out the file name
+and line number containing the current instruction. The macro
+<code>__?FILE?__</code> expands to a string constant giving the name of the
+current input file (which may change through the course of assembly if
+<code>%include</code> directives are used), and <code>__?LINE?__</code>
+expands to a numeric constant giving the current line number in the input
+file.</p>
+<p>These macros could be used, for example, to communicate debugging
+information to a macro, since invoking <code>__?LINE?__</code> inside a
+macro definition (either single-line or multi-line) will return the line
+number of the macro <em>call</em>, rather than <em>definition</em>. So to
+determine where in a piece of code a crash is occurring, for example, one
+could write a routine <code>stillhere</code>, which is passed a line number
+in <code>EAX</code> and outputs something like
+<code>line 155: still here</code>. You could then write a macro:</p>
+<pre>
+%macro  notdeadyet 0 
+
+        push    eax 
+        mov     eax,__?LINE?__ 
+        call    stillhere 
+        pop     eax 
+
+%endmacro
+</pre>
+<p>and then pepper your code with calls to <code>notdeadyet</code> until
+you find the crash point.</p>
+<h3 id="section-5.3">5.3 <code>__?BITS?__</code>: Current Code Generation Mode</h3>
+<p>The <code>__?BITS?__</code> standard macro is updated every time that
+the BITS mode is set using the <code>BITS XX</code> or
+<code>[BITS XX]</code> directive, where XX is a valid mode number of 16, 32
+or 64. <code>__?BITS?__</code> receives the specified mode number and makes
+it globally available. This can be very useful for those who utilize
+mode-dependent macros.</p>
+<h3 id="section-5.4">5.4 <code>__?OUTPUT_FORMAT?__</code>: Current Output Format</h3>
+<p>The <code>__?OUTPUT_FORMAT?__</code> standard macro holds the current
+output format name, as given by the <code>-f</code> option or NASM's
+default. Type <code>nasm -h</code> for a list.</p>
+<pre>
+%ifidn __?OUTPUT_FORMAT?__, win32 
+ %define NEWLINE 13, 10 
+%elifidn __?OUTPUT_FORMAT?__, elf32 
+ %define NEWLINE 10 
+%endif
+</pre>
+<h3 id="section-5.5">5.5 <code>__?DEBUG_FORMAT?__</code>: Current Debug Format</h3>
+<p>If debugging information generation is enabled, The
+<code>__?DEBUG_FORMAT?__</code> standard macro holds the current debug
+format name as specified by the <code>-F</code> or <code>-g</code> option
+or the output format default. Type <code>nasm -f</code> <em>output</em>
+<code>y</code> for a list.</p>
+<p><code>__?DEBUG_FORMAT?__</code> is not defined if debugging is not
+enabled, or if the debug format specified is <code>null</code>.</p>
+<h3 id="section-5.6">5.6 Assembly Date and Time Macros</h3>
+<p>NASM provides a variety of macros that represent the timestamp of the
+assembly session.</p>
+<ul>
+<li>
+<p>The <code>__?DATE?__</code> and <code>__?TIME?__</code> macros give the
+assembly date and time as strings, in ISO 8601 format
+(<code>"YYYY-MM-DD"</code> and <code>"HH:MM:SS"</code>, respectively.)</p>
+</li>
+<li>
+<p>The <code>__?DATE_NUM?__</code> and <code>__?TIME_NUM?__</code> macros
+give the assembly date and time in numeric form; in the format
+<code>YYYYMMDD</code> and <code>HHMMSS</code> respectively.</p>
+</li>
+<li>
+<p>The <code>__?UTC_DATE?__</code> and <code>__?UTC_TIME?__</code> macros
+give the assembly date and time in universal time (UTC) as strings, in ISO
+8601 format (<code>"YYYY-MM-DD"</code> and <code>"HH:MM:SS"</code>,
+respectively.) If the host platform doesn't provide UTC time, these macros
+are undefined.</p>
+</li>
+<li>
+<p>The <code>__?UTC_DATE_NUM?__</code> and <code>__?UTC_TIME_NUM?__</code>
+macros give the assembly date and time universal time (UTC) in numeric
+form; in the format <code>YYYYMMDD</code> and <code>HHMMSS</code>
+respectively. If the host platform doesn't provide UTC time, these macros
+are undefined.</p>
+</li>
+<li>
+<p>The <code>__?POSIX_TIME?__</code> macro is defined as a number
+containing the number of seconds since the POSIX epoch, 1 January 1970
+00:00:00 UTC; excluding any leap seconds. This is computed using UTC time
+if available on the host platform, otherwise it is computed using the local
+time as if it was UTC.</p>
+</li>
+</ul>
+<p>All instances of time and date macros in the same assembly session
+produce consistent output. For example, in an assembly session started at
+42 seconds after midnight on January 1, 2010 in Moscow (timezone UTC+3)
+these macros would have the following values, assuming, of course, a
+properly configured environment with a correct clock:</p>
+<pre>
+      __?DATE?__             "2010-01-01" 
+      __?TIME?__             "00:00:42" 
+      __?DATE_NUM?__         20100101 
+      __?TIME_NUM?__         000042 
+      __?UTC_DATE?__         "2009-12-31" 
+      __?UTC_TIME?__         "21:00:42" 
+      __?UTC_DATE_NUM?__     20091231 
+      __?UTC_TIME_NUM?__     210042 
+      __?POSIX_TIME?__       1262293242
+</pre>
+<h3 id="section-5.7">5.7 <code>__?USE_</code><em>package</em><code>?__</code>: Package Include Test</h3>
+<p>When a standard macro package (see <a href="nasmdoc6.html">chapter
+6</a>) is included with the <code>%use</code> directive (see
+<a href="nasmdoc4.html#section-4.6.4">section 4.6.4</a>), a single-line
+macro of the form <code>__USE_</code><em>package</em><code>__</code> is
+automatically defined. This allows testing if a particular package is
+invoked or not.</p>
+<p>For example, if the <code>altreg</code> package is included (see
+<a href="nasmdoc6.html#section-6.1">section 6.1</a>), then the macro
+<code>__?USE_ALTREG?__</code> is defined.</p>
+<h3 id="section-5.8">5.8 <code>__?PASS?__</code>: Assembly Pass</h3>
+<p>The macro <code>__?PASS?__</code> is defined to be <code>1</code> on
+preparatory passes, and <code>2</code> on the final pass. In
+preprocess-only mode, it is set to <code>3</code>, and when running only to
+generate dependencies (due to the <code>-M</code> or <code>-MG</code>
+option, see <a href="nasmdoc2.html#section-2.1.5">section 2.1.5</a>) it is
+set to <code>0</code>.</p>
+<p><em>Avoid using this macro if at all possible. It is tremendously easy
+to generate very strange errors by misusing it, and the semantics may
+change in future versions of NASM.</em></p>
+<h3 id="section-5.9">5.9 Structure Data Types</h3>
+<h4 id="section-5.9.1">5.9.1 <code>STRUC</code> and <code>ENDSTRUC</code>: Declaring Structure Data Types</h4>
+<p>The core of NASM contains no intrinsic means of defining data
+structures; instead, the preprocessor is sufficiently powerful that data
+structures can be implemented as a set of macros. The macros
+<code>STRUC</code> and <code>ENDSTRUC</code> are used to define a structure
+data type.</p>
+<p><code>STRUC</code> takes one or two parameters. The first parameter is
+the name of the data type. The second, optional parameter is the base
+offset of the structure. The name of the data type is defined as a symbol
+with the value of the base offset, and the name of the data type with the
+suffix <code>_size</code> appended to it is defined as an <code>EQU</code>
+giving the size of the structure. Once <code>STRUC</code> has been issued,
+you are defining the structure, and should define fields using the
+<code>RESB</code> family of pseudo-instructions, and then invoke
+<code>ENDSTRUC</code> to finish the definition.</p>
+<p>For example, to define a structure called <code>mytype</code> containing
+a longword, a word, a byte and a string of bytes, you might code</p>
+<pre>
+struc   mytype 
+
+  mt_long:      resd    1 
+  mt_word:      resw    1 
+  mt_byte:      resb    1 
+  mt_str:       resb    32 
+
+endstruc
+</pre>
+<p>The above code defines six symbols: <code>mt_long</code> as 0 (the
+offset from the beginning of a <code>mytype</code> structure to the
+longword field), <code>mt_word</code> as 4, <code>mt_byte</code> as 6,
+<code>mt_str</code> as 7, <code>mytype_size</code> as 39, and
+<code>mytype</code> itself as zero.</p>
+<p>The reason why the structure type name is defined at zero by default is
+a side effect of allowing structures to work with the local label
+mechanism: if your structure members tend to have the same names in more
+than one structure, you can define the above structure like this:</p>
+<pre>
+struc mytype 
+
+  .long:        resd    1 
+  .word:        resw    1 
+  .byte:        resb    1 
+  .str:         resb    32 
+
+endstruc
+</pre>
+<p>This defines the offsets to the structure fields as
+<code>mytype.long</code>, <code>mytype.word</code>,
+<code>mytype.byte</code> and <code>mytype.str</code>.</p>
+<p>NASM, since it has no <em>intrinsic</em> structure support, does not
+support any form of period notation to refer to the elements of a structure
+once you have one (except the above local-label notation), so code such as
+<code>mov ax,[mystruc.mt_word]</code> is not valid. <code>mt_word</code> is
+a constant just like any other constant, so the correct syntax is
+<code>mov ax,[mystruc+mt_word]</code> or
+<code>mov ax,[mystruc+mytype.word]</code>.</p>
+<p>Sometimes you only have the address of the structure displaced by an
+offset. For example, consider this standard stack frame setup:</p>
+<pre>
+push ebp 
+mov ebp, esp 
+sub esp, 40
+</pre>
+<p>In this case, you could access an element by subtracting the offset:</p>
+<pre>
+mov [ebp - 40 + mytype.word], ax
+</pre>
+<p>However, if you do not want to repeat this offset, you can use &ndash;40
+as a base offset:</p>
+<pre>
+struc mytype, -40
+</pre>
+<p>And access an element this way:</p>
+<pre>
+mov [ebp + mytype.word], ax
+</pre>
+<h4 id="section-5.9.2">5.9.2 <code>ISTRUC</code>, <code>AT</code> and <code>IEND</code>: Declaring Instances of Structures</h4>
+<p>Having defined a structure type, the next thing you typically want to do
+is to declare instances of that structure in your data segment. NASM
+provides an easy way to do this in the <code>ISTRUC</code> mechanism. To
+declare a structure of type <code>mytype</code> in a program, you code
+something like this:</p>
+<pre>
+mystruc: 
+    istruc mytype 
+
+        at mt_long, dd      123456 
+        at mt_word, dw      1024 
+        at mt_byte, db      'x' 
+        at mt_str,  db      'hello, world', 13, 10, 0 
+
+    iend
+</pre>
+<p>The function of the <code>AT</code> macro is to make use of the
+<code>TIMES</code> prefix to advance the assembly position to the correct
+point for the specified structure field, and then to declare the specified
+data. Therefore the structure fields must be declared in the same order as
+they were specified in the structure definition.</p>
+<p>If the data to go in a structure field requires more than one source
+line to specify, the remaining source lines can easily come after the
+<code>AT</code> line. For example:</p>
+<pre>
+        at mt_str,  db      123,134,145,156,167,178,189 
+                    db      190,100,0
+</pre>
+<p>Depending on personal taste, you can also omit the code part of the
+<code>AT</code> line completely, and start the structure field on the next
+line:</p>
+<pre>
+        at mt_str 
+                db      'hello, world' 
+                db      13,10,0
+</pre>
+<h3 id="section-5.10">5.10 Alignment Control</h3>
+<h4 id="section-5.10.1">5.10.1 <code>ALIGN</code> and <code>ALIGNB</code>: Code and Data Alignment</h4>
+<p>The <code>ALIGN</code> and <code>ALIGNB</code> macros provides a
+convenient way to align code or data on a word, longword, paragraph or
+other boundary. (Some assemblers call this directive <code>EVEN</code>.)
+The syntax of the <code>ALIGN</code> and <code>ALIGNB</code> macros is</p>
+<pre>
+        align   4               ; align on 4-byte boundary 
+        align   16              ; align on 16-byte boundary 
+        align   8,db 0          ; pad with 0s rather than NOPs 
+        align   4,resb 1        ; align to 4 in the BSS 
+        alignb  4               ; equivalent to previous line
+</pre>
+<p>Both macros require their first argument to be a power of two; they both
+compute the number of additional bytes required to bring the length of the
+current section up to a multiple of that power of two, and then apply the
+<code>TIMES</code> prefix to their second argument to perform the
+alignment.</p>
+<p>If the second argument is not specified, the default for
+<code>ALIGN</code> is <code>NOP</code>, and the default for
+<code>ALIGNB</code> is <code>RESB 1</code>. So if the second argument is
+specified, the two macros are equivalent. Normally, you can just use
+<code>ALIGN</code> in code and data sections and <code>ALIGNB</code> in BSS
+sections, and never need the second argument except for special purposes.</p>
+<p><code>ALIGN</code> and <code>ALIGNB</code>, being simple macros, perform
+no error checking: they cannot warn you if their first argument fails to be
+a power of two, or if their second argument generates more than one byte of
+code. In each of these cases they will silently do the wrong thing.</p>
+<p><code>ALIGNB</code> (or <code>ALIGN</code> with a second argument of
+<code>RESB 1</code>) can be used within structure definitions:</p>
+<pre>
+struc mytype2 
+
+  mt_byte: 
+        resb 1 
+        alignb 2 
+  mt_word: 
+        resw 1 
+        alignb 4 
+  mt_long: 
+        resd 1 
+  mt_str: 
+        resb 32 
+
+endstruc
+</pre>
+<p>This will ensure that the structure members are sensibly aligned
+relative to the base of the structure.</p>
+<p>A final caveat: <code>ALIGN</code> and <code>ALIGNB</code> work relative
+to the beginning of the <em>section</em>, not the beginning of the address
+space in the final executable. Aligning to a 16-byte boundary when the
+section you're in is only guaranteed to be aligned to a 4-byte boundary,
+for example, is a waste of effort. Again, NASM does not check that the
+section's alignment characteristics are sensible for the use of
+<code>ALIGN</code> or <code>ALIGNB</code>.</p>
+<p>Both <code>ALIGN</code> and <code>ALIGNB</code> do call
+<code>SECTALIGN</code> macro implicitly. See
+<a href="#section-5.10.2">section 5.10.2</a> for details.</p>
+<p>See also the <code>smartalign</code> standard macro package,
+<a href="nasmdoc6.html#section-6.2">section 6.2</a>.</p>
+<h4 id="section-5.10.2">5.10.2 <code>SECTALIGN</code>: Section Alignment</h4>
+<p>The <code>SECTALIGN</code> macros provides a way to modify alignment
+attribute of output file section. Unlike the <code>align=</code> attribute
+(which is allowed at section definition only) the <code>SECTALIGN</code>
+macro may be used at any time.</p>
+<p>For example the directive</p>
+<pre>
+SECTALIGN 16
+</pre>
+<p>sets the section alignment requirements to 16 bytes. Once increased it
+can not be decreased, the magnitude may grow only.</p>
+<p>Note that <code>ALIGN</code> (see <a href="#section-5.10.1">section
+5.10.1</a>) calls the <code>SECTALIGN</code> macro implicitly so the active
+section alignment requirements may be updated. This is by default
+behaviour, if for some reason you want the <code>ALIGN</code> do not call
+<code>SECTALIGN</code> at all use the directive</p>
+<pre>
+SECTALIGN OFF
+</pre>
+<p>It is still possible to turn in on again by</p>
+<pre>
+SECTALIGN ON
+</pre>
+<p>Note that <code>SECTALIGN &lt;ON|OFF&gt;</code> affects only the
+<code>ALIGN</code>/<code>ALIGNB</code> directives, not an explicit
+<code>SECTALIGN</code> directive.</p>
+</div>
+</body>
+</html>

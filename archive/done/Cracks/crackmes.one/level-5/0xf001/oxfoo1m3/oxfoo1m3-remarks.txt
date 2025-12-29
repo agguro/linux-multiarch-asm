@@ -1,0 +1,2 @@
+running the program doesn't kill the program when entered wrong password.
+start with evan's debugger.

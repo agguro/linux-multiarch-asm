@@ -1,0 +1,88 @@
+
+../objectfiles/smqtoa.o:     file format pe-i386
+
+
+Disassembly of section .text:
+
+00000000 <_smqtoa@8>:
+   0:	55                   	push   ebp
+   1:	8b ec                	mov    ebp,esp
+   3:	83 c4 ec             	add    esp,0xffffffec
+   6:	53                   	push   ebx
+   7:	56                   	push   esi
+   8:	57                   	push   edi
+   9:	8b 75 08             	mov    esi,DWORD PTR [ebp+0x8]
+   c:	8b 7d 0c             	mov    edi,DWORD PTR [ebp+0xc]
+   f:	8b 1e                	mov    ebx,DWORD PTR [esi]
+  11:	8b 76 04             	mov    esi,DWORD PTR [esi+0x4]
+  14:	83 c7 15             	add    edi,0x15
+  17:	57                   	push   edi
+  18:	c6 07 00             	mov    BYTE PTR [edi],0x0
+  1b:	c7 45 f8 cd cc cc cc 	mov    DWORD PTR [ebp-0x8],0xcccccccd
+  22:	c7 45 f4 cc cc cc cc 	mov    DWORD PTR [ebp-0xc],0xcccccccc
+  29:	c7 45 fc 0a 00 00 00 	mov    DWORD PTR [ebp-0x4],0xa
+  30:	85 f6                	test   esi,esi
+  32:	56                   	push   esi
+  33:	79 0a                	jns    3f <_smqtoa@8+0x3f>
+  35:	f7 d6                	not    esi
+  37:	f7 d3                	not    ebx
+  39:	83 c3 01             	add    ebx,0x1
+  3c:	83 d6 00             	adc    esi,0x0
+  3f:	0b f6                	or     esi,esi
+  41:	74 50                	je     93 <_smqtoa@8+0x93>
+  43:	33 c9                	xor    ecx,ecx
+  45:	8b 45 f8             	mov    eax,DWORD PTR [ebp-0x8]
+  48:	f7 e3                	mul    ebx
+  4a:	89 55 f0             	mov    DWORD PTR [ebp-0x10],edx
+  4d:	8b 45 f4             	mov    eax,DWORD PTR [ebp-0xc]
+  50:	f7 e3                	mul    ebx
+  52:	01 45 f0             	add    DWORD PTR [ebp-0x10],eax
+  55:	83 d2 00             	adc    edx,0x0
+  58:	89 55 ec             	mov    DWORD PTR [ebp-0x14],edx
+  5b:	8b 45 f8             	mov    eax,DWORD PTR [ebp-0x8]
+  5e:	f7 e6                	mul    esi
+  60:	01 45 f0             	add    DWORD PTR [ebp-0x10],eax
+  63:	11 55 ec             	adc    DWORD PTR [ebp-0x14],edx
+  66:	83 d1 00             	adc    ecx,0x0
+  69:	8b 45 f4             	mov    eax,DWORD PTR [ebp-0xc]
+  6c:	f7 e6                	mul    esi
+  6e:	03 45 ec             	add    eax,DWORD PTR [ebp-0x14]
+  71:	13 d1                	adc    edx,ecx
+  73:	8b 4d f0             	mov    ecx,DWORD PTR [ebp-0x10]
+  76:	0f ac c1 03          	shrd   ecx,eax,0x3
+  7a:	0f ac d0 03          	shrd   eax,edx,0x3
+  7e:	41                   	inc    ecx
+  7f:	c1 ea 03             	shr    edx,0x3
+  82:	8b d8                	mov    ebx,eax
+  84:	8b f2                	mov    esi,edx
+  86:	8b c1                	mov    eax,ecx
+  88:	f7 65 fc             	mul    DWORD PTR [ebp-0x4]
+  8b:	80 c2 30             	add    dl,0x30
+  8e:	4f                   	dec    edi
+  8f:	88 17                	mov    BYTE PTR [edi],dl
+  91:	eb ac                	jmp    3f <_smqtoa@8+0x3f>
+  93:	8b c3                	mov    eax,ebx
+  95:	f7 65 f8             	mul    DWORD PTR [ebp-0x8]
+  98:	0f ac d0 03          	shrd   eax,edx,0x3
+  9c:	c1 ea 03             	shr    edx,0x3
+  9f:	40                   	inc    eax
+  a0:	8b da                	mov    ebx,edx
+  a2:	f7 65 fc             	mul    DWORD PTR [ebp-0x4]
+  a5:	4f                   	dec    edi
+  a6:	80 c2 30             	add    dl,0x30
+  a9:	88 17                	mov    BYTE PTR [edi],dl
+  ab:	85 db                	test   ebx,ebx
+  ad:	75 e4                	jne    93 <_smqtoa@8+0x93>
+  af:	5e                   	pop    esi
+  b0:	85 f6                	test   esi,esi
+  b2:	79 04                	jns    b8 <_smqtoa@8+0xb8>
+  b4:	4f                   	dec    edi
+  b5:	c6 07 2d             	mov    BYTE PTR [edi],0x2d
+  b8:	59                   	pop    ecx
+  b9:	8b c7                	mov    eax,edi
+  bb:	2b cf                	sub    ecx,edi
+  bd:	5f                   	pop    edi
+  be:	5e                   	pop    esi
+  bf:	5b                   	pop    ebx
+  c0:	c9                   	leave  
+  c1:	c2 08 00             	ret    0x8

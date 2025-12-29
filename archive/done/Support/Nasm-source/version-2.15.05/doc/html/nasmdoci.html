@@ -1,0 +1,3365 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NASM - The Netwide Assembler</title>
+<link href="nasmdoc.css" rel="stylesheet" type="text/css" />
+<link href="local.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<ul class="navbar">
+<li class="first"><a class="prev" href="nasmdocd.html">Appendix D</a></li>
+<li><a class="toc" href="nasmdoc0.html">Contents</a></li>
+<li class="last"><a class="index" href="nasmdoci.html">Index</a></li>
+</ul>
+<div class="title">
+<h1>NASM - The Netwide Assembler</h1>
+<span class="subtitle">version 2.15.05</span>
+</div>
+<div class="contents"
+>
+<h2 class="index">Index</h2>
+<ul class="index">
+<li class="index">
+<code>!</code> operator:
+<a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+<code>!=</code> operator:
+<a href="nasmdoc3.html#section-3.5.5">Section 3.5.5</a>
+</li>
+<li class="index">
+<code>$$</code> token: <a href="nasmdoc3.html#section-3.5">Section 3.5</a>,
+<a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>
+</li>
+<li class="index">
+<code>$</code>, Here token:
+<a href="nasmdoc3.html#section-3.5">Section 3.5</a>
+</li>
+<li class="index">
+<code>$</code>, prefix:
+<a href="nasmdoc3.html#section-3.1">Section 3.1</a>,
+<a href="nasmdoc3.html#section-3.4.1">Section 3.4.1</a>,
+<a href="nasmdoc8.html#section-8.13.2">Section 8.13.2</a>
+</li>
+<li class="index">
+<code>%</code> operator:
+<a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+<code>%!</code>: <a href="nasmdoc4.html#section-4.11.2">Section 4.11.2</a>
+</li>
+<li class="index">
+<code>%$</code> and <code>%$$</code> prefixes:
+<a href="nasmdoc4.html#section-4.7.2">Section 4.7.2</a>
+</li>
+<li class="index">
+<code>%%</code> operator:
+<a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>,
+<a href="nasmdoc4.html#section-4.3.2">Section 4.3.2</a>
+</li>
+<li class="index">
+<code>%*?</code>: <a href="nasmdoc4.html#section-4.1.6">Section 4.1.6</a>
+</li>
+<li class="index">
+<code>%*??</code>: <a href="nasmdoc4.html#section-4.1.6">Section 4.1.6</a>
+</li>
+<li class="index">
+<code>%+</code>: <a href="nasmdoc4.html#section-4.1.4">Section 4.1.4</a>
+</li>
+<li class="index">
+<code>%,</code>: <a href="nasmdoc4.html#section-4.1.12">Section 4.1.12</a>
+</li>
+<li class="index">
+<code>%?</code>: <a href="nasmdoc4.html#section-4.1.5">Section 4.1.5</a>
+</li>
+<li class="index">
+<code>%??</code>: <a href="nasmdoc4.html#section-4.1.5">Section 4.1.5</a>
+</li>
+<li class="index">
+<code>%[</code>: <a href="nasmdoc4.html#section-4.1.3">Section 4.1.3</a>
+</li>
+<li class="index">
+<code>%</code> prefix to <code>DB</code> lists:
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>
+</li>
+<li class="index">
+<code>&amp;</code> operator:
+<a href="nasmdoc3.html#section-3.5.8">Section 3.5.8</a>
+</li>
+<li class="index">
+<code>&amp;&amp;</code> operator:
+<a href="nasmdoc3.html#section-3.5.4">Section 3.5.4</a>
+</li>
+<li class="index">
+<code>*</code> operator:
+<a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+<code>+</code> modifier:
+<a href="nasmdoc4.html#section-4.3.3">Section 4.3.3</a>
+</li>
+<li class="index">
+<code>+</code> operator, binary:
+<a href="nasmdoc3.html#section-3.5.10">Section 3.5.10</a>
+</li>
+<li class="index">
+<code>+</code> operator, unary:
+<a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+<code>-</code> operator, binary:
+<a href="nasmdoc3.html#section-3.5.10">Section 3.5.10</a>
+</li>
+<li class="index">
+<code>-</code> operator, unary:
+<a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+<code>..@</code> symbol prefix:
+<a href="nasmdoc3.html#section-3.9">Section 3.9</a>,
+<a href="nasmdoc4.html#section-4.3.2">Section 4.3.2</a>
+</li>
+<li class="index">
+<code>/</code> operator:
+<a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+<code>//</code> operator:
+<a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+<code>&lt;</code> operator:
+<a href="nasmdoc3.html#section-3.5.5">Section 3.5.5</a>
+</li>
+<li class="index">
+<code>&lt;&lt;</code> operator:
+<a href="nasmdoc3.html#section-3.5.9">Section 3.5.9</a>
+</li>
+<li class="index">
+<code>&lt;&lt;&lt;</code> operator:
+<a href="nasmdoc3.html#section-3.5.9">Section 3.5.9</a>
+</li>
+<li class="index">
+<code>&lt;=</code> operator:
+<a href="nasmdoc3.html#section-3.5.5">Section 3.5.5</a>
+</li>
+<li class="index">
+<code>&lt;=&gt;</code> operator:
+<a href="nasmdoc3.html#section-3.5.5">Section 3.5.5</a>
+</li>
+<li class="index">
+<code>&lt;&gt;</code> operator:
+<a href="nasmdoc3.html#section-3.5.5">Section 3.5.5</a>
+</li>
+<li class="index">
+<code>=</code> operator:
+<a href="nasmdoc3.html#section-3.5.5">Section 3.5.5</a>
+</li>
+<li class="index">
+<code>==</code> operator:
+<a href="nasmdoc3.html#section-3.5.5">Section 3.5.5</a>
+</li>
+<li class="index">
+<code>&gt;</code> operator:
+<a href="nasmdoc3.html#section-3.5.5">Section 3.5.5</a>
+</li>
+<li class="index">
+<code>&gt;=</code> operator:
+<a href="nasmdoc3.html#section-3.5.5">Section 3.5.5</a>
+</li>
+<li class="index">
+<code>&gt;&gt;</code> operator:
+<a href="nasmdoc3.html#section-3.5.9">Section 3.5.9</a>
+</li>
+<li class="index">
+<code>&gt;&gt;&gt;</code> operator:
+<a href="nasmdoc3.html#section-3.5.9">Section 3.5.9</a>
+</li>
+<li class="index">
+<code>?</code>, data syntax:
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>
+</li>
+<li class="index">
+<code>?</code>, operator:
+<a href="nasmdoc3.html#section-3.5.1">Section 3.5.1</a>
+</li>
+<li class="index">
+<code>^</code> operator:
+<a href="nasmdoc3.html#section-3.5.7">Section 3.5.7</a>
+</li>
+<li class="index">
+<code>^^</code> operator:
+<a href="nasmdoc3.html#section-3.5.3">Section 3.5.3</a>
+</li>
+<li class="index">
+<code>|</code> operator:
+<a href="nasmdoc3.html#section-3.5.6">Section 3.5.6</a>
+</li>
+<li class="index">
+<code>||</code> operator:
+<a href="nasmdoc3.html#section-3.5.2">Section 3.5.2</a>
+</li>
+<li class="index">
+<code>~</code> operator:
+</li>
+<li class="index">
+~ opunary: <a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+<code>%0</code> parameter count:
+<a href="nasmdoc4.html#section-4.3.5">Section 4.3.5</a>,
+<a href="nasmdoc4.html#section-4.3.6">Section 4.3.6</a>
+</li>
+<li class="index">
+<code>%00</code>: <a href="nasmdoc4.html#section-4.3.7">Section 4.3.7</a>
+</li>
+<li class="index">
+<code>%+1</code> and <code>%-1</code> syntax:
+<a href="nasmdoc4.html#section-4.3.10">Section 4.3.10</a>
+</li>
+<li class="index">
+16-bit mode, versus 32-bit mode:
+<a href="nasmdoc7.html#section-7.1">Section 7.1</a>
+</li>
+<li class="index">
+1's complement: <a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+2's complement: <a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+64-bit displacement: <a href="nasmdo12.html#section-12.2">Section 12.2</a>
+</li>
+<li class="index">
+64-bit immediate: <a href="nasmdo12.html#section-12.2">Section 12.2</a>
+</li>
+<li class="index">
+<code>-a</code> option:
+<a href="nasmdoc2.html#section-2.1.23">Section 2.1.23</a>,
+<a href="nasmdoca.html#section-A.2.3">Section A.2.3</a>
+</li>
+<li class="index">
+<code>A16</code>: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>,
+<a href="nasmdo11.html#section-11.3">Section 11.3</a>
+</li>
+<li class="index">
+<code>A32</code>: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>,
+<a href="nasmdo11.html#section-11.3">Section 11.3</a>
+</li>
+<li class="index">
+<code>A64</code>: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>,
+<a href="nasmdo11.html#section-11.3">Section 11.3</a>
+</li>
+<li class="index">
+<code>a86</code>: <a href="nasmdoc2.html#section-2.2">Section 2.2</a>,
+<a href="nasmdoc2.html#section-2.2.2">Section 2.2.2</a>,
+<a href="nasmdoc2.html#section-2.2.6">Section 2.2.6</a>
+</li>
+<li class="index">
+<code>ABS</code>: <a href="nasmdoc3.html#section-3.3">Section 3.3</a>,
+<a href="nasmdoc7.html#section-7.2.1">Section 7.2.1</a>
+</li>
+<li class="index">
+<code>ABSOLUTE</code>: <a href="nasmdoc7.html#section-7.4">Section 7.4</a>,
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+addition: <a href="nasmdoc3.html#section-3.5.10">Section 3.5.10</a>
+</li>
+<li class="index">
+addressing, mixed-size:
+<a href="nasmdo11.html#section-11.2">Section 11.2</a>
+</li>
+<li class="index">
+address-size prefixes: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+algebra: <a href="nasmdoc3.html#section-3.3">Section 3.3</a>
+</li>
+<li class="index">
+<code>ALIGN</code>:
+<a href="nasmdoc5.html#section-5.10.1">Section 5.10.1</a>,
+<a href="nasmdoc6.html#section-6.2">Section 6.2</a>,
+<a href="nasmdoc8.html#section-8.1.2">Section 8.1.2</a>,
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+<code>ALIGN</code>, smart:
+<a href="nasmdoc6.html#section-6.2">Section 6.2</a>
+</li>
+<li class="index">
+align, elf attribute:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>ALIGNB</code>:
+<a href="nasmdoc5.html#section-5.10.1">Section 5.10.1</a>
+</li>
+<li class="index">
+alignment: <a href="nasmdoc5.html#section-5.10">Section 5.10</a>
+</li>
+<li class="index">
+alignment, in <code>bin</code> sections:
+<a href="nasmdoc8.html#section-8.1.2">Section 8.1.2</a>
+</li>
+<li class="index">
+alignment, in ELF sections:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+alignment, in <code>obj</code> sections:
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+alignment, in <code>win32</code> sections:
+<a href="nasmdoc8.html#section-8.5.1">Section 8.5.1</a>
+</li>
+<li class="index">
+alignment, of ELF common variables:
+<a href="nasmdoc8.html#section-8.9.7">Section 8.9.7</a>
+</li>
+<li class="index">
+<code>ALIGNMODE</code>: <a href="nasmdoc6.html#section-6.2">Section 6.2</a>
+</li>
+<li class="index">
+<code>__?ALIGNMODE?__</code>:
+<a href="nasmdoc6.html#section-6.2">Section 6.2</a>
+</li>
+<li class="index">
+<code>ALINK</code>: <a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+<code>alink.sourceforge.net</code>:
+<a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+<code>all</code>: <a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>alloc</code>: <a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+alternate register names:
+<a href="nasmdoc6.html#section-6.1">Section 6.1</a>
+</li>
+<li class="index">
+<code>altreg</code>: <a href="nasmdoc6.html#section-6.1">Section 6.1</a>
+</li>
+<li class="index">
+ambiguity: <a href="nasmdoc2.html#section-2.2.3">Section 2.2.3</a>
+</li>
+<li class="index">
+<code>a.out</code>, BSD version:
+<a href="nasmdoc8.html#section-8.11">Section 8.11</a>
+</li>
+<li class="index">
+<code>a.out</code>, Linux version:
+<a href="nasmdoc8.html#section-8.10">Section 8.10</a>
+</li>
+<li class="index">
+<code>aout</code>: <a href="nasmdoc8.html#section-8.10">Section 8.10</a>
+</li>
+<li class="index">
+<code>aoutb</code>: <a href="nasmdoc8.html#section-8.11">Section 8.11</a>,
+<a href="nasmdo10.html#section-10.2">Section 10.2</a>
+</li>
+<li class="index">
+<code>%arg</code>: <a href="nasmdoc4.html#section-4.8.1">Section 4.8.1</a>
+</li>
+<li class="index">
+<code>arg</code>: <a href="nasmdoc9.html#section-9.4.5">Section 9.4.5</a>,
+<a href="nasmdo10.html#section-10.1.4">Section 10.1.4</a>
+</li>
+<li class="index">
+<code>as86</code>: <a href="nasmdoc8.html#section-8.12">Section 8.12</a>
+</li>
+<li class="index">
+assembler directives: <a href="nasmdoc7.html">Chapter 7</a>
+</li>
+<li class="index">
+assembly-time options:
+<a href="nasmdoc2.html#section-2.1.20">Section 2.1.20</a>
+</li>
+<li class="index">
+<code>%assign</code>:
+<a href="nasmdoc4.html#section-4.1.8">Section 4.1.8</a>
+</li>
+<li class="index">
+<code>ASSUME</code>:
+<a href="nasmdoc2.html#section-2.2.4">Section 2.2.4</a>
+</li>
+<li class="index">
+<code>AT</code>: <a href="nasmdoc5.html#section-5.9.2">Section 5.9.2</a>
+</li>
+<li class="index">
+<code>auto-sync</code>:
+<a href="nasmdoca.html#section-A.2.3">Section A.2.3</a>
+</li>
+<li class="index">
+<code>-b</code>: <a href="nasmdoca.html#section-A.2">Section A.2</a>
+</li>
+<li class="index">
+baddb: <a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>
+</li>
+<li class="index">
+<code>bad-pragma</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>--before</code>:
+<a href="nasmdoc2.html#section-2.1.30">Section 2.1.30</a>
+</li>
+<li class="index">
+<code>bf16</code>: <a href="nasmdoc6.html#section-6.3">Section 6.3</a>
+</li>
+<li class="index">
+<code>__?bfloat16?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>bfloat16</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>bin</code> output format:
+<a href="nasmdoc2.html#section-2.1.2">Section 2.1.2</a>,
+<a href="nasmdoc8.html#section-8.1">Section 8.1</a>
+</li>
+<li class="index">
+bin, multisection: <a href="nasmdoc8.html#section-8.1.3">Section 8.1.3</a>
+</li>
+<li class="index">
+binary: <a href="nasmdoc3.html#section-3.4.1">Section 3.4.1</a>
+</li>
+<li class="index">
+binary files: <a href="nasmdoc3.html#section-3.2.3">Section 3.2.3</a>
+</li>
+<li class="index">
+bit shift: <a href="nasmdoc3.html#section-3.5.9">Section 3.5.9</a>
+</li>
+<li class="index">
+<code>BITS</code>: <a href="nasmdoc7.html#section-7.1">Section 7.1</a>,
+<a href="nasmdoc8.html#section-8.1">Section 8.1</a>
+</li>
+<li class="index">
+<code>__?BITS?__</code>:
+<a href="nasmdoc5.html#section-5.3">Section 5.3</a>
+</li>
+<li class="index">
+bitwise AND: <a href="nasmdoc3.html#section-3.5.8">Section 3.5.8</a>
+</li>
+<li class="index">
+bitwise OR: <a href="nasmdoc3.html#section-3.5.6">Section 3.5.6</a>
+</li>
+<li class="index">
+bitwise XOR: <a href="nasmdoc3.html#section-3.5.7">Section 3.5.7</a>
+</li>
+<li class="index">
+block IFs: <a href="nasmdoc4.html#section-4.7.6">Section 4.7.6</a>
+</li>
+<li class="index">
+<code>BND</code>: <a href="nasmdoc7.html#section-7.2.2">Section 7.2.2</a>
+</li>
+<li class="index">
+<code>bnd</code>: <a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+boolean, AND: <a href="nasmdoc3.html#section-3.5.4">Section 3.5.4</a>
+</li>
+<li class="index">
+boolean, OR: <a href="nasmdoc3.html#section-3.5.2">Section 3.5.2</a>
+</li>
+<li class="index">
+boolean, XOR: <a href="nasmdoc3.html#section-3.5.3">Section 3.5.3</a>
+</li>
+<li class="index">
+boot loader: <a href="nasmdoc8.html#section-8.1">Section 8.1</a>
+</li>
+<li class="index">
+boot sector: <a href="nasmdo13.html#section-13.1.3">Section 13.1.3</a>
+</li>
+<li class="index">
+Borland, Pascal: <a href="nasmdoc9.html#section-9.5">Section 9.5</a>
+</li>
+<li class="index">
+Borland, Win32 compilers:
+<a href="nasmdoc8.html#section-8.4">Section 8.4</a>
+</li>
+<li class="index">
+braces, after <code>%</code> sign:
+<a href="nasmdoc4.html#section-4.3.9">Section 4.3.9</a>
+</li>
+<li class="index">
+braces, around macro parameters:
+<a href="nasmdoc4.html#section-4.3">Section 4.3</a>
+</li>
+<li class="index">
+BSD: <a href="nasmdo10.html#section-10.2">Section 10.2</a>
+</li>
+<li class="index">
+<code>.bss</code>: <a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>,
+<a href="nasmdoc8.html#section-8.10">Section 8.10</a>,
+<a href="nasmdoc8.html#section-8.11">Section 8.11</a>,
+<a href="nasmdoc8.html#section-8.12">Section 8.12</a>
+</li>
+<li class="index">
+bug tracker: <a href="nasmdoce.html#section-E.2">Section E.2</a>
+</li>
+<li class="index">
+bugs: <a href="nasmdoce.html#section-E.2">Section E.2</a>
+</li>
+<li class="index">
+<code>BYTE</code>:
+<a href="nasmdo13.html#section-13.1.1">Section 13.1.1</a>
+</li>
+<li class="index">
+C calling convention:
+<a href="nasmdoc9.html#section-9.4.3">Section 9.4.3</a>,
+<a href="nasmdo10.html#section-10.1.2">Section 10.1.2</a>
+</li>
+<li class="index">
+C symbol names: <a href="nasmdoc9.html#section-9.4.1">Section 9.4.1</a>
+</li>
+<li class="index">
+<code>c16.mac</code>:
+<a href="nasmdoc9.html#section-9.4.5">Section 9.4.5</a>,
+<a href="nasmdoc9.html#section-9.5.3">Section 9.5.3</a>
+</li>
+<li class="index">
+<code>c32.mac</code>:
+<a href="nasmdo10.html#section-10.1.4">Section 10.1.4</a>
+</li>
+<li class="index">
+<code>CALL FAR</code>: <a href="nasmdoc3.html#section-3.6">Section 3.6</a>
+</li>
+<li class="index">
+case sensitivity: <a href="nasmdoc2.html#section-2.2.1">Section 2.2.1</a>,
+<a href="nasmdoc4.html#section-4.1.1">Section 4.1.1</a>,
+<a href="nasmdoc4.html#section-4.1.2">Section 4.1.2</a>,
+<a href="nasmdoc4.html#section-4.1.8">Section 4.1.8</a>,
+<a href="nasmdoc4.html#section-4.3">Section 4.3</a>,
+<a href="nasmdoc4.html#section-4.4.5">Section 4.4.5</a>,
+<a href="nasmdoc8.html#section-8.4.3">Section 8.4.3</a>
+</li>
+<li class="index">
+changing sections: <a href="nasmdoc7.html#section-7.3">Section 7.3</a>
+</li>
+<li class="index">
+character constant:
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.4.3">Section 3.4.3</a>
+</li>
+<li class="index">
+character strings: <a href="nasmdoc3.html#section-3.4.2">Section 3.4.2</a>
+</li>
+<li class="index">
+circular references:
+<a href="nasmdoc4.html#section-4.1.1">Section 4.1.1</a>
+</li>
+<li class="index">
+<code>CLASS</code>: <a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+<code>%clear</code>:
+<a href="nasmdoc4.html#section-4.11.3">Section 4.11.3</a>,
+<a href="nasmdoc5.html">Chapter 5</a>
+</li>
+<li class="index">
+CodeView debugging format:
+<a href="nasmdoc8.html#section-8.5.3">Section 8.5.3</a>
+</li>
+<li class="index">
+<code>coff</code>: <a href="nasmdoc8.html#section-8.7">Section 8.7</a>
+</li>
+<li class="index">
+colon: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+<code>.COM</code>: <a href="nasmdoc8.html#section-8.1">Section 8.1</a>,
+<a href="nasmdoc9.html#section-9.2">Section 9.2</a>
+</li>
+<li class="index">
+comma: <a href="nasmdoc4.html#section-4.3.4">Section 4.3.4</a>
+</li>
+<li class="index">
+command-line: <a href="nasmdoc2.html#section-2.1">Section 2.1</a>,
+<a href="nasmdoc8.html">Chapter 8</a>
+</li>
+<li class="index">
+commas in macro parameters:
+<a href="nasmdoc4.html#section-4.3.3">Section 4.3.3</a>
+</li>
+<li class="index">
+<code>.comment</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>COMMON</code>: <a href="nasmdoc7.html#section-7.8">Section 7.8</a>,
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+<code>COMMON</code>, ELF extensions to:
+<a href="nasmdoc8.html#section-8.9.7">Section 8.9.7</a>
+</li>
+<li class="index">
+<code>COMMON</code>, <code>obj</code> extensions to:
+<a href="nasmdoc8.html#section-8.4.8">Section 8.4.8</a>
+</li>
+<li class="index">
+Common Object File Format:
+<a href="nasmdoc8.html#section-8.7">Section 8.7</a>
+</li>
+<li class="index">
+common variables: <a href="nasmdoc7.html#section-7.8">Section 7.8</a>
+</li>
+<li class="index">
+common variables, alignment in ELF:
+<a href="nasmdoc8.html#section-8.9.7">Section 8.9.7</a>
+</li>
+<li class="index">
+common variables, element size:
+<a href="nasmdoc8.html#section-8.4.8">Section 8.4.8</a>
+</li>
+<li class="index">
+comparison operators:
+<a href="nasmdoc3.html#section-3.5.5">Section 3.5.5</a>
+</li>
+<li class="index">
+<code>comp.os.msdos.programmer</code>:
+<a href="nasmdoc9.html#section-9.3">Section 9.3</a>
+</li>
+<li class="index">
+concatenating macro parameters:
+<a href="nasmdoc4.html#section-4.3.9">Section 4.3.9</a>
+</li>
+<li class="index">
+concatenating strings:
+<a href="nasmdoc4.html#section-4.2.1">Section 4.2.1</a>
+</li>
+<li class="index">
+condition codes as macro parameters:
+<a href="nasmdoc4.html#section-4.3.10">Section 4.3.10</a>
+</li>
+<li class="index">
+conditional assembly: <a href="nasmdoc4.html#section-4.4">Section 4.4</a>
+</li>
+<li class="index">
+conditional comma operator:
+<a href="nasmdoc4.html#section-4.1.12">Section 4.1.12</a>
+</li>
+<li class="index">
+conditional jumps:
+<a href="nasmdo13.html#section-13.1.2">Section 13.1.2</a>
+</li>
+<li class="index">
+conditional-return macro:
+<a href="nasmdoc4.html#section-4.3.10">Section 4.3.10</a>
+</li>
+<li class="index">
+constants: <a href="nasmdoc3.html#section-3.4">Section 3.4</a>
+</li>
+<li class="index">
+context fall-through lookup:
+<a href="nasmdoc4.html#section-4.7.4">Section 4.7.4</a>
+</li>
+<li class="index">
+context stack: <a href="nasmdoc4.html#section-4.7">Section 4.7</a>,
+<a href="nasmdoc4.html#section-4.7.6">Section 4.7.6</a>
+</li>
+<li class="index">
+context-local labels:
+<a href="nasmdoc4.html#section-4.7.2">Section 4.7.2</a>
+</li>
+<li class="index">
+context-local single-line macros:
+<a href="nasmdoc4.html#section-4.7.3">Section 4.7.3</a>
+</li>
+<li class="index">
+counting macro parameters:
+<a href="nasmdoc4.html#section-4.3.6">Section 4.3.6</a>
+</li>
+<li class="index">
+<code>CPU</code>: <a href="nasmdoc7.html#section-7.11">Section 7.11</a>
+</li>
+<li class="index">
+<code>CPUID</code>: <a href="nasmdoc3.html#section-3.4.3">Section 3.4.3</a>
+</li>
+<li class="index">
+creating contexts: <a href="nasmdoc4.html#section-4.7.1">Section 4.7.1</a>
+</li>
+<li class="index">
+critical expression:
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>,
+<a href="nasmdoc3.html#section-3.8">Section 3.8</a>,
+<a href="nasmdoc4.html#section-4.1.8">Section 4.1.8</a>,
+<a href="nasmdoc7.html#section-7.4">Section 7.4</a>
+</li>
+<li class="index">
+\c{section: <a href="nasmdoc8.html#section-8.1.2">Section 8.1.2</a>
+</li>
+<li class="index">
+<code>cv8</code>: <a href="nasmdoc8.html#section-8.5.3">Section 8.5.3</a>
+</li>
+<li class="index">
+<code>-D</code> option:
+<a href="nasmdoc2.html#section-2.1.20">Section 2.1.20</a>
+</li>
+<li class="index">
+<code>-d</code> option:
+<a href="nasmdoc2.html#section-2.1.20">Section 2.1.20</a>
+</li>
+<li class="index">
+daily development snapshots:
+<a href="nasmdoce.html#section-E.1">Section E.1</a>
+</li>
+<li class="index">
+<code>.data</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>,
+<a href="nasmdoc8.html#section-8.10">Section 8.10</a>,
+<a href="nasmdoc8.html#section-8.11">Section 8.11</a>,
+<a href="nasmdoc8.html#section-8.12">Section 8.12</a>
+</li>
+<li class="index">
+<code>_DATA</code>: <a href="nasmdoc9.html#section-9.4.2">Section 9.4.2</a>
+</li>
+<li class="index">
+<code>data</code>: <a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>,
+<a href="nasmdoc8.html#section-8.13.3">Section 8.13.3</a>
+</li>
+<li class="index">
+data structure: <a href="nasmdoc9.html#section-9.4.4">Section 9.4.4</a>,
+<a href="nasmdo10.html#section-10.1.3">Section 10.1.3</a>
+</li>
+<li class="index">
+<code>__?DATE?__</code>:
+<a href="nasmdoc5.html#section-5.6">Section 5.6</a>
+</li>
+<li class="index">
+<code>__?DATE_NUM?__</code>:
+<a href="nasmdoc5.html#section-5.6">Section 5.6</a>
+</li>
+<li class="index">
+<code>DB</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.4.4">Section 3.4.4</a>,
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>db-empty</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>dbg</code>: <a href="nasmdoc8.html#section-8.14">Section 8.14</a>
+</li>
+<li class="index">
+<code>DD</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.4.4">Section 3.4.4</a>,
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+debug information:
+<a href="nasmdoc2.html#section-2.1.14">Section 2.1.14</a>
+</li>
+<li class="index">
+debug information format:
+<a href="nasmdoc2.html#section-2.1.13">Section 2.1.13</a>
+</li>
+<li class="index">
+<code>__?DEBUG_FORMAT?__</code>:
+<a href="nasmdoc5.html#section-5.5">Section 5.5</a>
+</li>
+<li class="index">
+decimal: <a href="nasmdoc3.html#section-3.4.1">Section 3.4.1</a>
+</li>
+<li class="index">
+declaring structures:
+<a href="nasmdoc5.html#section-5.9.1">Section 5.9.1</a>
+</li>
+<li class="index">
+<code>%defalias</code>:
+<a href="nasmdoc4.html#section-4.1.11">Section 4.1.11</a>
+</li>
+<li class="index">
+<code>DEFAULT</code>: <a href="nasmdoc7.html#section-7.2">Section 7.2</a>
+</li>
+<li class="index">
+<code>default</code>:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+default macro parameters:
+<a href="nasmdoc4.html#section-4.3.5">Section 4.3.5</a>
+</li>
+<li class="index">
+default name: <a href="nasmdoc8.html">Chapter 8</a>
+</li>
+<li class="index">
+default-<code>WRT</code> mechanism:
+<a href="nasmdoc8.html#section-8.4.7">Section 8.4.7</a>
+</li>
+<li class="index">
+<code>%define</code>:
+<a href="nasmdoc2.html#section-2.1.20">Section 2.1.20</a>,
+<a href="nasmdoc4.html#section-4.1.1">Section 4.1.1</a>
+</li>
+<li class="index">
+defining sections: <a href="nasmdoc7.html#section-7.3">Section 7.3</a>
+</li>
+<li class="index">
+<code>%defstr</code>:
+<a href="nasmdoc4.html#section-4.1.9">Section 4.1.9</a>
+</li>
+<li class="index">
+<code>%deftok</code>:
+<a href="nasmdoc4.html#section-4.1.10">Section 4.1.10</a>
+</li>
+<li class="index">
+<code>%depend</code>:
+<a href="nasmdoc4.html#section-4.6.3">Section 4.6.3</a>
+</li>
+<li class="index">
+design goals: <a href="nasmdoc2.html#section-2.2.2">Section 2.2.2</a>
+</li>
+<li class="index">
+DevPac: <a href="nasmdoc3.html#section-3.9">Section 3.9</a>
+</li>
+<li class="index">
+disabling listing expansion:
+<a href="nasmdoc4.html#section-4.3.11">Section 4.3.11</a>
+</li>
+<li class="index">
+division: <a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+division, signed: <a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+division, unsigned:
+<a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+DJGPP: <a href="nasmdoc8.html#section-8.7">Section 8.7</a>,
+<a href="nasmdo10.html">Chapter 10</a>
+</li>
+<li class="index">
+<code>djlink</code>:
+<a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+DLL symbols, exporting:
+<a href="nasmdoc8.html#section-8.4.5">Section 8.4.5</a>
+</li>
+<li class="index">
+DLL symbols, importing:
+<a href="nasmdoc8.html#section-8.4.4">Section 8.4.4</a>
+</li>
+<li class="index">
+<code>DO</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.4.4">Section 3.4.4</a>,
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+DOS: <a href="nasmdoc2.html#section-2.1.16">Section 2.1.16</a>,
+<a href="nasmdoc2.html#section-2.1.17">Section 2.1.17</a>
+</li>
+<li class="index">
+<code>DQ</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.4.4">Section 3.4.4</a>,
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>.drectve</code>:
+<a href="nasmdoc8.html#section-8.5.1">Section 8.5.1</a>
+</li>
+<li class="index">
+<code>DT</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.4.4">Section 3.4.4</a>,
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>DUP</code>: <a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>,
+<a href="nasmdoc3.html#section-3.2.5">Section 3.2.5</a>
+</li>
+<li class="index">
+<code>DW</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.4.4">Section 3.4.4</a>,
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>DWORD</code>: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+<code>DY</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.4.4">Section 3.4.4</a>
+</li>
+<li class="index">
+<code>DZ</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>
+</li>
+<li class="index">
+<code>-E</code> option:
+<a href="nasmdoc2.html#section-2.1.22">Section 2.1.22</a>
+</li>
+<li class="index">
+<code>-e</code> option:
+<a href="nasmdoc2.html#section-2.1.22">Section 2.1.22</a>,
+<a href="nasmdoca.html#section-A.2.4">Section A.2.4</a>
+</li>
+<li class="index">
+effective addresses: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>,
+<a href="nasmdoc3.html#section-3.3">Section 3.3</a>
+</li>
+<li class="index">
+element size, in common variables:
+<a href="nasmdoc8.html#section-8.4.8">Section 8.4.8</a>
+</li>
+<li class="index">
+ELF: <a href="nasmdoc8.html#section-8.9">Section 8.9</a>
+</li>
+<li class="index">
+ELF, shared libraries:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+ELF, 16-bit code: <a href="nasmdoc8.html#section-8.9.8">Section 8.9.8</a>
+</li>
+<li class="index">
+ELF, debug formats: <a href="nasmdoc8.html#section-8.9.9">Section 8.9.9</a>
+</li>
+<li class="index">
+<code>elf32</code>: <a href="nasmdoc8.html#section-8.9">Section 8.9</a>
+</li>
+<li class="index">
+<code>elf64</code>: <a href="nasmdoc8.html#section-8.9">Section 8.9</a>
+</li>
+<li class="index">
+<code>elfx32</code>: <a href="nasmdoc8.html#section-8.9">Section 8.9</a>
+</li>
+<li class="index">
+<code>%elif</code>: <a href="nasmdoc4.html#section-4.4">Section 4.4</a>,
+<a href="nasmdoc4.html#section-4.4.4">Section 4.4.4</a>
+</li>
+<li class="index">
+<code>%elifctx</code>:
+<a href="nasmdoc4.html#section-4.4.3">Section 4.4.3</a>
+</li>
+<li class="index">
+<code>%elifdef</code>:
+<a href="nasmdoc4.html#section-4.4.1">Section 4.4.1</a>
+</li>
+<li class="index">
+<code>%elifempty</code>:
+<a href="nasmdoc4.html#section-4.4.8">Section 4.4.8</a>
+</li>
+<li class="index">
+<code>%elifenv</code>:
+<a href="nasmdoc4.html#section-4.4.9">Section 4.4.9</a>
+</li>
+<li class="index">
+<code>%elifid</code>:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%elifidn</code>:
+<a href="nasmdoc4.html#section-4.4.5">Section 4.4.5</a>
+</li>
+<li class="index">
+<code>%elifidni</code>:
+<a href="nasmdoc4.html#section-4.4.5">Section 4.4.5</a>
+</li>
+<li class="index">
+<code>%elifmacro</code>:
+<a href="nasmdoc4.html#section-4.4.2">Section 4.4.2</a>
+</li>
+<li class="index">
+<code>%elifn</code>: <a href="nasmdoc4.html#section-4.4">Section 4.4</a>,
+<a href="nasmdoc4.html#section-4.4.4">Section 4.4.4</a>
+</li>
+<li class="index">
+<code>%elifnctx</code>:
+<a href="nasmdoc4.html#section-4.4.3">Section 4.4.3</a>
+</li>
+<li class="index">
+<code>%elifndef</code>:
+<a href="nasmdoc4.html#section-4.4.1">Section 4.4.1</a>
+</li>
+<li class="index">
+<code>%elifnempty</code>:
+<a href="nasmdoc4.html#section-4.4.8">Section 4.4.8</a>
+</li>
+<li class="index">
+<code>%elifnenv</code>:
+<a href="nasmdoc4.html#section-4.4.9">Section 4.4.9</a>
+</li>
+<li class="index">
+<code>%elifnid</code>:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%elifnidn</code>:
+<a href="nasmdoc4.html#section-4.4.5">Section 4.4.5</a>
+</li>
+<li class="index">
+<code>%elifnidni</code>:
+<a href="nasmdoc4.html#section-4.4.5">Section 4.4.5</a>
+</li>
+<li class="index">
+<code>%elifnmacro</code>:
+<a href="nasmdoc4.html#section-4.4.2">Section 4.4.2</a>
+</li>
+<li class="index">
+<code>%elifnnum</code>:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%elifnstr</code>:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%elifntoken</code>:
+<a href="nasmdoc4.html#section-4.4.7">Section 4.4.7</a>
+</li>
+<li class="index">
+<code>%elifnum</code>:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%elifstr</code>:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%eliftoken</code>:
+<a href="nasmdoc4.html#section-4.4.7">Section 4.4.7</a>
+</li>
+<li class="index">
+<code>%else</code>: <a href="nasmdoc4.html#section-4.4">Section 4.4</a>
+</li>
+<li class="index">
+<code>endproc</code>:
+<a href="nasmdoc9.html#section-9.4.5">Section 9.4.5</a>,
+<a href="nasmdo10.html#section-10.1.4">Section 10.1.4</a>
+</li>
+<li class="index">
+<code>%endrep</code>: <a href="nasmdoc4.html#section-4.5">Section 4.5</a>
+</li>
+<li class="index">
+<code>ENDSTRUC</code>:
+<a href="nasmdoc5.html#section-5.9.1">Section 5.9.1</a>,
+<a href="nasmdoc7.html#section-7.4">Section 7.4</a>
+</li>
+<li class="index">
+<code>environment</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>,
+<a href="nasmdoc2.html#section-2.1.35">Section 2.1.35</a>
+</li>
+<li class="index">
+<code>EQU</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.4">Section 3.2.4</a>
+</li>
+<li class="index">
+<code>%error</code>: <a href="nasmdoc4.html#section-4.9">Section 4.9</a>
+</li>
+<li class="index">
+error messages: <a href="nasmdoc2.html#section-2.1.16">Section 2.1.16</a>,
+<a href="nasmdoc2.html#section-2.1.17">Section 2.1.17</a>
+</li>
+<li class="index">
+error reporting format:
+<a href="nasmdoc2.html#section-2.1.15">Section 2.1.15</a>
+</li>
+<li class="index">
+escape sequences: <a href="nasmdoc3.html#section-3.4.2">Section 3.4.2</a>
+</li>
+<li class="index">
+<code>EVEN</code>:
+<a href="nasmdoc5.html#section-5.10.1">Section 5.10.1</a>
+</li>
+<li class="index">
+exact matches: <a href="nasmdoc4.html#section-4.3.12">Section 4.3.12</a>
+</li>
+<li class="index">
+<code>.EXE</code>: <a href="nasmdoc8.html#section-8.4">Section 8.4</a>,
+<a href="nasmdoc9.html#section-9.1">Section 9.1</a>
+</li>
+<li class="index">
+<code>EXE2BIN</code>:
+<a href="nasmdoc9.html#section-9.2.2">Section 9.2.2</a>
+</li>
+<li class="index">
+<code>EXE_begin</code>:
+<a href="nasmdoc9.html#section-9.1.2">Section 9.1.2</a>
+</li>
+<li class="index">
+<code>exebin.mac</code>:
+<a href="nasmdoc9.html#section-9.1.2">Section 9.1.2</a>
+</li>
+<li class="index">
+<code>exec</code>: <a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+Executable and Linkable Format:
+<a href="nasmdoc8.html#section-8.9">Section 8.9</a>
+</li>
+<li class="index">
+<code>EXE_end</code>:
+<a href="nasmdoc9.html#section-9.1.2">Section 9.1.2</a>
+</li>
+<li class="index">
+<code>EXE_stack</code>:
+<a href="nasmdoc9.html#section-9.1.2">Section 9.1.2</a>
+</li>
+<li class="index">
+<code>%exitrep</code>: <a href="nasmdoc4.html#section-4.5">Section 4.5</a>
+</li>
+<li class="index">
+<code>EXPORT</code>:
+<a href="nasmdoc8.html#section-8.4.5">Section 8.4.5</a>
+</li>
+<li class="index">
+<code>export</code>:
+<a href="nasmdoc8.html#section-8.13.3">Section 8.13.3</a>
+</li>
+<li class="index">
+exporting symbols: <a href="nasmdoc7.html#section-7.7">Section 7.7</a>
+</li>
+<li class="index">
+expressions: <a href="nasmdoc2.html#section-2.1.22">Section 2.1.22</a>,
+<a href="nasmdoc3.html#section-3.5">Section 3.5</a>
+</li>
+<li class="index">
+extension: <a href="nasmdoc2.html#section-2.1.1">Section 2.1.1</a>,
+<a href="nasmdoc8.html">Chapter 8</a>
+</li>
+<li class="index">
+<code>EXTERN</code>: <a href="nasmdoc7.html#section-7.5">Section 7.5</a>
+</li>
+<li class="index">
+<code>EXTERN</code>, <code>elf</code> extensions to:
+<a href="nasmdoc8.html#section-8.9.6">Section 8.9.6</a>
+</li>
+<li class="index">
+<code>EXTERN</code>, <code>obj</code> extensions to:
+<a href="nasmdoc8.html#section-8.4.7">Section 8.4.7</a>
+</li>
+<li class="index">
+<code>EXTERN</code>, <code>rdf</code> extensions to:
+<a href="nasmdoc8.html#section-8.13.4">Section 8.13.4</a>
+</li>
+<li class="index">
+extracting substrings:
+<a href="nasmdoc4.html#section-4.2.3">Section 4.2.3</a>
+</li>
+<li class="index">
+<code>-F</code> option:
+<a href="nasmdoc2.html#section-2.1.13">Section 2.1.13</a>
+</li>
+<li class="index">
+<code>-f</code> option:
+<a href="nasmdoc2.html#section-2.1.2">Section 2.1.2</a>,
+<a href="nasmdoc8.html">Chapter 8</a>
+</li>
+<li class="index">
+far call: <a href="nasmdoc2.html#section-2.2.5">Section 2.2.5</a>
+</li>
+<li class="index">
+far common variables:
+<a href="nasmdoc8.html#section-8.4.8">Section 8.4.8</a>
+</li>
+<li class="index">
+far pointer: <a href="nasmdoc3.html#section-3.6">Section 3.6</a>
+</li>
+<li class="index">
+<code>FARCODE</code>:
+<a href="nasmdoc9.html#section-9.4.5">Section 9.4.5</a>,
+<a href="nasmdoc9.html#section-9.5.3">Section 9.5.3</a>
+</li>
+<li class="index">
+<code>%fatal</code>: <a href="nasmdoc4.html#section-4.9">Section 4.9</a>
+</li>
+<li class="index">
+<code>__?FILE?__</code>:
+<a href="nasmdoc5.html#section-5.2">Section 5.2</a>
+</li>
+<li class="index">
+<code>fini_array</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>FLAT</code>: <a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+flat memory model: <a href="nasmdo10.html">Chapter 10</a>
+</li>
+<li class="index">
+flat-form binary: <a href="nasmdoc8.html#section-8.1">Section 8.1</a>
+</li>
+<li class="index">
+<code>FLOAT</code>: <a href="nasmdoc7.html#section-7.12">Section 7.12</a>
+</li>
+<li class="index">
+<code>__?FLOAT?__</code>:
+<a href="nasmdoc7.html#section-7.12">Section 7.12</a>
+</li>
+<li class="index">
+<code>float</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>__?float128h?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>__?float128l?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>__?float16?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>__?float32?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>__?float64?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>__?float8?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>__?float80e?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>__?float80m?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>__?FLOAT_DAZ?__</code>:
+<a href="nasmdoc7.html#section-7.12">Section 7.12</a>
+</li>
+<li class="index">
+<code>float-denorm</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+floating-point, constants:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>,
+<a href="nasmdoc7.html#section-7.12">Section 7.12</a>
+</li>
+<li class="index">
+floating-point, packed BCD constants:
+<a href="nasmdoc3.html#section-3.4.7">Section 3.4.7</a>
+</li>
+<li class="index">
+floating-point: <a href="nasmdoc2.html#section-2.2.6">Section 2.2.6</a>,
+<a href="nasmdoc3.html#section-3.1">Section 3.1</a>,
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>float-overflow</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>__?FLOAT_ROUND?__</code>:
+<a href="nasmdoc7.html#section-7.12">Section 7.12</a>
+</li>
+<li class="index">
+<code>float-toolong</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>float-underflow</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>follows=</code>:
+<a href="nasmdoc8.html#section-8.1.3">Section 8.1.3</a>
+</li>
+<li class="index">
+format-specific directives: <a href="nasmdoc7.html">Chapter 7</a>
+</li>
+<li class="index">
+<code>fp</code>: <a href="nasmdoc6.html#section-6.3">Section 6.3</a>
+</li>
+<li class="index">
+frame pointer: <a href="nasmdoc9.html#section-9.4.3">Section 9.4.3</a>,
+<a href="nasmdoc9.html#section-9.5.1">Section 9.5.1</a>,
+<a href="nasmdo10.html#section-10.1.2">Section 10.1.2</a>
+</li>
+<li class="index">
+FreeBSD: <a href="nasmdoc8.html#section-8.11">Section 8.11</a>,
+<a href="nasmdo10.html#section-10.2">Section 10.2</a>
+</li>
+<li class="index">
+FreeLink: <a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+<code>ftp.simtel.net</code>:
+<a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+<code>function</code>:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>,
+<a href="nasmdoc8.html#section-8.13.3">Section 8.13.3</a>
+</li>
+<li class="index">
+functions, C calling convention:
+<a href="nasmdoc9.html#section-9.4.3">Section 9.4.3</a>,
+<a href="nasmdo10.html#section-10.1.2">Section 10.1.2</a>
+</li>
+<li class="index">
+functions, <code>PASCAL</code> calling convention:
+<a href="nasmdoc9.html#section-9.5.1">Section 9.5.1</a>
+</li>
+<li class="index">
+<code>-g</code> option:
+<a href="nasmdoc2.html#section-2.1.14">Section 2.1.14</a>
+</li>
+<li class="index">
+<code>git</code>: <a href="nasmdocd.html#section-D.2">Section D.2</a>
+</li>
+<li class="index">
+<code>GLOBAL</code>: <a href="nasmdoc7.html#section-7.7">Section 7.7</a>
+</li>
+<li class="index">
+<code>GLOBAL</code>, <code>aoutb</code> extensions to:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+<code>GLOBAL</code>, ELF extensions to:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+<code>GLOBAL</code>, <code>rdf</code> extensions to:
+<a href="nasmdoc8.html#section-8.13.3">Section 8.13.3</a>
+</li>
+<li class="index">
+global offset table: <a href="nasmdo10.html#section-10.2">Section 10.2</a>
+</li>
+<li class="index">
+<code>_GLOBAL_OFFSET_TABLE_</code>:
+<a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>
+</li>
+<li class="index">
+<code>(G|L)POSTFIX</code>:
+<a href="nasmdoc7.html#section-7.10">Section 7.10</a>
+</li>
+<li class="index">
+<code>--(g|l)postfix</code>:
+<a href="nasmdoc2.html#section-2.1.28">Section 2.1.28</a>
+</li>
+<li class="index">
+<code>(G|L)PREFIX</code>:
+<a href="nasmdoc7.html#section-7.10">Section 7.10</a>
+</li>
+<li class="index">
+<code>--(g|l)prefix</code>:
+<a href="nasmdoc2.html#section-2.1.28">Section 2.1.28</a>
+</li>
+<li class="index">
+<code>..got</code>: <a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>
+</li>
+<li class="index">
+<code>GOT</code> relocations:
+<a href="nasmdo10.html#section-10.2.3">Section 10.2.3</a>
+</li>
+<li class="index">
+GOT: <a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>,
+<a href="nasmdo10.html#section-10.2">Section 10.2</a>
+</li>
+<li class="index">
+<code>..gotoff</code>:
+<a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>
+</li>
+<li class="index">
+<code>GOTOFF</code> relocations:
+<a href="nasmdo10.html#section-10.2.2">Section 10.2.2</a>
+</li>
+<li class="index">
+<code>..gotpc</code>:
+<a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>
+</li>
+<li class="index">
+<code>GOTPC</code> relocations:
+<a href="nasmdo10.html#section-10.2.1">Section 10.2.1</a>
+</li>
+<li class="index">
+<code>..gottpoff</code>:
+<a href="nasmdoc8.html#section-8.9.4">Section 8.9.4</a>
+</li>
+<li class="index">
+graphics: <a href="nasmdoc3.html#section-3.2.3">Section 3.2.3</a>
+</li>
+<li class="index">
+greedy macro parameters:
+<a href="nasmdoc4.html#section-4.3.3">Section 4.3.3</a>
+</li>
+<li class="index">
+<code>GROUP</code>: <a href="nasmdoc8.html#section-8.4.2">Section 8.4.2</a>
+</li>
+<li class="index">
+groups: <a href="nasmdoc3.html#section-3.6">Section 3.6</a>
+</li>
+<li class="index">
+<code>-h</code>: <a href="nasmdoca.html#section-A.2">Section A.2</a>
+</li>
+<li class="index">
+hexadecimal: <a href="nasmdoc3.html#section-3.4.1">Section 3.4.1</a>
+</li>
+<li class="index">
+<code>hidden</code>:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+<code>hle</code>: <a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+hybrid syntaxes: <a href="nasmdoc2.html#section-2.2.2">Section 2.2.2</a>
+</li>
+<li class="index">
+<code>-I</code> option:
+<a href="nasmdoc2.html#section-2.1.18">Section 2.1.18</a>
+</li>
+<li class="index">
+<code>-i</code> option:
+<a href="nasmdoc2.html#section-2.1.18">Section 2.1.18</a>,
+<a href="nasmdoca.html#section-A.2.3">Section A.2.3</a>
+</li>
+<li class="index">
+<code>%iassign</code>:
+<a href="nasmdoc4.html#section-4.1.8">Section 4.1.8</a>
+</li>
+<li class="index">
+<code>%idefalias</code>:
+<a href="nasmdoc4.html#section-4.1.11">Section 4.1.11</a>
+</li>
+<li class="index">
+<code>%idefine</code>:
+<a href="nasmdoc4.html#section-4.1.1">Section 4.1.1</a>
+</li>
+<li class="index">
+<code>%idefstr</code>:
+<a href="nasmdoc4.html#section-4.1.9">Section 4.1.9</a>
+</li>
+<li class="index">
+<code>%ideftok</code>:
+<a href="nasmdoc4.html#section-4.1.10">Section 4.1.10</a>
+</li>
+<li class="index">
+<code>IEND</code>: <a href="nasmdoc5.html#section-5.9.2">Section 5.9.2</a>
+</li>
+<li class="index">
+<code>%if</code>: <a href="nasmdoc4.html#section-4.4">Section 4.4</a>,
+<a href="nasmdoc4.html#section-4.4.4">Section 4.4.4</a>
+</li>
+<li class="index">
+<code>%ifctx</code>:
+<a href="nasmdoc4.html#section-4.4.3">Section 4.4.3</a>,
+<a href="nasmdoc4.html#section-4.7.6">Section 4.7.6</a>
+</li>
+<li class="index">
+<code>%ifdef</code>:
+<a href="nasmdoc4.html#section-4.4.1">Section 4.4.1</a>
+</li>
+<li class="index">
+<code>%ifempty</code>:
+<a href="nasmdoc4.html#section-4.4.8">Section 4.4.8</a>
+</li>
+<li class="index">
+<code>%ifenv</code>:
+<a href="nasmdoc4.html#section-4.4.9">Section 4.4.9</a>
+</li>
+<li class="index">
+<code>%ifid</code>: <a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%ifidn</code>:
+<a href="nasmdoc4.html#section-4.4.5">Section 4.4.5</a>
+</li>
+<li class="index">
+<code>%ifidni</code>:
+<a href="nasmdoc4.html#section-4.4.5">Section 4.4.5</a>
+</li>
+<li class="index">
+<code>%ifmacro</code>:
+<a href="nasmdoc4.html#section-4.4.2">Section 4.4.2</a>
+</li>
+<li class="index">
+<code>%ifn</code>: <a href="nasmdoc4.html#section-4.4">Section 4.4</a>,
+<a href="nasmdoc4.html#section-4.4.4">Section 4.4.4</a>
+</li>
+<li class="index">
+<code>%ifnctx</code>:
+<a href="nasmdoc4.html#section-4.4.3">Section 4.4.3</a>
+</li>
+<li class="index">
+<code>%ifndef</code>:
+<a href="nasmdoc4.html#section-4.4.1">Section 4.4.1</a>
+</li>
+<li class="index">
+<code>%ifnempty</code>:
+<a href="nasmdoc4.html#section-4.4.8">Section 4.4.8</a>
+</li>
+<li class="index">
+<code>%ifnenv</code>:
+<a href="nasmdoc4.html#section-4.4.9">Section 4.4.9</a>
+</li>
+<li class="index">
+<code>%ifnid</code>:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%ifnidn</code>:
+<a href="nasmdoc4.html#section-4.4.5">Section 4.4.5</a>
+</li>
+<li class="index">
+<code>%ifnidni</code>:
+<a href="nasmdoc4.html#section-4.4.5">Section 4.4.5</a>
+</li>
+<li class="index">
+<code>%ifnmacro</code>:
+<a href="nasmdoc4.html#section-4.4.2">Section 4.4.2</a>
+</li>
+<li class="index">
+<code>%ifnnum</code>:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%ifnstr</code>:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%ifntoken</code>:
+<a href="nasmdoc4.html#section-4.4.7">Section 4.4.7</a>
+</li>
+<li class="index">
+<code>%ifnum</code>:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%ifstr</code>:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>%iftoken</code>:
+<a href="nasmdoc4.html#section-4.4.7">Section 4.4.7</a>
+</li>
+<li class="index">
+<code>ifunc</code>: <a href="nasmdoc6.html#section-6.4">Section 6.4</a>
+</li>
+<li class="index">
+<code>ilog2()</code>:
+<a href="nasmdoc6.html#section-6.4.1">Section 6.4.1</a>
+</li>
+<li class="index">
+<code>ilog2c()</code>:
+<a href="nasmdoc6.html#section-6.4.1">Section 6.4.1</a>
+</li>
+<li class="index">
+<code>ilog2cw()</code>:
+<a href="nasmdoc6.html#section-6.4.1">Section 6.4.1</a>
+</li>
+<li class="index">
+<code>ilog2e()</code>:
+<a href="nasmdoc6.html#section-6.4.1">Section 6.4.1</a>
+</li>
+<li class="index">
+<code>ilog2f()</code>:
+<a href="nasmdoc6.html#section-6.4.1">Section 6.4.1</a>
+</li>
+<li class="index">
+<code>ilog2fw()</code>:
+<a href="nasmdoc6.html#section-6.4.1">Section 6.4.1</a>
+</li>
+<li class="index">
+<code>ilog2w()</code>:
+<a href="nasmdoc6.html#section-6.4.1">Section 6.4.1</a>
+</li>
+<li class="index">
+<code>%imacro</code>: <a href="nasmdoc4.html#section-4.3">Section 4.3</a>
+</li>
+<li class="index">
+<code>IMPORT</code>:
+<a href="nasmdoc8.html#section-8.4.4">Section 8.4.4</a>
+</li>
+<li class="index">
+import library: <a href="nasmdoc8.html#section-8.4.4">Section 8.4.4</a>
+</li>
+<li class="index">
+importing symbols: <a href="nasmdoc7.html#section-7.5">Section 7.5</a>
+</li>
+<li class="index">
+importing symbols, unconditionally:
+<a href="nasmdoc7.html#section-7.6">Section 7.6</a>
+</li>
+<li class="index">
+<code>INCBIN</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.3">Section 3.2.3</a>,
+<a href="nasmdoc3.html#section-3.4.4">Section 3.4.4</a>
+</li>
+<li class="index">
+<code>%include</code>:
+<a href="nasmdoc2.html#section-2.1.18">Section 2.1.18</a>,
+<a href="nasmdoc2.html#section-2.1.19">Section 2.1.19</a>,
+<a href="nasmdoc4.html#section-4.6.1">Section 4.6.1</a>
+</li>
+<li class="index">
+include search path:
+<a href="nasmdoc2.html#section-2.1.18">Section 2.1.18</a>
+</li>
+<li class="index">
+including other files:
+<a href="nasmdoc4.html#section-4.6.1">Section 4.6.1</a>
+</li>
+<li class="index">
+inefficient code: <a href="nasmdo13.html#section-13.1.1">Section 13.1.1</a>
+</li>
+<li class="index">
+infinite loop: <a href="nasmdoc3.html#section-3.5">Section 3.5</a>
+</li>
+<li class="index">
+<code>__?Infinity?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+infinity: <a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+informational section:
+<a href="nasmdoc8.html#section-8.5.1">Section 8.5.1</a>
+</li>
+<li class="index">
+<code>init_array</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+instances of structures:
+<a href="nasmdoc5.html#section-5.9.2">Section 5.9.2</a>
+</li>
+<li class="index">
+instruction list: <a href="nasmdocb.html">Appendix B</a>
+</li>
+<li class="index">
+integer functions: <a href="nasmdoc6.html#section-6.4">Section 6.4</a>
+</li>
+<li class="index">
+integer logarithms: <a href="nasmdoc6.html#section-6.4.1">Section 6.4.1</a>
+</li>
+<li class="index">
+intel hex: <a href="nasmdoc8.html#section-8.2">Section 8.2</a>
+</li>
+<li class="index">
+Intel number formats:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+<code>internal</code>:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+<code>ISTRUC</code>:
+<a href="nasmdoc5.html#section-5.9.2">Section 5.9.2</a>
+</li>
+<li class="index">
+iterating over macro parameters:
+<a href="nasmdoc4.html#section-4.3.8">Section 4.3.8</a>
+</li>
+<li class="index">
+<code>ith</code>: <a href="nasmdoc8.html#section-8.2">Section 8.2</a>
+</li>
+<li class="index">
+<code>%ixdefine</code>:
+<a href="nasmdoc4.html#section-4.1.2">Section 4.1.2</a>
+</li>
+<li class="index">
+<code>Jcc NEAR</code>:
+<a href="nasmdo13.html#section-13.1.2">Section 13.1.2</a>
+</li>
+<li class="index">
+<code>JMP DWORD</code>:
+<a href="nasmdo11.html#section-11.1">Section 11.1</a>
+</li>
+<li class="index">
+jumps, mixed-size: <a href="nasmdo11.html#section-11.1">Section 11.1</a>
+</li>
+<li class="index">
+<code>-k</code>: <a href="nasmdoca.html#section-A.2.4">Section A.2.4</a>
+</li>
+<li class="index">
+<code>--keep-all</code>:
+<a href="nasmdoc2.html#section-2.1.32">Section 2.1.32</a>
+</li>
+<li class="index">
+<code>-L</code> option:
+<a href="nasmdoc2.html#section-2.1.4">Section 2.1.4</a>
+</li>
+<li class="index">
+<code>-l</code> option:
+<a href="nasmdoc2.html#section-2.1.3">Section 2.1.3</a>
+</li>
+<li class="index">
+<code>label</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+label preceeding macro:
+<a href="nasmdoc4.html#section-4.3.7">Section 4.3.7</a>
+</li>
+<li class="index">
+label prefix: <a href="nasmdoc3.html#section-3.9">Section 3.9</a>
+</li>
+<li class="index">
+<code>label-orphan</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>,
+<a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+<code>label-redef</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>label-redef-late</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+last: <a href="nasmdoc4.html#section-4.3.4">Section 4.3.4</a>
+</li>
+<li class="index">
+<code>.lbss</code>: <a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>ld86</code>: <a href="nasmdoc8.html#section-8.12">Section 8.12</a>
+</li>
+<li class="index">
+<code>.ldata</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>LIBRARY</code>:
+<a href="nasmdoc8.html#section-8.13.1">Section 8.13.1</a>
+</li>
+<li class="index">
+license: <a href="nasmdoc1.html#section-1.1.1">Section 1.1.1</a>
+</li>
+<li class="index">
+<code>--limit-X</code>:
+<a href="nasmdoc2.html#section-2.1.31">Section 2.1.31</a>
+</li>
+<li class="index">
+<code>%line</code>:
+<a href="nasmdoc2.html#section-2.1.33">Section 2.1.33</a>,
+<a href="nasmdoc4.html#section-4.11.1">Section 4.11.1</a>
+</li>
+<li class="index">
+<code>__?LINE?__</code>:
+<a href="nasmdoc5.html#section-5.2">Section 5.2</a>
+</li>
+<li class="index">
+linker, free: <a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+Linux, <code>a.out</code>:
+<a href="nasmdoc8.html#section-8.10">Section 8.10</a>
+</li>
+<li class="index">
+Linux, <code>as86</code>:
+<a href="nasmdoc8.html#section-8.12">Section 8.12</a>
+</li>
+<li class="index">
+Linux, ELF: <a href="nasmdoc8.html#section-8.9">Section 8.9</a>
+</li>
+<li class="index">
+listing file: <a href="nasmdoc2.html#section-2.1.3">Section 2.1.3</a>
+</li>
+<li class="index">
+little-endian: <a href="nasmdoc3.html#section-3.4.3">Section 3.4.3</a>
+</li>
+<li class="index">
+<code>%local</code>:
+<a href="nasmdoc4.html#section-4.8.3">Section 4.8.3</a>
+</li>
+<li class="index">
+local labels: <a href="nasmdoc3.html#section-3.9">Section 3.9</a>
+</li>
+<li class="index">
+<code>lock</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>.lrodata</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>-M</code> option:
+<a href="nasmdoc2.html#section-2.1.5">Section 2.1.5</a>
+</li>
+<li class="index">
+Mach, object file format:
+<a href="nasmdoc8.html#section-8.8">Section 8.8</a>
+</li>
+<li class="index">
+Mach-O, object file format:
+<a href="nasmdoc8.html#section-8.8">Section 8.8</a>
+</li>
+<li class="index">
+<code>macho32</code>: <a href="nasmdoc8.html#section-8.8">Section 8.8</a>
+</li>
+<li class="index">
+<code>macho64</code>: <a href="nasmdoc8.html#section-8.8">Section 8.8</a>
+</li>
+<li class="index">
+MacOS X: <a href="nasmdoc8.html#section-8.8">Section 8.8</a>
+</li>
+<li class="index">
+<code>%macro</code>: <a href="nasmdoc4.html#section-4.3">Section 4.3</a>
+</li>
+<li class="index">
+<code>macro</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+macro indirection: <a href="nasmdoc4.html#section-4.1.3">Section 4.1.3</a>
+</li>
+<li class="index">
+macro library: <a href="nasmdoc2.html#section-2.1.18">Section 2.1.18</a>
+</li>
+<li class="index">
+macro parameters range:
+<a href="nasmdoc4.html#section-4.3.4">Section 4.3.4</a>
+</li>
+<li class="index">
+macro processor: <a href="nasmdoc4.html">Chapter 4</a>
+</li>
+<li class="index">
+<code>macro-def</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>macro-defaults</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>macro-def-case-single</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>macro-def-greedy-single</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>macro-def-param-single</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+macro-local labels: <a href="nasmdoc4.html#section-4.3.2">Section 4.3.2</a>
+</li>
+<li class="index">
+<code>macro-params</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>macro-params-legacy</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>macro-params-multi</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>macro-params-single</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+macros: <a href="nasmdoc3.html#section-3.2.5">Section 3.2.5</a>
+</li>
+<li class="index">
+makefile dependencies:
+<a href="nasmdoc2.html#section-2.1.5">Section 2.1.5</a>,
+<a href="nasmdoc2.html#section-2.1.6">Section 2.1.6</a>
+</li>
+<li class="index">
+map files: <a href="nasmdoc8.html#section-8.1.4">Section 8.1.4</a>
+</li>
+<li class="index">
+MASM: <a href="nasmdoc2.html#section-2.2">Section 2.2</a>,
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.2.5">Section 3.2.5</a>,
+<a href="nasmdoc6.html#section-6.5">Section 6.5</a>,
+<a href="nasmdoc8.html#section-8.4">Section 8.4</a>
+</li>
+<li class="index">
+masm compatibility: <a href="nasmdoc6.html#section-6.5">Section 6.5</a>
+</li>
+<li class="index">
+MASM, <code>DB</code> syntax:
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>
+</li>
+<li class="index">
+<code>-MD</code> option:
+<a href="nasmdoc2.html#section-2.1.8">Section 2.1.8</a>
+</li>
+<li class="index">
+memory models: <a href="nasmdoc2.html#section-2.2.5">Section 2.2.5</a>,
+<a href="nasmdoc9.html#section-9.4.2">Section 9.4.2</a>
+</li>
+<li class="index">
+memory operand: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+memory references: <a href="nasmdoc2.html#section-2.2.2">Section 2.2.2</a>,
+<a href="nasmdoc3.html#section-3.3">Section 3.3</a>
+</li>
+<li class="index">
+<code>merge</code>: <a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>-MF</code> option:
+<a href="nasmdoc2.html#section-2.1.7">Section 2.1.7</a>
+</li>
+<li class="index">
+<code>-MG</code> option:
+<a href="nasmdoc2.html#section-2.1.6">Section 2.1.6</a>
+</li>
+<li class="index">
+Microsoft OMF: <a href="nasmdoc8.html#section-8.4">Section 8.4</a>
+</li>
+<li class="index">
+minifloat: <a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+Minix: <a href="nasmdoc8.html#section-8.12">Section 8.12</a>
+</li>
+<li class="index">
+<code>misc</code> subdirectory:
+<a href="nasmdoc9.html#section-9.1.2">Section 9.1.2</a>,
+<a href="nasmdoc9.html#section-9.4.5">Section 9.4.5</a>,
+<a href="nasmdo10.html#section-10.1.4">Section 10.1.4</a>
+</li>
+<li class="index">
+mixed-language program: <a href="nasmdoc9.html#section-9.4">Section 9.4</a>
+</li>
+<li class="index">
+mixed-size addressing:
+<a href="nasmdo11.html#section-11.2">Section 11.2</a>
+</li>
+<li class="index">
+mixed-size instruction:
+<a href="nasmdo11.html#section-11.1">Section 11.1</a>
+</li>
+<li class="index">
+<code>MODULE</code>:
+<a href="nasmdoc8.html#section-8.13.2">Section 8.13.2</a>
+</li>
+<li class="index">
+modulo: <a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+modulo, signed: <a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+modulo, unsigned: <a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+motorola s-records: <a href="nasmdoc8.html#section-8.3">Section 8.3</a>
+</li>
+<li class="index">
+<code>-MP</code> option:
+<a href="nasmdoc2.html#section-2.1.11">Section 2.1.11</a>
+</li>
+<li class="index">
+<code>-MQ</code> option:
+<a href="nasmdoc2.html#section-2.1.10">Section 2.1.10</a>
+</li>
+<li class="index">
+MS-DOS: <a href="nasmdoc8.html#section-8.1">Section 8.1</a>
+</li>
+<li class="index">
+MS-DOS device drivers: <a href="nasmdoc9.html#section-9.3">Section 9.3</a>
+</li>
+<li class="index">
+<code>-MT</code> option:
+<a href="nasmdoc2.html#section-2.1.9">Section 2.1.9</a>
+</li>
+<li class="index">
+multi-line macros:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>,
+<a href="nasmdoc4.html#section-4.3">Section 4.3</a>
+</li>
+<li class="index">
+multipass optimization:
+<a href="nasmdoc2.html#section-2.1.24">Section 2.1.24</a>
+</li>
+<li class="index">
+multiple section names: <a href="nasmdoc8.html#section-8.1">Section 8.1</a>
+</li>
+<li class="index">
+multiplication: <a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+multiplier: <a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>multipush</code> macro:
+<a href="nasmdoc4.html#section-4.3.8">Section 4.3.8</a>
+</li>
+<li class="index">
+multisection: <a href="nasmdoc8.html#section-8.1.3">Section 8.1.3</a>
+</li>
+<li class="index">
+<code>-MW</code> option:
+<a href="nasmdoc2.html#section-2.1.12">Section 2.1.12</a>
+</li>
+<li class="index">
+<code>__?NaN?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+NaN: <a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+NASM version:
+</li>
+<li class="index">
+NASM version, history: <a href="nasmdocc.html">Appendix C</a>
+</li>
+<li class="index">
+NASM version, ID macro:
+<a href="nasmdoc5.html#section-5.1.1">Section 5.1.1</a>
+</li>
+<li class="index">
+NASM version, macros: <a href="nasmdoc5.html#section-5.1">Section 5.1</a>
+</li>
+<li class="index">
+NASM version, string macro:
+<a href="nasmdoc5.html#section-5.1.2">Section 5.1.2</a>
+</li>
+<li class="index">
+<code>__NASMDEFSEG</code>:
+<a href="nasmdoc8.html#section-8.4">Section 8.4</a>
+</li>
+<li class="index">
+<code>nasm-devel</code>:
+<a href="nasmdoce.html#section-E.1.2">Section E.1.2</a>
+</li>
+<li class="index">
+<code>NASMENV</code>:
+<a href="nasmdoc2.html#section-2.1.35">Section 2.1.35</a>
+</li>
+<li class="index">
+<code>nasm -h</code>:
+<a href="nasmdoc2.html#section-2.1.2">Section 2.1.2</a>
+</li>
+<li class="index">
+<code>__?NASM_MAJOR?__</code>:
+<a href="nasmdoc5.html#section-5.1">Section 5.1</a>
+</li>
+<li class="index">
+<code>__?NASM_MINOR?__</code>:
+<a href="nasmdoc5.html#section-5.1">Section 5.1</a>
+</li>
+<li class="index">
+<code>nasm.out</code>:
+<a href="nasmdoc2.html#section-2.1.1">Section 2.1.1</a>
+</li>
+<li class="index">
+<code>__?NASM_PATCHLEVEL?__</code>:
+<a href="nasmdoc5.html#section-5.1">Section 5.1</a>
+</li>
+<li class="index">
+<code>__?NASM_SNAPSHOT?__</code>:
+<a href="nasmdoc5.html#section-5.1">Section 5.1</a>
+</li>
+<li class="index">
+<code>__?NASM_SUBMINOR?__</code>:
+<a href="nasmdoc5.html#section-5.1">Section 5.1</a>
+</li>
+<li class="index">
+<code>__?NASM_VER?__</code>:
+<a href="nasmdoc5.html#section-5.1.2">Section 5.1.2</a>
+</li>
+<li class="index">
+<code>__?NASM_VERSION_ID?__</code>:
+<a href="nasmdoc5.html#section-5.1.1">Section 5.1.1</a>
+</li>
+<li class="index">
+ndisasm: <a href="nasmdoca.html">Appendix A</a>
+</li>
+<li class="index">
+near call: <a href="nasmdoc2.html#section-2.2.5">Section 2.2.5</a>
+</li>
+<li class="index">
+near common variables:
+<a href="nasmdoc8.html#section-8.4.8">Section 8.4.8</a>
+</li>
+<li class="index">
+negation, arithmetic:
+<a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+negation, bitwise:
+<a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+negation, boolean:
+<a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+negation, bitwise:
+<a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+negation, boolean:
+<a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+<code>negative-rep</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+NetBSD: <a href="nasmdoc8.html#section-8.11">Section 8.11</a>,
+<a href="nasmdo10.html#section-10.2">Section 10.2</a>
+</li>
+<li class="index">
+new releases: <a href="nasmdoce.html#section-E.1">Section E.1</a>
+</li>
+<li class="index">
+<code>noalloc</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>nobits</code>:
+<a href="nasmdoc8.html#section-8.1.3">Section 8.1.3</a>,
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>NOBND</code>: <a href="nasmdoc7.html#section-7.2.2">Section 7.2.2</a>
+</li>
+<li class="index">
+<code>no_dead_strip</code>:
+<a href="nasmdoc8.html#section-8.8.4">Section 8.8.4</a>
+</li>
+<li class="index">
+<code>noexec</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>--no-line</code>:
+<a href="nasmdoc2.html#section-2.1.33">Section 2.1.33</a>,
+<a href="nasmdoc4.html#section-4.11.1">Section 4.11.1</a>
+</li>
+<li class="index">
+<code>.nolist</code>:
+<a href="nasmdoc4.html#section-4.3.11">Section 4.3.11</a>
+</li>
+<li class="index">
+<code>note</code>: <a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>not-my-pragma</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+`nowait': <a href="nasmdoc2.html#section-2.2.6">Section 2.2.6</a>
+</li>
+<li class="index">
+<code>nowrite</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+NSIS: <a href="nasmdocd.html#section-D.1">Section D.1</a>
+</li>
+<li class="index">
+Nullsoft Scriptable Installer:
+<a href="nasmdocd.html#section-D.1">Section D.1</a>
+</li>
+<li class="index">
+<code>number-overflow</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+numeric constants: <a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.4.1">Section 3.4.1</a>
+</li>
+<li class="index">
+<code>-O</code> option:
+<a href="nasmdoc2.html#section-2.1.24">Section 2.1.24</a>
+</li>
+<li class="index">
+<code>-o</code> option:
+<a href="nasmdoc2.html#section-2.1.1">Section 2.1.1</a>,
+<a href="nasmdoca.html#section-A.2.1">Section A.2.1</a>
+</li>
+<li class="index">
+<code>O16</code>: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>,
+<a href="nasmdo11.html#section-11.3">Section 11.3</a>
+</li>
+<li class="index">
+<code>O32</code>: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>,
+<a href="nasmdo11.html#section-11.3">Section 11.3</a>
+</li>
+<li class="index">
+<code>O64</code>: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+<code>.obj</code>: <a href="nasmdoc9.html#section-9.1">Section 9.1</a>
+</li>
+<li class="index">
+<code>obj</code>: <a href="nasmdoc8.html#section-8.4">Section 8.4</a>
+</li>
+<li class="index">
+<code>object</code>:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>,
+<a href="nasmdoc8.html#section-8.13.3">Section 8.13.3</a>
+</li>
+<li class="index">
+<code>obsolete</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>obsolete-nop</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>obsolete-removed</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>obsolete-valid</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+octal: <a href="nasmdoc3.html#section-3.4.1">Section 3.4.1</a>
+</li>
+<li class="index">
+<code>OF_DEFAULT</code>:
+<a href="nasmdoc2.html#section-2.1.2">Section 2.1.2</a>
+</li>
+<li class="index">
+<code>OFFSET</code>:
+<a href="nasmdoc2.html#section-2.2.2">Section 2.2.2</a>
+</li>
+<li class="index">
+OMF: <a href="nasmdoc8.html#section-8.4">Section 8.4</a>
+</li>
+<li class="index">
+omitted parameters: <a href="nasmdoc4.html#section-4.3.5">Section 4.3.5</a>
+</li>
+<li class="index">
+OpenBSD: <a href="nasmdoc8.html#section-8.11">Section 8.11</a>,
+<a href="nasmdo10.html#section-10.2">Section 10.2</a>
+</li>
+<li class="index">
+operands: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+operand-size prefixes: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+operating system: <a href="nasmdoc8.html#section-8.1">Section 8.1</a>
+</li>
+<li class="index">
+operating system, writing:
+<a href="nasmdo11.html#section-11.1">Section 11.1</a>
+</li>
+<li class="index">
+operators: <a href="nasmdoc3.html#section-3.5">Section 3.5</a>
+</li>
+<li class="index">
+operators, unary: <a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+<code>ORG</code>: <a href="nasmdoc8.html#section-8.1.1">Section 8.1.1</a>,
+<a href="nasmdoc9.html#section-9.2.1">Section 9.2.1</a>,
+<a href="nasmdoc9.html#section-9.2.2">Section 9.2.2</a>,
+<a href="nasmdo13.html#section-13.1.3">Section 13.1.3</a>
+</li>
+<li class="index">
+<code>orphan-labels</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+OS/2: <a href="nasmdoc8.html#section-8.4">Section 8.4</a>,
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+<code>osabi</code>: <a href="nasmdoc8.html#section-8.9.1">Section 8.9.1</a>
+</li>
+<li class="index">
+<code>other</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+other preprocessor directives:
+<a href="nasmdoc4.html#section-4.11">Section 4.11</a>
+</li>
+<li class="index">
+out of range, jumps:
+<a href="nasmdo13.html#section-13.1.2">Section 13.1.2</a>
+</li>
+<li class="index">
+output file format: <a href="nasmdoc2.html#section-2.1.2">Section 2.1.2</a>
+</li>
+<li class="index">
+output formats: <a href="nasmdoc8.html">Chapter 8</a>
+</li>
+<li class="index">
+<code>__?OUTPUT_FORMAT?__</code>:
+<a href="nasmdoc5.html#section-5.4">Section 5.4</a>
+</li>
+<li class="index">
+overlapping segments: <a href="nasmdoc3.html#section-3.6">Section 3.6</a>
+</li>
+<li class="index">
+<code>OVERLAY</code>:
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+overloading, multi-line macros:
+<a href="nasmdoc4.html#section-4.3.1">Section 4.3.1</a>
+</li>
+<li class="index">
+overloading, single-line macros:
+<a href="nasmdoc4.html#section-4.1.1">Section 4.1.1</a>
+</li>
+<li class="index">
+<code>-P</code> option:
+<a href="nasmdoc2.html#section-2.1.19">Section 2.1.19</a>
+</li>
+<li class="index">
+<code>-p</code> option:
+<a href="nasmdoc2.html#section-2.1.19">Section 2.1.19</a>,
+<a href="nasmdoc4.html#section-4.6.1">Section 4.6.1</a>
+</li>
+<li class="index">
+paradox: <a href="nasmdoc3.html#section-3.8">Section 3.8</a>
+</li>
+<li class="index">
+<code>PASCAL</code>:
+<a href="nasmdoc9.html#section-9.5.3">Section 9.5.3</a>
+</li>
+<li class="index">
+Pascal calling convention:
+<a href="nasmdoc9.html#section-9.5.1">Section 9.5.1</a>
+</li>
+<li class="index">
+<code>__?PASS?__</code>:
+<a href="nasmdoc5.html#section-5.8">Section 5.8</a>
+</li>
+<li class="index">
+<code>%pathsearch</code>:
+<a href="nasmdoc2.html#section-2.1.18">Section 2.1.18</a>,
+<a href="nasmdoc4.html#section-4.6.2">Section 4.6.2</a>
+</li>
+<li class="index">
+period: <a href="nasmdoc3.html#section-3.9">Section 3.9</a>
+</li>
+<li class="index">
+PharLap: <a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+<code>phase</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+PIC: <a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>,
+<a href="nasmdoc8.html#section-8.11">Section 8.11</a>,
+<a href="nasmdo10.html#section-10.2">Section 10.2</a>
+</li>
+<li class="index">
+<code>..plt</code>: <a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>
+</li>
+<li class="index">
+<code>PLT</code> relocations:
+<a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>,
+<a href="nasmdo10.html#section-10.2.4">Section 10.2.4</a>,
+<a href="nasmdo10.html#section-10.2.5">Section 10.2.5</a>
+</li>
+<li class="index">
+plt relocations: <a href="nasmdo10.html#section-10.2.5">Section 10.2.5</a>
+</li>
+<li class="index">
+pointer, elf attribute:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>%pop</code>: <a href="nasmdoc4.html#section-4.7">Section 4.7</a>,
+<a href="nasmdoc4.html#section-4.7.1">Section 4.7.1</a>
+</li>
+<li class="index">
+position-independent code:
+<a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>,
+<a href="nasmdoc8.html#section-8.11">Section 8.11</a>,
+<a href="nasmdo10.html#section-10.2">Section 10.2</a>
+</li>
+<li class="index">
+<code>%pragma</code>: <a href="nasmdoc4.html#section-4.10">Section 4.10</a>
+</li>
+<li class="index">
+<code>--pragma</code>:
+<a href="nasmdoc2.html#section-2.1.29">Section 2.1.29</a>
+</li>
+<li class="index">
+<code>pragma</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>pragma-bad</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>pragma-empty</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>pragma-na</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>pragma-unknown</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+precedence: <a href="nasmdoc3.html#section-3.5">Section 3.5</a>
+</li>
+<li class="index">
+pre-defining macros:
+<a href="nasmdoc2.html#section-2.1.20">Section 2.1.20</a>,
+<a href="nasmdoc4.html#section-4.1.1">Section 4.1.1</a>
+</li>
+<li class="index">
+preferred: <a href="nasmdoc3.html#section-3.6">Section 3.6</a>
+</li>
+<li class="index">
+pre-including files:
+<a href="nasmdoc2.html#section-2.1.19">Section 2.1.19</a>
+</li>
+<li class="index">
+<code>preinit_array</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+preprocess-only mode:
+<a href="nasmdoc2.html#section-2.1.22">Section 2.1.22</a>
+</li>
+<li class="index">
+preprocessor: <a href="nasmdoc2.html#section-2.1.22">Section 2.1.22</a>,
+<a href="nasmdoc2.html#section-2.1.23">Section 2.1.23</a>,
+<a href="nasmdoc3.html#section-3.2.4">Section 3.2.4</a>,
+<a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>,
+<a href="nasmdoc4.html">Chapter 4</a>
+</li>
+<li class="index">
+preprocessor expressions:
+<a href="nasmdoc2.html#section-2.1.22">Section 2.1.22</a>
+</li>
+<li class="index">
+preprocessor loops: <a href="nasmdoc4.html#section-4.5">Section 4.5</a>
+</li>
+<li class="index">
+preprocessor variables:
+<a href="nasmdoc4.html#section-4.1.8">Section 4.1.8</a>
+</li>
+<li class="index">
+primitive directives: <a href="nasmdoc7.html">Chapter 7</a>
+</li>
+<li class="index">
+<code>PRIVATE</code>:
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+<code>private_extern</code>:
+<a href="nasmdoc8.html#section-8.8.5">Section 8.8.5</a>
+</li>
+<li class="index">
+<code>proc</code>:
+<a href="nasmdoc8.html#section-8.13.3">Section 8.13.3</a>,
+<a href="nasmdoc9.html#section-9.4.5">Section 9.4.5</a>,
+<a href="nasmdo10.html#section-10.1.4">Section 10.1.4</a>
+</li>
+<li class="index">
+procedure linkage table:
+<a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>,
+<a href="nasmdo10.html#section-10.2.4">Section 10.2.4</a>,
+<a href="nasmdo10.html#section-10.2.5">Section 10.2.5</a>
+</li>
+<li class="index">
+processor mode: <a href="nasmdoc7.html#section-7.1">Section 7.1</a>
+</li>
+<li class="index">
+<code>progbits</code>:
+<a href="nasmdoc8.html#section-8.1.3">Section 8.1.3</a>,
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+program entry point:
+<a href="nasmdoc8.html#section-8.4.6">Section 8.4.6</a>,
+<a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+program origin: <a href="nasmdoc8.html#section-8.1.1">Section 8.1.1</a>
+</li>
+<li class="index">
+<code>protected</code>:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+pseudo-instructions: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>
+</li>
+<li class="index">
+<code>ptr</code>: <a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>PUBLIC</code>: <a href="nasmdoc7.html#section-7.7">Section 7.7</a>,
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+pure binary: <a href="nasmdoc8.html#section-8.1">Section 8.1</a>
+</li>
+<li class="index">
+<code>%push</code>: <a href="nasmdoc4.html#section-4.7">Section 4.7</a>,
+<a href="nasmdoc4.html#section-4.7.1">Section 4.7.1</a>
+</li>
+<li class="index">
+<code>__?QNaN?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+quick start: <a href="nasmdoc2.html#section-2.2">Section 2.2</a>
+</li>
+<li class="index">
+<code>QWORD</code>: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+<code>-r</code>: <a href="nasmdoca.html#section-A.2">Section A.2</a>
+</li>
+<li class="index">
+<code>rdf</code>: <a href="nasmdoc8.html#section-8.13">Section 8.13</a>
+</li>
+<li class="index">
+<code>rdoff</code> subdirectory:
+<a href="nasmdoc8.html#section-8.13">Section 8.13</a>
+</li>
+<li class="index">
+redirecting errors:
+<a href="nasmdoc2.html#section-2.1.16">Section 2.1.16</a>
+</li>
+<li class="index">
+<code>regsize</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>REL</code>: <a href="nasmdoc3.html#section-3.3">Section 3.3</a>,
+<a href="nasmdoc7.html#section-7.2.1">Section 7.2.1</a>
+</li>
+<li class="index">
+release candidates: <a href="nasmdoce.html#section-E.1">Section E.1</a>
+</li>
+<li class="index">
+Relocatable Dynamic Object File Format:
+<a href="nasmdoc8.html#section-8.13">Section 8.13</a>
+</li>
+<li class="index">
+relocations, PIC-specific:
+<a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>
+</li>
+<li class="index">
+removing contexts: <a href="nasmdoc4.html#section-4.7.1">Section 4.7.1</a>
+</li>
+<li class="index">
+renaming contexts: <a href="nasmdoc4.html#section-4.7.5">Section 4.7.5</a>
+</li>
+<li class="index">
+<code>%rep</code>: <a href="nasmdoc3.html#section-3.2.5">Section 3.2.5</a>,
+<a href="nasmdoc4.html#section-4.5">Section 4.5</a>
+</li>
+<li class="index">
+repeating: <a href="nasmdoc3.html#section-3.2.5">Section 3.2.5</a>,
+<a href="nasmdoc4.html#section-4.5">Section 4.5</a>
+</li>
+<li class="index">
+<code>%repl</code>: <a href="nasmdoc4.html#section-4.7.5">Section 4.7.5</a>
+</li>
+<li class="index">
+reporting bugs: <a href="nasmdoce.html#section-E.2">Section E.2</a>
+</li>
+<li class="index">
+<code>--reproducible</code>:
+<a href="nasmdoc2.html#section-2.1.34">Section 2.1.34</a>
+</li>
+<li class="index">
+<code>REQUIRED</code>: <a href="nasmdoc7.html#section-7.6">Section 7.6</a>
+</li>
+<li class="index">
+<code>RESB</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>
+</li>
+<li class="index">
+<code>RESD</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>
+</li>
+<li class="index">
+<code>RESO</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>
+</li>
+<li class="index">
+<code>RESQ</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>
+</li>
+<li class="index">
+<code>REST</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>
+</li>
+<li class="index">
+<code>RESW</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>
+</li>
+<li class="index">
+<code>RESY</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>
+</li>
+<li class="index">
+<code>RESZ</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>
+</li>
+<li class="index">
+<code>.rodata</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>%rotate</code>:
+<a href="nasmdoc4.html#section-4.3.8">Section 4.3.8</a>
+</li>
+<li class="index">
+rotating macro parameters:
+<a href="nasmdoc4.html#section-4.3.8">Section 4.3.8</a>
+</li>
+<li class="index">
+<code>-s</code> option:
+<a href="nasmdoc2.html#section-2.1.17">Section 2.1.17</a>,
+<a href="nasmdoca.html#section-A.2.2">Section A.2.2</a>
+</li>
+<li class="index">
+searching for include files:
+<a href="nasmdoc4.html#section-4.6.1">Section 4.6.1</a>
+</li>
+<li class="index">
+<code>__?SECT?__</code>:
+<a href="nasmdoc7.html#section-7.3.1">Section 7.3.1</a>,
+<a href="nasmdoc7.html#section-7.4">Section 7.4</a>
+</li>
+<li class="index">
+<code>SECTALIGN</code>:
+<a href="nasmdoc5.html#section-5.10.2">Section 5.10.2</a>
+</li>
+<li class="index">
+<code>SECTION</code>: <a href="nasmdoc7.html#section-7.3">Section 7.3</a>
+</li>
+<li class="index">
+<code>SECTION</code>, ELF extensions to:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>SECTION</code>, <code>macho</code> extensions to:
+<a href="nasmdoc8.html#section-8.8.1">Section 8.8.1</a>
+</li>
+<li class="index">
+<code>SECTION</code>, Windows extensions to:
+<a href="nasmdoc8.html#section-8.5.1">Section 8.5.1</a>
+</li>
+<li class="index">
+section alignment, in <code>bin</code>:
+<a href="nasmdoc8.html#section-8.1.2">Section 8.1.2</a>
+</li>
+<li class="index">
+section alignment, in ELF:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+section alignment, in <code>obj</code>:
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+section alignment, in <code>win32</code>:
+<a href="nasmdoc8.html#section-8.5.1">Section 8.5.1</a>
+</li>
+<li class="index">
+<code>SEG</code>: <a href="nasmdoc3.html#section-3.6">Section 3.6</a>,
+<a href="nasmdoc8.html#section-8.4">Section 8.4</a>
+</li>
+<li class="index">
+<code>SEGMENT</code>: <a href="nasmdoc7.html#section-7.3">Section 7.3</a>
+</li>
+<li class="index">
+<code>SEGMENT</code>, <code>obj</code> extensions to:
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+segment address: <a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>,
+<a href="nasmdoc3.html#section-3.6">Section 3.6</a>
+</li>
+<li class="index">
+segment alignment, in <code>bin</code>:
+<a href="nasmdoc8.html#section-8.1.2">Section 8.1.2</a>
+</li>
+<li class="index">
+segment alignment, in <code>obj</code>:
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+segment names, Borland Pascal:
+<a href="nasmdoc9.html#section-9.5.2">Section 9.5.2</a>
+</li>
+<li class="index">
+segment override: <a href="nasmdoc2.html#section-2.2.4">Section 2.2.4</a>,
+<a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+segments: <a href="nasmdoc3.html#section-3.6">Section 3.6</a>
+</li>
+<li class="index">
+segments, groups of:
+<a href="nasmdoc8.html#section-8.4.2">Section 8.4.2</a>
+</li>
+<li class="index">
+separator character:
+<a href="nasmdoc2.html#section-2.1.35">Section 2.1.35</a>
+</li>
+<li class="index">
+shared libraries: <a href="nasmdoc8.html#section-8.11">Section 8.11</a>,
+<a href="nasmdo10.html#section-10.2">Section 10.2</a>
+</li>
+<li class="index">
+<code>shift</code> command:
+<a href="nasmdoc4.html#section-4.3.8">Section 4.3.8</a>
+</li>
+<li class="index">
+signed, bit shift: <a href="nasmdoc3.html#section-3.5.9">Section 3.5.9</a>
+</li>
+<li class="index">
+signed, division: <a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+signed, modulo: <a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+single-line macros:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>,
+<a href="nasmdoc4.html#section-4.1">Section 4.1</a>
+</li>
+<li class="index">
+size, of symbols: <a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+<code>smartalign</code>:
+<a href="nasmdoc6.html#section-6.2">Section 6.2</a>
+</li>
+<li class="index">
+<code>__?SNaN?__</code>:
+<a href="nasmdoc3.html#section-3.4.6">Section 3.4.6</a>
+</li>
+<li class="index">
+snapshots, daily development:
+<a href="nasmdoce.html#section-E.1">Section E.1</a>
+</li>
+<li class="index">
+Solaris x86: <a href="nasmdoc8.html#section-8.9">Section 8.9</a>
+</li>
+<li class="index">
+<code>-soname</code>:
+<a href="nasmdo10.html#section-10.2.6">Section 10.2.6</a>
+</li>
+<li class="index">
+sound: <a href="nasmdoc3.html#section-3.2.3">Section 3.2.3</a>
+</li>
+<li class="index">
+source-listing file:
+<a href="nasmdoc2.html#section-2.1.3">Section 2.1.3</a>
+</li>
+<li class="index">
+square brackets: <a href="nasmdoc2.html#section-2.2.2">Section 2.2.2</a>,
+<a href="nasmdoc3.html#section-3.3">Section 3.3</a>
+</li>
+<li class="index">
+<code>srec</code>: <a href="nasmdoc8.html#section-8.3">Section 8.3</a>
+</li>
+<li class="index">
+<code>STACK</code>: <a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+stack relative preprocessor directives:
+<a href="nasmdoc4.html#section-4.8">Section 4.8</a>
+</li>
+<li class="index">
+<code>%stacksize</code>:
+<a href="nasmdoc4.html#section-4.8.2">Section 4.8.2</a>
+</li>
+<li class="index">
+standard macro packages: <a href="nasmdoc6.html">Chapter 6</a>
+</li>
+<li class="index">
+standard macros: <a href="nasmdoc5.html">Chapter 5</a>
+</li>
+<li class="index">
+standardized section names:
+<a href="nasmdoc7.html#section-7.3">Section 7.3</a>,
+<a href="nasmdoc8.html#section-8.5.1">Section 8.5.1</a>,
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>,
+<a href="nasmdoc8.html#section-8.10">Section 8.10</a>,
+<a href="nasmdoc8.html#section-8.11">Section 8.11</a>,
+<a href="nasmdoc8.html#section-8.12">Section 8.12</a>
+</li>
+<li class="index">
+<code>..start</code>:
+<a href="nasmdoc8.html#section-8.4.6">Section 8.4.6</a>,
+<a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+<code>start=</code>:
+<a href="nasmdoc8.html#section-8.1.3">Section 8.1.3</a>
+</li>
+<li class="index">
+<code>STATIC</code>: <a href="nasmdoc7.html#section-7.9">Section 7.9</a>
+</li>
+<li class="index">
+<code>stderr</code>:
+<a href="nasmdoc2.html#section-2.1.16">Section 2.1.16</a>
+</li>
+<li class="index">
+<code>stdout</code>:
+<a href="nasmdoc2.html#section-2.1.17">Section 2.1.17</a>
+</li>
+<li class="index">
+<code>%strcat</code>:
+<a href="nasmdoc4.html#section-4.2.1">Section 4.2.1</a>
+</li>
+<li class="index">
+<code>STRICT</code>: <a href="nasmdoc3.html#section-3.7">Section 3.7</a>
+</li>
+<li class="index">
+string: <a href="nasmdoc3.html#section-3.4.2">Section 3.4.2</a>
+</li>
+<li class="index">
+string, constants: <a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>,
+<a href="nasmdoc3.html#section-3.4.2">Section 3.4.2</a>,
+<a href="nasmdoc3.html#section-3.4.4">Section 3.4.4</a>
+</li>
+<li class="index">
+string, length: <a href="nasmdoc4.html#section-4.2.2">Section 4.2.2</a>
+</li>
+<li class="index">
+string, manipulation in macros:
+<a href="nasmdoc4.html#section-4.2">Section 4.2</a>
+</li>
+<li class="index">
+strings, elf attribute:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>%strlen</code>:
+<a href="nasmdoc4.html#section-4.2.2">Section 4.2.2</a>
+</li>
+<li class="index">
+<code>strong</code>:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+<code>STRUC</code>:
+<a href="nasmdoc5.html#section-5.9.1">Section 5.9.1</a>,
+<a href="nasmdoc7.html#section-7.4">Section 7.4</a>,
+<a href="nasmdoc9.html#section-9.4.4">Section 9.4.4</a>,
+<a href="nasmdo10.html#section-10.1.3">Section 10.1.3</a>
+</li>
+<li class="index">
+structure data types: <a href="nasmdoc5.html#section-5.9">Section 5.9</a>
+</li>
+<li class="index">
+stub preprocessor:
+<a href="nasmdoc2.html#section-2.1.23">Section 2.1.23</a>
+</li>
+<li class="index">
+<code>subsections_via_symbols</code>:
+<a href="nasmdoc8.html#section-8.8.3">Section 8.8.3</a>
+</li>
+<li class="index">
+<code>%substr</code>:
+<a href="nasmdoc4.html#section-4.2.3">Section 4.2.3</a>
+</li>
+<li class="index">
+subtraction: <a href="nasmdoc3.html#section-3.5.10">Section 3.5.10</a>
+</li>
+<li class="index">
+suppressing preprocessing:
+<a href="nasmdoc2.html#section-2.1.23">Section 2.1.23</a>
+</li>
+<li class="index">
+switching between sections:
+<a href="nasmdoc7.html#section-7.3">Section 7.3</a>
+</li>
+<li class="index">
+<code>..sym</code>: <a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>
+</li>
+<li class="index">
+symbols, exporting from DLLs:
+<a href="nasmdoc8.html#section-8.4.5">Section 8.4.5</a>
+</li>
+<li class="index">
+symbols, importing from DLLs:
+<a href="nasmdoc8.html#section-8.4.4">Section 8.4.4</a>
+</li>
+<li class="index">
+symbols, specifying sizes:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+symbols, specifying types:
+<a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+synchronization: <a href="nasmdoca.html#section-A.2.2">Section A.2.2</a>
+</li>
+<li class="index">
+<code>.SYS</code>: <a href="nasmdoc8.html#section-8.1">Section 8.1</a>,
+<a href="nasmdoc9.html#section-9.3">Section 9.3</a>
+</li>
+<li class="index">
+<code>-t</code>: <a href="nasmdoc2.html#section-2.1.25">Section 2.1.25</a>
+</li>
+<li class="index">
+<code>TASM</code>:
+<a href="nasmdoc2.html#section-2.1.25">Section 2.1.25</a>
+</li>
+<li class="index">
+tasm: <a href="nasmdoc2.html#section-2.2">Section 2.2</a>,
+<a href="nasmdoc8.html#section-8.4">Section 8.4</a>
+</li>
+<li class="index">
+<code>.tbss</code>: <a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>TBYTE</code>: <a href="nasmdoc2.html#section-2.2.7">Section 2.2.7</a>
+</li>
+<li class="index">
+<code>.tdata</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+<code>test</code> subdirectory:
+<a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+testing, arbitrary numeric expressions:
+<a href="nasmdoc4.html#section-4.4.4">Section 4.4.4</a>
+</li>
+<li class="index">
+testing, context stack:
+<a href="nasmdoc4.html#section-4.4.3">Section 4.4.3</a>
+</li>
+<li class="index">
+testing, exact text identity:
+<a href="nasmdoc4.html#section-4.4.5">Section 4.4.5</a>
+</li>
+<li class="index">
+testing, multi-line macro existence:
+<a href="nasmdoc4.html#section-4.4.2">Section 4.4.2</a>
+</li>
+<li class="index">
+testing, single-line macro existence:
+<a href="nasmdoc4.html#section-4.4.1">Section 4.4.1</a>
+</li>
+<li class="index">
+testing, token types:
+<a href="nasmdoc4.html#section-4.4.6">Section 4.4.6</a>
+</li>
+<li class="index">
+<code>.text</code>:
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>,
+<a href="nasmdoc8.html#section-8.10">Section 8.10</a>,
+<a href="nasmdoc8.html#section-8.11">Section 8.11</a>,
+<a href="nasmdoc8.html#section-8.12">Section 8.12</a>
+</li>
+<li class="index">
+<code>_TEXT</code>: <a href="nasmdoc9.html#section-9.4.2">Section 9.4.2</a>
+</li>
+<li class="index">
+thread local storage, in ELF:
+<a href="nasmdoc8.html#section-8.9.4">Section 8.9.4</a>
+</li>
+<li class="index">
+thread local storage, in <code>macho</code>:
+<a href="nasmdoc8.html#section-8.8.2">Section 8.8.2</a>
+</li>
+<li class="index">
+<code>__?TIME?__</code>:
+<a href="nasmdoc5.html#section-5.6">Section 5.6</a>
+</li>
+<li class="index">
+<code>__?TIME_NUM?__</code>:
+<a href="nasmdoc5.html#section-5.6">Section 5.6</a>
+</li>
+<li class="index">
+<code>TIMES</code>: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.5">Section 3.2.5</a>,
+<a href="nasmdoc3.html#section-3.8">Section 3.8</a>,
+<a href="nasmdo13.html#section-13.1.3">Section 13.1.3</a>,
+<a href="nasmdo13.html#section-13.1.4">Section 13.1.4</a>
+</li>
+<li class="index">
+<code>TLINK</code>: <a href="nasmdoc9.html#section-9.2.2">Section 9.2.2</a>
+</li>
+<li class="index">
+tls: <a href="nasmdoc8.html#section-8.8.2">Section 8.8.2</a>,
+<a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>,
+<a href="nasmdoc8.html#section-8.9.4">Section 8.9.4</a>
+</li>
+<li class="index">
+<code>..tlsie</code>:
+<a href="nasmdoc8.html#section-8.9.4">Section 8.9.4</a>
+</li>
+<li class="index">
+trailing colon: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+<code>TWORD</code>:
+<a href="nasmdoc2.html#section-2.2.7">Section 2.2.7</a>,
+<a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+type, of symbols: <a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>
+</li>
+<li class="index">
+<code>-U</code> option:
+<a href="nasmdoc2.html#section-2.1.21">Section 2.1.21</a>
+</li>
+<li class="index">
+<code>-u</code> option:
+<a href="nasmdoc2.html#section-2.1.21">Section 2.1.21</a>,
+<a href="nasmdoca.html#section-A.2">Section A.2</a>
+</li>
+<li class="index">
+unary operators: <a href="nasmdoc3.html#section-3.5.12">Section 3.5.12</a>
+</li>
+<li class="index">
+<code>%undef</code>:
+<a href="nasmdoc2.html#section-2.1.21">Section 2.1.21</a>,
+<a href="nasmdoc4.html#section-4.1.7">Section 4.1.7</a>
+</li>
+<li class="index">
+undefining macros:
+<a href="nasmdoc2.html#section-2.1.21">Section 2.1.21</a>
+</li>
+<li class="index">
+underscore, in C symbols:
+<a href="nasmdoc9.html#section-9.4.1">Section 9.4.1</a>
+</li>
+<li class="index">
+Unicode: <a href="nasmdoc3.html#section-3.4.2">Section 3.4.2</a>,
+<a href="nasmdoc3.html#section-3.4.5">Section 3.4.5</a>
+</li>
+<li class="index">
+uninitialized storage:
+<a href="nasmdoc2.html#section-2.2.7">Section 2.2.7</a>,
+<a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.1">Section 3.2.1</a>
+</li>
+<li class="index">
+uninitialized: <a href="nasmdoc3.html#section-3.2">Section 3.2</a>,
+<a href="nasmdoc3.html#section-3.2.2">Section 3.2.2</a>
+</li>
+<li class="index">
+Unix:
+</li>
+<li class="index">
+Unix, SCO: <a href="nasmdoc8.html#section-8.9">Section 8.9</a>
+</li>
+<li class="index">
+Unix, System V: <a href="nasmdoc8.html#section-8.9">Section 8.9</a>
+</li>
+<li class="index">
+UnixWare: <a href="nasmdoc8.html#section-8.9">Section 8.9</a>
+</li>
+<li class="index">
+<code>unknown-pragma</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>unknown-warning</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>%unmacro</code>:
+<a href="nasmdoc4.html#section-4.3.12">Section 4.3.12</a>
+</li>
+<li class="index">
+unrolled loops: <a href="nasmdoc3.html#section-3.2.5">Section 3.2.5</a>
+</li>
+<li class="index">
+unsigned, bit shift:
+<a href="nasmdoc3.html#section-3.5.9">Section 3.5.9</a>
+</li>
+<li class="index">
+unsigned, division:
+<a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+unsigned, modulo: <a href="nasmdoc3.html#section-3.5.11">Section 3.5.11</a>
+</li>
+<li class="index">
+<code>UPPERCASE</code>:
+<a href="nasmdoc2.html#section-2.2.1">Section 2.2.1</a>,
+<a href="nasmdoc8.html#section-8.4.3">Section 8.4.3</a>
+</li>
+<li class="index">
+<code>%use</code>: <a href="nasmdoc4.html#section-4.6.4">Section 4.6.4</a>,
+<a href="nasmdoc6.html">Chapter 6</a>
+</li>
+<li class="index">
+<code>__?USE_*?__</code>:
+<a href="nasmdoc5.html#section-5.7">Section 5.7</a>
+</li>
+<li class="index">
+<code>USE16</code>:
+<a href="nasmdoc7.html#section-7.1.1">Section 7.1.1</a>,
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+<code>USE32</code>:
+<a href="nasmdoc7.html#section-7.1.1">Section 7.1.1</a>,
+<a href="nasmdoc8.html#section-8.4.1">Section 8.4.1</a>
+</li>
+<li class="index">
+<code>user</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+user-defined errors: <a href="nasmdoc4.html#section-4.9">Section 4.9</a>
+</li>
+<li class="index">
+user-level directives: <a href="nasmdoc5.html">Chapter 5</a>,
+<a href="nasmdoc7.html">Chapter 7</a>
+</li>
+<li class="index">
+<code>__?UTC_DATE?__</code>:
+<a href="nasmdoc5.html#section-5.6">Section 5.6</a>
+</li>
+<li class="index">
+<code>__?UTC_DATE_NUM?__</code>:
+<a href="nasmdoc5.html#section-5.6">Section 5.6</a>
+</li>
+<li class="index">
+<code>__?UTC_TIME?__</code>:
+<a href="nasmdoc5.html#section-5.6">Section 5.6</a>
+</li>
+<li class="index">
+<code>__?UTC_TIME_NUM?__</code>:
+<a href="nasmdoc5.html#section-5.6">Section 5.6</a>
+</li>
+<li class="index">
+UTF-16: <a href="nasmdoc3.html#section-3.4.5">Section 3.4.5</a>
+</li>
+<li class="index">
+UTF-32: <a href="nasmdoc3.html#section-3.4.5">Section 3.4.5</a>
+</li>
+<li class="index">
+UTF-8: <a href="nasmdoc3.html#section-3.4.2">Section 3.4.2</a>
+</li>
+<li class="index">
+<code>__?utf16?__</code>:
+<a href="nasmdoc3.html#section-3.4.5">Section 3.4.5</a>
+</li>
+<li class="index">
+<code>__?utf16be?__</code>:
+<a href="nasmdoc3.html#section-3.4.5">Section 3.4.5</a>
+</li>
+<li class="index">
+<code>__?utf16le?__</code>:
+<a href="nasmdoc3.html#section-3.4.5">Section 3.4.5</a>
+</li>
+<li class="index">
+<code>__?utf32?__</code>:
+<a href="nasmdoc3.html#section-3.4.5">Section 3.4.5</a>
+</li>
+<li class="index">
+<code>__?utf32be?__</code>:
+<a href="nasmdoc3.html#section-3.4.5">Section 3.4.5</a>
+</li>
+<li class="index">
+<code>__?utf32le?__</code>:
+<a href="nasmdoc3.html#section-3.4.5">Section 3.4.5</a>
+</li>
+<li class="index">
+<code>--v</code>: <a href="nasmdoc2.html#section-2.1.27">Section 2.1.27</a>
+</li>
+<li class="index">
+<code>-v</code> option:
+<a href="nasmdoc2.html#section-2.1.27">Section 2.1.27</a>
+</li>
+<li class="index">
+VAL: <a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+valid characters: <a href="nasmdoc3.html#section-3.1">Section 3.1</a>
+</li>
+<li class="index">
+variable types: <a href="nasmdoc2.html#section-2.2.3">Section 2.2.3</a>
+</li>
+<li class="index">
+version number of nasm: <a href="nasmdoc5.html#section-5.1">Section 5.1</a>
+</li>
+<li class="index">
+version: <a href="nasmdoc2.html#section-2.1.27">Section 2.1.27</a>
+</li>
+<li class="index">
+<code>vfollows=</code>:
+<a href="nasmdoc8.html#section-8.1.3">Section 8.1.3</a>
+</li>
+<li class="index">
+Visual C++: <a href="nasmdoc8.html#section-8.5">Section 8.5</a>
+</li>
+<li class="index">
+<code>vstart=</code>:
+<a href="nasmdoc8.html#section-8.1.3">Section 8.1.3</a>
+</li>
+<li class="index">
+<code>-W</code> option:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>-w</code> option:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>%warning</code>: <a href="nasmdoc4.html#section-4.9">Section 4.9</a>
+</li>
+<li class="index">
+<code>[WARNING]</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>,
+<a href="nasmdoc7.html#section-7.13">Section 7.13</a>
+</li>
+<li class="index">
+warning classes: <a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+warnings: <a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>warn-stack-empty</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>weak</code>: <a href="nasmdoc8.html#section-8.9.5">Section 8.9.5</a>,
+<a href="nasmdoc8.html#section-8.9.6">Section 8.9.6</a>
+</li>
+<li class="index">
+website: <a href="nasmdoce.html#section-E.1">Section E.1</a>
+</li>
+<li class="index">
+<code>-Werror</code> option:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+Win32: <a href="nasmdoc8.html#section-8.4">Section 8.4</a>,
+<a href="nasmdoc8.html#section-8.5">Section 8.5</a>,
+<a href="nasmdo10.html">Chapter 10</a>
+</li>
+<li class="index">
+Win64: <a href="nasmdoc8.html#section-8.6">Section 8.6</a>,
+<a href="nasmdo12.html">Chapter 12</a>
+</li>
+<li class="index">
+Windows: <a href="nasmdoc9.html#section-9.1">Section 9.1</a>
+</li>
+<li class="index">
+Windows, debugging formats:
+<a href="nasmdoc8.html#section-8.5.3">Section 8.5.3</a>
+</li>
+<li class="index">
+<code>-Wno-error</code> option:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>write</code>: <a href="nasmdoc8.html#section-8.9.2">Section 8.9.2</a>
+</li>
+<li class="index">
+writing operating systems:
+<a href="nasmdo11.html#section-11.1">Section 11.1</a>
+</li>
+<li class="index">
+<code>WRT</code>: <a href="nasmdoc3.html#section-3.6">Section 3.6</a>,
+<a href="nasmdoc8.html#section-8.4">Section 8.4</a>,
+<a href="nasmdoc8.html#section-8.8.2">Section 8.8.2</a>,
+<a href="nasmdoc8.html#section-8.9.3">Section 8.9.3</a>,
+<a href="nasmdoc8.html#section-8.9.4">Section 8.9.4</a>,
+<a href="nasmdoc8.html#section-8.11">Section 8.11</a>
+</li>
+<li class="index">
+<code>WRT ..got</code>:
+<a href="nasmdo10.html#section-10.2.3">Section 10.2.3</a>
+</li>
+<li class="index">
+<code>WRT ..gotoff</code>:
+<a href="nasmdo10.html#section-10.2.2">Section 10.2.2</a>
+</li>
+<li class="index">
+<code>WRT ..gotpc</code>:
+<a href="nasmdo10.html#section-10.2.1">Section 10.2.1</a>
+</li>
+<li class="index">
+<code>WRT ..plt</code>:
+<a href="nasmdo10.html#section-10.2.5">Section 10.2.5</a>
+</li>
+<li class="index">
+<code>WRT ..sym</code>:
+<a href="nasmdo10.html#section-10.2.4">Section 10.2.4</a>
+</li>
+<li class="index">
+<code>www.delorie.com</code>:
+<a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+<code>www.pcorner.com</code>:
+<a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+<code>-X</code> option:
+<a href="nasmdoc2.html#section-2.1.15">Section 2.1.15</a>
+</li>
+<li class="index">
+<code>x2ftp.oulu.fi</code>:
+<a href="nasmdoc9.html#section-9.1.1">Section 9.1.1</a>
+</li>
+<li class="index">
+x32: <a href="nasmdoc8.html#section-8.9">Section 8.9</a>
+</li>
+<li class="index">
+<code>%xdefine</code>:
+<a href="nasmdoc4.html#section-4.1.2">Section 4.1.2</a>
+</li>
+<li class="index">
+<code>-Z</code> option:
+<a href="nasmdoc2.html#section-2.1.16">Section 2.1.16</a>
+</li>
+<li class="index">
+<code>zeroing</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+<li class="index">
+<code>zext-reloc</code>:
+<a href="nasmdoc2.html#section-2.1.26">Section 2.1.26</a>
+</li>
+</ul>
+</body>
+</html>

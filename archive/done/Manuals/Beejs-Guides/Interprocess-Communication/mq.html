@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Beej's Guide to Interprocess Communication</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet"> 
+
+  <!-- BG custom styling -->
+  <style type="text/css">
+  /* Fix for line numbers not visible */
+  pre.numberSource code > span {
+      left: -1em;
+  }
+  pre.numberSource {
+      margin-left: initial;
+  }
+
+  /* Put some space after the section numbers */
+  span.toc-section-number::after {
+      content: "\a0\a0\a0";  /* non-breaking whitespace */
+  }
+
+  /* Hide underlines on code number links */
+  pre > code.sourceCode > span > a:first-child::before {
+      text-decoration: none;
+  }
+
+  /* Color the source blocks */
+  div.sourceCode {
+      background-color: #f0f0f0;
+  }
+
+  /* Fix iOS big text rendering issue */
+  pre > code.sourceCode > span {
+      display: initial;
+  }
+
+
+  /* Color the inline code */
+  code:not(.sourceCode) {
+      background: #f0f0f0;
+      padding-left: 0.2em;
+      padding-right: 0.2em;
+      border-radius: 0.2em;
+  }
+
+  /* Keep code tags from wrapping in tables */
+  tbody code {
+      white-space: nowrap;
+  }
+
+  td {
+      vertical-align: top;
+  }
+
+  body {
+      font-size: 12pt;
+      max-width: 43em;
+  }
+
+  figure {
+      text-align: center;
+  }
+  </style>
+  <!-- BG custom styling for the wide body variant -->
+  <!-- Gets appended after bg-css.html -->
+
+  <style type="text/css">
+  body {
+      max-width: inherit;
+  }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div style="text-align:center"><span><a href="flocking.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="semaphores.html">Next</a></span></div><hr>
+<h1 data-number="7" id="mq"><span class="header-section-number">7</span> Message Queues</h1>
+<p>Those people who brought us System V have seen fit to include some IPC goodies that have been implemented on various platforms (including Linux, of course.) This document describes the usage and functionality of the extremely groovy System V Message Queues! Linux also supports a POSIX version of each of these; see <em>mq_overview</em>, <em>sem_overview</em>, and <em>shm_overview</em> in the man pages.</p>
+<p>As usual, I want to spew some overview at you before getting into the nitty-gritty. A message queue works kind of like a <a href="fifos.html#fifos">FIFO</a>, but supports some additional functionality. Generally, see, messages are taken off the queue in the order they are put on. Specifically, however, there are ways to pull certain messages out of the queue before they reach the front. It’s like cutting in line. (Incidentally, don’t try to cut in line while visiting the Great America amusement park in Silicon Valley, as you can be arrested for it. They take cutting <em>very</em> seriously down there.)</p>
+<p>In terms of usage, a process can create a new message queue, or it can connect to an existing one. In this, the latter, way two processes can exchange information through the same message queue. Score.</p>
+<p>One more thing about System V IPC: when you create a message queue, it doesn’t go away until you destroy it, just like how files don’t go away until you explicitly remove them. All the processes that have ever used it can quit, but the queue will still exist. A good practice is to use the <code>ipcs</code> command to check if any of your unused message queues are just floating around out there. You can destroy them with the <code>ipcrm</code> command, which is preferable to getting a visit from the sysadmin telling you that you’ve grabbed every available message queue on the system.</p>
+<h2 data-number="7.1" id="wheres-my-queue"><span class="header-section-number">7.1</span> Where’s my queue?</h2>
+<p>Let’s get something going! First of all, you want to connect to a queue, or create it if it doesn’t exist. The call to accomplish this is the <code>msgget()</code> system call:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb26-1"><a href="mq.html#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> msgget<span class="op">(</span>key_t key<span class="op">,</span> <span class="dt">int</span> msgflg<span class="op">);</span></span></code></pre></div>
+<p><code>msgget()</code> returns the message queue ID on success, or <code>-1</code> on failure (and it sets <code>errno</code>, of course.)</p>
+<p>The arguments are a little weird, but can be understood with a little brow-beating. The first, <code>key</code> is a system-wide unique identifier describing the queue you want to connect to (or create). Every other process that wants to connect to this queue will have to use the same <code>key</code>.</p>
+<p>The other argument, <code>msgflg</code> tells <code>msgget()</code> what to do with queue in question. To create a queue, this field must be set equal to <code>IPC_CREAT</code> bit-wise OR’d with the permissions for this queue. (The queue permissions are the same as standard file permissions—queues take on the user-id and group-id of the program that created them.)</p>
+<p>A sample call is given in the following section.</p>
+<h2 data-number="7.2" id="mqftok"><span class="header-section-number">7.2</span> “Are you the Key Master?”</h2>
+<p>What about this <code>key</code> nonsense? How do we create one? Well, since the type <code>key_t</code> is actually just a <code>long</code>, you can use any number you want. But what if you hard-code the number and some other unrelated program hardcodes the same number but wants another queue? The solution is to use the <code>ftok()</code> function which generates a key from two arguments:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb27-1"><a href="mq.html#cb27-1" aria-hidden="true" tabindex="-1"></a>key_t ftok<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>`path`<span class="op">,</span> <span class="dt">int</span> `id`<span class="op">);</span></span></code></pre></div>
+<p>Ok, this is getting weird. Basically, <code>path</code> just has to be a path to a file that uniquely identifies this application; the pathname to the application’s configuration file is a common string to use (what are the odds that two applications will use the same configuration file?). The other argument, <code>id</code> is usually just set to some arbitrary char, like ‘A’. The <code>ftok()</code> function uses information about the named file (like inode number, etc.) and the <code>id</code> to generate a probably-unique <code>key</code> for <code>msgget()</code>. Programs that want to use the same queue must generate the same <code>key</code>, so they must pass the same parameters to <code>ftok()</code>.</p>
+<p>Finally, it’s time to make the call:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb28-1"><a href="mq.html#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;sys/msg.h&gt;</span></span>
+<span id="cb28-2"><a href="mq.html#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="mq.html#cb28-3" aria-hidden="true" tabindex="-1"></a>key <span class="op">=</span> ftok<span class="op">(</span><span class="st">&quot;/home/beej/somefile&quot;</span><span class="op">,</span> <span class="ch">&#39;b&#39;</span><span class="op">);</span></span>
+<span id="cb28-4"><a href="mq.html#cb28-4" aria-hidden="true" tabindex="-1"></a>msqid <span class="op">=</span> msgget<span class="op">(</span>key<span class="op">,</span> <span class="bn">0666</span> <span class="op">|</span> IPC_CREAT<span class="op">);</span></span></code></pre></div>
+<p>In the above example, I set the permissions on the queue to <code>666</code> (or <code>rw-rw-rw-</code>, if that makes more sense to you). And now we have <code>msqid</code> which will be used to send and receive messages from the queue.</p>
+<h2 data-number="7.3" id="sending-to-the-queue"><span class="header-section-number">7.3</span> Sending to the queue</h2>
+<p>Once you’ve connected to the message queue using <code>msgget()</code>, you are ready to send and receive messages. First, the sending:</p>
+<p>Each message is made up of two parts, which are defined in the template structure <code>struct msgbuf</code>, as defined in <code>sys/msg.h</code>:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb29-1"><a href="mq.html#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> msgbuf <span class="op">{</span></span>
+<span id="cb29-2"><a href="mq.html#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">long</span> mtype<span class="op">;</span></span>
+<span id="cb29-3"><a href="mq.html#cb29-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> mtext<span class="op">[</span><span class="dv">1</span><span class="op">];</span></span>
+<span id="cb29-4"><a href="mq.html#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>The field <code>mtype</code> is used later when retrieving messages from the queue, and can be set to any positive number. <code>mtext</code> is the data this will be added to the queue.</p>
+<p>“What?! You can only put one byte arrays onto a message queue?! Worthless!!” Well, not exactly. You can use any structure you want to put messages on the queue, as long as the first element is a long. For instance, we could use this structure to store all kinds of goodies:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb30-1"><a href="mq.html#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> pirate_msgbuf <span class="op">{</span></span>
+<span id="cb30-2"><a href="mq.html#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">long</span> mtype<span class="op">;</span>  <span class="co">/* must be positive */</span></span>
+<span id="cb30-3"><a href="mq.html#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> pirate_info <span class="op">{</span></span>
+<span id="cb30-4"><a href="mq.html#cb30-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">char</span> name<span class="op">[</span><span class="dv">30</span><span class="op">];</span></span>
+<span id="cb30-5"><a href="mq.html#cb30-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">char</span> ship_type<span class="op">;</span></span>
+<span id="cb30-6"><a href="mq.html#cb30-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">int</span> notoriety<span class="op">;</span></span>
+<span id="cb30-7"><a href="mq.html#cb30-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">int</span> cruelty<span class="op">;</span></span>
+<span id="cb30-8"><a href="mq.html#cb30-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">int</span> booty_value<span class="op">;</span></span>
+<span id="cb30-9"><a href="mq.html#cb30-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> info<span class="op">;</span></span>
+<span id="cb30-10"><a href="mq.html#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Ok, so how do we pass this information to a message queue? The answer is simple, my friends: just use <code>msgsnd()</code>:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb31-1"><a href="mq.html#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> msgsnd<span class="op">(</span><span class="dt">int</span> msqid<span class="op">,</span> <span class="dt">const</span> <span class="dt">void</span> <span class="op">*</span>msgp<span class="op">,</span></span>
+<span id="cb31-2"><a href="mq.html#cb31-2" aria-hidden="true" tabindex="-1"></a>           <span class="dt">size_t</span> msgsz<span class="op">,</span> <span class="dt">int</span> msgflg<span class="op">);&lt;/</span>code<span class="op">&gt;</span></span></code></pre></div>
+<p><code>msqid</code> is the message queue identifier returned by <code>msgget()</code>. The pointer <code>msgp</code> is a pointer to the data you want to put on the queue. <code>msgsz</code> is the size in bytes of the data to add to the queue (not counting the size of the <code>mtype</code> member). Finally, <code>msgflg</code> allows you to set some optional flag parameters, which we’ll ignore for now by setting it to <code>0</code>.</p>
+<p>The best way to get the size of the data to send is by setting it up correctly to begin with. The first field of the <code>struct</code> should be a <code>long</code>, as we’ve seen. To be safe and portable, there should only be one additional field. If you need more than one, wrap it up in a <code>struct</code> like with <code>struct pirate_msgbuf</code>, above.</p>
+<p>When to get the size of the data to send, just take the size of the second field:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb32-1"><a href="mq.html#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> cheese_msgbuf <span class="op">{</span></span>
+<span id="cb32-2"><a href="mq.html#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">long</span> mtype<span class="op">;</span></span>
+<span id="cb32-3"><a href="mq.html#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> name<span class="op">[</span><span class="dv">20</span><span class="op">];</span></span>
+<span id="cb32-4"><a href="mq.html#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb32-5"><a href="mq.html#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-6"><a href="mq.html#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co">/* calculate the size of the data to send: */</span></span>
+<span id="cb32-7"><a href="mq.html#cb32-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-8"><a href="mq.html#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> cheese_msgbuf mbuf<span class="op">;</span></span>
+<span id="cb32-9"><a href="mq.html#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> size<span class="op">;</span></span>
+<span id="cb32-10"><a href="mq.html#cb32-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-11"><a href="mq.html#cb32-11" aria-hidden="true" tabindex="-1"></a>size <span class="op">=</span> <span class="kw">sizeof</span> mbuf<span class="op">.</span>name<span class="op">;</span></span>
+<span id="cb32-12"><a href="mq.html#cb32-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-13"><a href="mq.html#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="co">/* Or, without a declared variable: */</span></span>
+<span id="cb32-14"><a href="mq.html#cb32-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-15"><a href="mq.html#cb32-15" aria-hidden="true" tabindex="-1"></a>size <span class="op">=</span> <span class="kw">sizeof</span> <span class="op">((</span><span class="kw">struct</span> cheese_msgbuf<span class="op">*)</span><span class="dv">0</span><span class="op">)-&gt;</span>name<span class="op">;</span></span></code></pre></div>
+<p>Or, if you have a lot of different fields, put them in a <code>struct</code> and use the <operator>sizeof</operator> operator on that. It can be extra convenient to do this, because now the substructure can have a name to reference. Here is a code snippet that shows one of our pirate structures being added to the message queue:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb33-1"><a href="mq.html#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;sys/msg.h&gt;</span></span>
+<span id="cb33-2"><a href="mq.html#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span></span>
+<span id="cb33-3"><a href="mq.html#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="mq.html#cb33-4" aria-hidden="true" tabindex="-1"></a>key_t key<span class="op">;</span></span>
+<span id="cb33-5"><a href="mq.html#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> msqid<span class="op">;</span></span>
+<span id="cb33-6"><a href="mq.html#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> pirate_msgbuf pmb <span class="op">=</span> <span class="op">{</span><span class="dv">2</span><span class="op">,</span> <span class="op">{</span> <span class="st">&quot;L&#39;Olonais&quot;</span><span class="op">,</span> <span class="ch">&#39;S&#39;</span><span class="op">,</span> <span class="dv">80</span><span class="op">,</span> <span class="dv">10</span><span class="op">,</span> <span class="dv">12035</span> <span class="op">}</span> <span class="op">};</span></span>
+<span id="cb33-7"><a href="mq.html#cb33-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-8"><a href="mq.html#cb33-8" aria-hidden="true" tabindex="-1"></a>key <span class="op">=</span> ftok<span class="op">(</span><span class="st">&quot;/home/beej/somefile&quot;</span><span class="op">,</span> <span class="ch">&#39;b&#39;</span><span class="op">);</span></span>
+<span id="cb33-9"><a href="mq.html#cb33-9" aria-hidden="true" tabindex="-1"></a>msqid <span class="op">=</span> msgget<span class="op">(</span>key<span class="op">,</span> <span class="bn">0666</span> <span class="op">|</span> IPC_CREAT<span class="op">);</span></span>
+<span id="cb33-10"><a href="mq.html#cb33-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-11"><a href="mq.html#cb33-11" aria-hidden="true" tabindex="-1"></a><span class="co">/* stick him on the queue */</span></span>
+<span id="cb33-12"><a href="mq.html#cb33-12" aria-hidden="true" tabindex="-1"></a><span class="co">/* struct pirate_info is the sub-structure */</span></span>
+<span id="cb33-13"><a href="mq.html#cb33-13" aria-hidden="true" tabindex="-1"></a>msgsnd<span class="op">(</span>msqid<span class="op">,</span> <span class="op">&amp;</span>pmb<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> pirate_info<span class="op">),</span> <span class="dv">0</span><span class="op">);</span></span></code></pre></div>
+<p>Aside from remembering to error-check the return values from all these functions, this is all there is to it. Oh, yeah: note that I arbitrarily set the <code>mtype</code> field to <code>2</code> up there. That’ll be important in the next section.</p>
+<h2 data-number="7.4" id="receiving-from-the-queue"><span class="header-section-number">7.4</span> Receiving from the queue</h2>
+<p>Now that we have the dreaded pirate <a href="https://beej.us/pirates/pirate_view.php?file=lolonais.jpg">Francis L’Olonais</a> stuck in our message queue, how do we get him out? As you can imagine, there is a counterpart to <code>msgsnd()</code>: it is <code>msgrcv()</code>. How imaginative.</p>
+<p>A call to <code>msgrcv()</code> that would do it looks something like this:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb34-1"><a href="mq.html#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;sys/msg.h&gt;</span></span>
+<span id="cb34-2"><a href="mq.html#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span></span>
+<span id="cb34-3"><a href="mq.html#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="mq.html#cb34-4" aria-hidden="true" tabindex="-1"></a>key_t key<span class="op">;</span></span>
+<span id="cb34-5"><a href="mq.html#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> msqid<span class="op">;</span></span>
+<span id="cb34-6"><a href="mq.html#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> pirate_msgbuf pmb<span class="op">;</span> <span class="co">/* where L&#39;Olonais is to be kept */</span></span>
+<span id="cb34-7"><a href="mq.html#cb34-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-8"><a href="mq.html#cb34-8" aria-hidden="true" tabindex="-1"></a>key <span class="op">=</span> ftok<span class="op">(</span><span class="st">&quot;/home/beej/somefile&quot;</span><span class="op">,</span> <span class="ch">&#39;b&#39;</span><span class="op">);</span></span>
+<span id="cb34-9"><a href="mq.html#cb34-9" aria-hidden="true" tabindex="-1"></a>msqid <span class="op">=</span> msgget<span class="op">(</span>key<span class="op">,</span> <span class="bn">0666</span> <span class="op">|</span> IPC_CREAT<span class="op">);</span></span>
+<span id="cb34-10"><a href="mq.html#cb34-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-11"><a href="mq.html#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="co">/* get him off the queue! */</span></span>
+<span id="cb34-12"><a href="mq.html#cb34-12" aria-hidden="true" tabindex="-1"></a>msgrcv<span class="op">(</span>msqid<span class="op">,</span> <span class="op">&amp;</span>pmb<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> pirate_info<span class="op">),</span> <span class="dv">2</span><span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span></code></pre></div>
+<p>There is something new to note in the <code>msgrcv()</code> call: the <code>2</code>! What does it mean? Here’s the synopsis of the call:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb35-1"><a href="mq.html#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> msgrcv<span class="op">(</span><span class="dt">int</span> msqid<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>msgp<span class="op">,</span> <span class="dt">size_t</span> msgsz<span class="op">,</span> <span class="dt">long</span> msgtyp<span class="op">,</span> <span class="dt">int</span> msgflg<span class="op">);</span></span></code></pre></div>
+<p>The <code>2</code> we specified in the call is the requested <code>msgtyp</code>. Recall that we set the <code>mtype</code> arbitrarily to <code>2</code> in the <code>msgsnd()</code> section of this document, so that will be the one that is retrieved from the queue.</p>
+<p>Actually, the behavior of <code>msgrcv()</code> can be modified drastically by choosing a <code>msgtyp</code> that is positive, negative, or zero:</p>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 88%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><code>msgtyp</code></th>
+<th>Effect on <code>msgrcv()</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Zero</td>
+<td>Retrieve the next message on the queue, regardless of its <code>mtype</code>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Positive</td>
+<td>Get the next message with an <code>mtype</code> <em>equal to</em> the specified <code>msgtyp</code>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Negative</td>
+<td>Retrieve the first message on the queue whose <code>mtype</code> field is less than or equal to the absolute value of the <code>msgtyp</code> argument.</td>
+</tr>
+</tbody>
+</table>
+<p>So, what will often be the case is that you’ll simply want the next message on the queue, no matter what <code>mtype</code> it is. As such, you’d set the <code>msgtyp</code> parameter to <code>0</code>.</p>
+<h2 data-number="7.5" id="destroying-a-message-queue"><span class="header-section-number">7.5</span> Destroying a message queue</h2>
+<p>There comes a time when you have to destroy a message queue. Like I said before, they will stick around until you explicitly remove them; it is important that you do this so you don’t waste system resources. Ok, so you’ve been using this message queue all day, and it’s getting old. You want to obliterate it. There are two ways:</p>
+<ol type="1">
+<li><p>Use the Unix command <code>ipcs</code> to get a list of defined message queues, then use the command <code>ipcrm</code> to delete the queue.</p></li>
+<li><p>Write a program to do it for you.</p></li>
+</ol>
+<p>Often, the latter choice is the most appropriate, since you might want your program to clean up the queue at some time or another. To do this requires the introduction of another function: <code>msgctl()</code>.</p>
+<p>The synopsis of <code>msgctl()</code> is:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="mq.html#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> msgctl<span class="op">(</span><span class="dt">int</span> msqid<span class="op">,</span> <span class="dt">int</span> cmd<span class="op">,</span></span>
+<span id="cb36-2"><a href="mq.html#cb36-2" aria-hidden="true" tabindex="-1"></a>           <span class="kw">struct</span> msqid_ds <span class="op">*</span>buf<span class="op">);</span></span></code></pre></div>
+<p>Of course, <code>msqid</code> is the queue identifier obtained from <code>msgget()</code>. The important argument is <code>cmd</code> which tells <code>msgctl()</code> how to behave. It can be a variety of things, but we’re only going to talk about <code>IPC_RMID</code>, which is used to remove the message queue. The <code>buf</code> argument can be set to <code>NULL</code> for the purposes of <code>IPC_RMID</code>.</p>
+<p>Say that we have the queue we created above to hold the pirates. You can destroy that queue by issuing the following call:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb37-1"><a href="mq.html#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;sys/msg.h&gt;</span></span>
+<span id="cb37-2"><a href="mq.html#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="op">.</span></span>
+<span id="cb37-3"><a href="mq.html#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="op">.</span></span>
+<span id="cb37-4"><a href="mq.html#cb37-4" aria-hidden="true" tabindex="-1"></a>msgctl<span class="op">(</span>msqid<span class="op">,</span> IPC_RMID<span class="op">,</span> NULL<span class="op">);</span></span></code></pre></div>
+<p>And the message queue is no more. (Of course, error checking of these return values is always appropriate!)</p>
+<!-- ======================================================= -->
+<!-- Message queues: Sample programs, anyone? -->
+<!-- ======================================================= -->
+<h2 data-number="7.6" id="sample-programs-anyone"><span class="header-section-number">7.6</span> Sample programs, anyone?</h2>
+<p>For the sake of completeness, I’ll include a brace of programs that will communicate using message queues. The first, <code>kirk.c</code> adds messages to the message queue, and <code>spock.c</code> retrieves them.</p>
+<p>Here is the source for <a href="https://beej.us/guide/bgipc/source/examples/kirk.c"><code>kirk.c</code></a><a href="footnotes.html#fn31" class="footnote-ref" id="fnref31" role="doc-noteref"><sup>31</sup></a>:</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb38-1"><a href="mq.html#cb38-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb38-2"><a href="mq.html#cb38-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb38-3"><a href="mq.html#cb38-3"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
+<span id="cb38-4"><a href="mq.html#cb38-4"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb38-5"><a href="mq.html#cb38-5"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb38-6"><a href="mq.html#cb38-6"></a><span class="pp">#include </span><span class="im">&lt;sys/ipc.h&gt;</span></span>
+<span id="cb38-7"><a href="mq.html#cb38-7"></a><span class="pp">#include </span><span class="im">&lt;sys/msg.h&gt;</span></span>
+<span id="cb38-8"><a href="mq.html#cb38-8"></a></span>
+<span id="cb38-9"><a href="mq.html#cb38-9"></a><span class="kw">struct</span> my_msgbuf <span class="op">{</span></span>
+<span id="cb38-10"><a href="mq.html#cb38-10"></a>    <span class="dt">long</span> mtype<span class="op">;</span></span>
+<span id="cb38-11"><a href="mq.html#cb38-11"></a>    <span class="dt">char</span> mtext<span class="op">[</span><span class="dv">200</span><span class="op">];</span></span>
+<span id="cb38-12"><a href="mq.html#cb38-12"></a><span class="op">};</span></span>
+<span id="cb38-13"><a href="mq.html#cb38-13"></a></span>
+<span id="cb38-14"><a href="mq.html#cb38-14"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb38-15"><a href="mq.html#cb38-15"></a><span class="op">{</span></span>
+<span id="cb38-16"><a href="mq.html#cb38-16"></a>    <span class="kw">struct</span> my_msgbuf buf<span class="op">;</span></span>
+<span id="cb38-17"><a href="mq.html#cb38-17"></a>    <span class="dt">int</span> msqid<span class="op">;</span></span>
+<span id="cb38-18"><a href="mq.html#cb38-18"></a>    key_t key<span class="op">;</span></span>
+<span id="cb38-19"><a href="mq.html#cb38-19"></a></span>
+<span id="cb38-20"><a href="mq.html#cb38-20"></a>    <span class="cf">if</span> <span class="op">((</span>key <span class="op">=</span> ftok<span class="op">(</span><span class="st">&quot;kirk.c&quot;</span><span class="op">,</span> <span class="ch">&#39;B&#39;</span><span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb38-21"><a href="mq.html#cb38-21"></a>        perror<span class="op">(</span><span class="st">&quot;ftok&quot;</span><span class="op">);</span></span>
+<span id="cb38-22"><a href="mq.html#cb38-22"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb38-23"><a href="mq.html#cb38-23"></a>    <span class="op">}</span></span>
+<span id="cb38-24"><a href="mq.html#cb38-24"></a></span>
+<span id="cb38-25"><a href="mq.html#cb38-25"></a>    <span class="cf">if</span> <span class="op">((</span>msqid <span class="op">=</span> msgget<span class="op">(</span>key<span class="op">,</span> <span class="bn">0644</span> <span class="op">|</span> IPC_CREAT<span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb38-26"><a href="mq.html#cb38-26"></a>        perror<span class="op">(</span><span class="st">&quot;msgget&quot;</span><span class="op">);</span></span>
+<span id="cb38-27"><a href="mq.html#cb38-27"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb38-28"><a href="mq.html#cb38-28"></a>    <span class="op">}</span></span>
+<span id="cb38-29"><a href="mq.html#cb38-29"></a>    </span>
+<span id="cb38-30"><a href="mq.html#cb38-30"></a>    printf<span class="op">(</span><span class="st">&quot;Enter lines of text, ^D to quit:</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb38-31"><a href="mq.html#cb38-31"></a></span>
+<span id="cb38-32"><a href="mq.html#cb38-32"></a>    buf<span class="op">.</span>mtype <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> <span class="co">/* we don&#39;t really care in this case */</span></span>
+<span id="cb38-33"><a href="mq.html#cb38-33"></a></span>
+<span id="cb38-34"><a href="mq.html#cb38-34"></a>    <span class="cf">while</span><span class="op">(</span>fgets<span class="op">(</span>buf<span class="op">.</span>mtext<span class="op">,</span> <span class="kw">sizeof</span> buf<span class="op">.</span>mtext<span class="op">,</span> stdin<span class="op">)</span> <span class="op">!=</span> NULL<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb38-35"><a href="mq.html#cb38-35"></a>        <span class="dt">int</span> len <span class="op">=</span> strlen<span class="op">(</span>buf<span class="op">.</span>mtext<span class="op">);</span></span>
+<span id="cb38-36"><a href="mq.html#cb38-36"></a></span>
+<span id="cb38-37"><a href="mq.html#cb38-37"></a>        <span class="co">/* ditch newline at end, if it exists */</span></span>
+<span id="cb38-38"><a href="mq.html#cb38-38"></a>        <span class="cf">if</span> <span class="op">(</span>buf<span class="op">.</span>mtext<span class="op">[</span>len<span class="op">-</span><span class="dv">1</span><span class="op">]</span> <span class="op">==</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span><span class="op">)</span> buf<span class="op">.</span>mtext<span class="op">[</span>len<span class="op">-</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span><span class="op">;</span></span>
+<span id="cb38-39"><a href="mq.html#cb38-39"></a></span>
+<span id="cb38-40"><a href="mq.html#cb38-40"></a>        <span class="cf">if</span> <span class="op">(</span>msgsnd<span class="op">(</span>msqid<span class="op">,</span> <span class="op">&amp;</span>buf<span class="op">,</span> len<span class="op">,</span> <span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb38-41"><a href="mq.html#cb38-41"></a>            perror<span class="op">(</span><span class="st">&quot;msgsnd&quot;</span><span class="op">);</span></span>
+<span id="cb38-42"><a href="mq.html#cb38-42"></a>    <span class="op">}</span></span>
+<span id="cb38-43"><a href="mq.html#cb38-43"></a></span>
+<span id="cb38-44"><a href="mq.html#cb38-44"></a>    <span class="cf">if</span> <span class="op">(</span>msgctl<span class="op">(</span>msqid<span class="op">,</span> IPC_RMID<span class="op">,</span> NULL<span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb38-45"><a href="mq.html#cb38-45"></a>        perror<span class="op">(</span><span class="st">&quot;msgctl&quot;</span><span class="op">);</span></span>
+<span id="cb38-46"><a href="mq.html#cb38-46"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb38-47"><a href="mq.html#cb38-47"></a>    <span class="op">}</span></span>
+<span id="cb38-48"><a href="mq.html#cb38-48"></a></span>
+<span id="cb38-49"><a href="mq.html#cb38-49"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb38-50"><a href="mq.html#cb38-50"></a><span class="op">}</span></span></code></pre></div>
+<p>The way <code>kirk</code> works is that it allows you to enter lines of text. Each line is bundled into a message and added to the message queue. The message queue is then read by <code>spock</code>.</p>
+<p>Here is the source for <a href="https://beej.us/guide/bgipc/source/examples/spock.c"><code>spock.c</code></a><a href="footnotes.html#fn32" class="footnote-ref" id="fnref32" role="doc-noteref"><sup>32</sup></a>:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb39-1"><a href="mq.html#cb39-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb39-2"><a href="mq.html#cb39-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb39-3"><a href="mq.html#cb39-3"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
+<span id="cb39-4"><a href="mq.html#cb39-4"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb39-5"><a href="mq.html#cb39-5"></a><span class="pp">#include </span><span class="im">&lt;sys/ipc.h&gt;</span></span>
+<span id="cb39-6"><a href="mq.html#cb39-6"></a><span class="pp">#include </span><span class="im">&lt;sys/msg.h&gt;</span></span>
+<span id="cb39-7"><a href="mq.html#cb39-7"></a></span>
+<span id="cb39-8"><a href="mq.html#cb39-8"></a><span class="kw">struct</span> my_msgbuf <span class="op">{</span></span>
+<span id="cb39-9"><a href="mq.html#cb39-9"></a>    <span class="dt">long</span> mtype<span class="op">;</span></span>
+<span id="cb39-10"><a href="mq.html#cb39-10"></a>    <span class="dt">char</span> mtext<span class="op">[</span><span class="dv">200</span><span class="op">];</span></span>
+<span id="cb39-11"><a href="mq.html#cb39-11"></a><span class="op">};</span></span>
+<span id="cb39-12"><a href="mq.html#cb39-12"></a></span>
+<span id="cb39-13"><a href="mq.html#cb39-13"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb39-14"><a href="mq.html#cb39-14"></a><span class="op">{</span></span>
+<span id="cb39-15"><a href="mq.html#cb39-15"></a>    <span class="kw">struct</span> my_msgbuf buf<span class="op">;</span></span>
+<span id="cb39-16"><a href="mq.html#cb39-16"></a>    <span class="dt">int</span> msqid<span class="op">;</span></span>
+<span id="cb39-17"><a href="mq.html#cb39-17"></a>    key_t key<span class="op">;</span></span>
+<span id="cb39-18"><a href="mq.html#cb39-18"></a></span>
+<span id="cb39-19"><a href="mq.html#cb39-19"></a>    <span class="cf">if</span> <span class="op">((</span>key <span class="op">=</span> ftok<span class="op">(</span><span class="st">&quot;kirk.c&quot;</span><span class="op">,</span> <span class="ch">&#39;B&#39;</span><span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span>  <span class="co">/* same key as kirk.c */</span></span>
+<span id="cb39-20"><a href="mq.html#cb39-20"></a>        perror<span class="op">(</span><span class="st">&quot;ftok&quot;</span><span class="op">);</span></span>
+<span id="cb39-21"><a href="mq.html#cb39-21"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb39-22"><a href="mq.html#cb39-22"></a>    <span class="op">}</span></span>
+<span id="cb39-23"><a href="mq.html#cb39-23"></a></span>
+<span id="cb39-24"><a href="mq.html#cb39-24"></a>    <span class="cf">if</span> <span class="op">((</span>msqid <span class="op">=</span> msgget<span class="op">(</span>key<span class="op">,</span> <span class="bn">0644</span><span class="op">))</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span> <span class="co">/* connect to the queue */</span></span>
+<span id="cb39-25"><a href="mq.html#cb39-25"></a>        perror<span class="op">(</span><span class="st">&quot;msgget&quot;</span><span class="op">);</span></span>
+<span id="cb39-26"><a href="mq.html#cb39-26"></a>        exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb39-27"><a href="mq.html#cb39-27"></a>    <span class="op">}</span></span>
+<span id="cb39-28"><a href="mq.html#cb39-28"></a>    </span>
+<span id="cb39-29"><a href="mq.html#cb39-29"></a>    printf<span class="op">(</span><span class="st">&quot;spock: ready to receive messages, captain.</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb39-30"><a href="mq.html#cb39-30"></a></span>
+<span id="cb39-31"><a href="mq.html#cb39-31"></a>    <span class="cf">for</span><span class="op">(;;)</span> <span class="op">{</span> <span class="co">/* Spock never quits! */</span></span>
+<span id="cb39-32"><a href="mq.html#cb39-32"></a>        <span class="cf">if</span> <span class="op">(</span>msgrcv<span class="op">(</span>msqid<span class="op">,</span> <span class="op">&amp;</span>buf<span class="op">,</span> <span class="kw">sizeof</span> buf<span class="op">.</span>mtext<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb39-33"><a href="mq.html#cb39-33"></a>            perror<span class="op">(</span><span class="st">&quot;msgrcv&quot;</span><span class="op">);</span></span>
+<span id="cb39-34"><a href="mq.html#cb39-34"></a>            exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb39-35"><a href="mq.html#cb39-35"></a>        <span class="op">}</span></span>
+<span id="cb39-36"><a href="mq.html#cb39-36"></a>        printf<span class="op">(</span><span class="st">&quot;spock: </span><span class="sc">\&quot;%s\&quot;\n</span><span class="st">&quot;</span><span class="op">,</span> buf<span class="op">.</span>mtext<span class="op">);</span></span>
+<span id="cb39-37"><a href="mq.html#cb39-37"></a>    <span class="op">}</span></span>
+<span id="cb39-38"><a href="mq.html#cb39-38"></a></span>
+<span id="cb39-39"><a href="mq.html#cb39-39"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb39-40"><a href="mq.html#cb39-40"></a><span class="op">}</span></span></code></pre></div>
+<p>Notice that <code>spock</code>, in the call to <code>msgget()</code>, doesn’t include the <code>IPC_CREAT</code> option. We’ve left it up to <code>kirk</code> to create the message queue, and <code>spock</code> will return an error if he hasn’t done so.</p>
+<p>Notice what happens when you’re running both in separate windows and you kill one or the other. Also try running two copies of <code>kirk</code> or two copies of <code>spock</code> to get an idea of what happens when you have two readers or two writers. Another interesting demonstration is to run <code>kirk</code>, enter a bunch of messages, then run <code>spock</code> and see it retrieve all the messages in one swoop. Just messing around with these toy programs will help you gain an understanding of what is really going on.</p>
+<h2 data-number="7.7" id="summary-3"><span class="header-section-number">7.7</span> Summary</h2>
+<p>There is more to message queues than this short tutorial can present. Be sure to look in the man pages to see what else you can do, especially in the area of <code>msgctl()</code>. Also, there are more options you can pass to other functions to control how <code>msgsnd()</code> and <code>msgrcv()</code> handle if the queue is full or empty, respectively.</p>
+<!-- Beej's guide to IPC
+
+# vim: ts=4:sw=4:nosi:et:tw=72
+-->
+<!-- ======================================================= -->
+<!-- Semaphores -->
+<!-- ======================================================= -->
+<hr><div style="text-align:center"><span><a href="flocking.html">Prev</a> | </span><a href="index.html">Contents</a><span> | <a href="semaphores.html">Next</a></span></div></body>
+</html>
