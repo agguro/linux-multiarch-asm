@@ -1,8 +1,8 @@
 ; name        : arguments.asm
 ; description : Read arguments.
-; build       : release: nasm -f elf64 -I ../../../includes -o arguments.o arguments.asm
+; build       : release: nasm -f elf64 -I ../../../../includes -o arguments.o arguments.asm
 ;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o arguments *.o
-;               debug  : nasm -f elf64 -I ../../../includes -g -Fdwarf -o arguments.debug.o arguments.asm
+;               debug  : nasm -f elf64 -I ../../../../includes -g -Fdwarf -o arguments.debug.o arguments.asm
 ;                        ld -m elf_x86_64 -pie --dynamic-linker /lib64/ld-linux-x86-64.so.2 -o arguments.debug *.o
 
 bits 64
