@@ -1,6 +1,6 @@
 /*
 ===============================================================================
-  bcd2bin_sse2_m128i
+  bcd2bin_sse2_m128i_swar
 ===============================================================================
 
   Purpose
@@ -112,17 +112,92 @@
 ===============================================================================
 */
 
-.section .rodata
-.align 16
-mul_10_1:
-    .word 10, 1, 10, 1, 10, 1, 10, 1
-mul_100_1_d:
-    .long 100, 1, 100, 1
-
 .section .text
 .globl bcd2bin_sse2_m128i
 .type  bcd2bin_sse2_m128i, @function
 .align 16
+
+# ------------------------------------------------------------
+# PROCESS_BLOCK_16
+#   Acc = Acc * 10^16 + block
+# ------------------------------------------------------------
+.macro PROCESS_BLOCK_16 offset
+    movq    \offset(%rdi), %rax
+    movq    %rax, %rdx
+    shr     $4, %rdx
+    movabsq $0x0F0F0F0F0F0F0F0F, %rbx
+    andq    %rbx, %rax
+    andq    %rbx, %rdx
+    imul    $10, %rdx, %rdx
+    addq    %rdx, %rax
+
+    movabsq $0x00FF00FF00FF00FF, %rbx
+    movq    %rax, %rdx
+    shr     $8, %rdx
+    andq    %rbx, %rax
+    andq    %rbx, %rdx
+    imul    $100, %rdx, %rdx
+    addq    %rdx, %rax
+
+    movabsq $0x0000FFFF0000FFFF, %rbx
+    movq    %rax, %rdx
+    shr     $16, %rdx
+    andq    %rbx, %rax
+    andq    %rbx, %rdx
+    imul    $10000, %rdx, %rdx
+    addq    %rdx, %rax
+
+    movq    %rax, %rdx
+    shr     $32, %rdx
+    imul    $100000000, %rdx, %rdx
+    addq    %rdx, %rax
+
+    movq    %rax, %rsi
+
+    movabsq $10000000000000000, %rcx
+
+    movq    %r8, %rax
+    mulq    %rcx
+    movq    %rax, %r8
+    movq    %rdx, %rbx
+
+    movq    %r9, %rax
+    mulq    %rcx
+    addq    %rbx, %rax
+    adcq    $0, %rdx
+    movq    %rax, %r9
+
+    addq    %rsi, %r8
+    adcq    $0, %r9
+.endm
+
+# ------------------------------------------------------------
+# PROCESS_BLOCK_6
+#   Acc = block (top 6 digits)
+# ------------------------------------------------------------
+.macro PROCESS_BLOCK_6 offset
+    movq    \offset(%rdi), %rax
+    movabsq $0x00000000000FFFFF, %rbx
+    andq    %rbx, %rax
+
+    movq    %rax, %rdx
+    shr     $4, %rdx
+    movabsq $0x0F0F0F0F0F, %rbx
+    andq    %rbx, %rax
+    andq    %rbx, %rdx
+    imul    $10, %rdx, %rdx
+    addq    %rdx, %rax
+
+    movabsq $0x00FF00FF00FF, %rbx
+    movq    %rax, %rdx
+    shr     $8, %rdx
+    andq    %rbx, %rax
+    andq    %rbx, %rdx
+    imul    $100, %rdx, %rdx
+    addq    %rdx, %rax
+
+    movq    %rax, %r8
+.endm
 
 # ------------------------------------------------------------
 # __m128i bcd2bin_sse2_m128i(const void* bcd)
@@ -130,85 +205,19 @@ mul_100_1_d:
 bcd2bin_sse2_m128i:
     pushq %rbp
     pushq %rbx
-    pushq %rax
-    pushq %rdi
 
-    # read the digits in xmm1, xmm2, xmm3
+    xorq %r8, %r8
+    xorq %r9, %r9
 
-    movdqu  (%rdi), %xmm1       ; xmm1 = 16 digits (bytes)
-    movdqu  16(%rdi), %xmm2     ; xmm2 = 16 digits (bytes)
-    pxor    %xmm3, %xmm3        ; zero xmm3
-    movq    32(%rdi), %xmm3     ; load only 8 bytes (bytes 32..39)
-    movl    32(%rdi), %eax      ; load bytes 32..35 (4 bytes)
-    movd    %eax, %xmm3
-    movw    36(%rdi), %ax       ; load bytes 36..37 (2 bytes)
-    pinsrw  $2, %ax, %xmm3      ; insert into word lane 2
+    # 38-digit Horner chain (MSB → LSB)
+    PROCESS_BLOCK_6   16
+    PROCESS_BLOCK_16   8
+    PROCESS_BLOCK_16   0
 
-    # keep xmm15 for masks
-    pxor      %xmm15, %xmm15    ; xmm15 = 0
+    # pack r8:r9 → xmm0
+    movq    %r8, %xmm0
+    pinsrq  $1, %r9, %xmm0
 
-    # unpack digits (bytes -> words)
-    movdqa     %xmm1,%xmm4
-    movdqa     %xmm1,%xmm5        ;
-    punpcklbw %xmm15, %xmm4      ; xmm4 = 8 words: d0..d7
-    punpckhbw %xmm15, %xmm5      ; xmm5 = 8 words: d8..d15
-
-    movdqa     %xmm2,%xmm6
-    movdqa     %xmm2,%xmm7        ;
-    punpcklbw %xmm15, %xmm6      ; xmm6 = 8 words: d0..d7
-    punpckhbw %xmm15, %xmm7      ; xmm7 = 8 words: d8..d15
-
-    movdqa     %xmm3,%xmm8
-    movdqa     %xmm3,%xmm9        ;
-    punpcklbw %xmm15, %xmm8      ; xmm4 = 8 words: d0..d7
-    punpckhbw %xmm15, %xmm9      ; xmm5 = 8 words: d8..d15
-
-    # what I have so far:
-
-    # xmm0 inientionally not used keep it as final destination for result
-    #                         rdi -> ptr to digits[38]
-    #                         ------------------------
-    #             xmm1                   xmm2                  xmm3
-    #         digits 0..15           digits 16..31           digits 32..37
-    #      xmm4        xmm5        xmm6        xmm7        xmm8        xmm9
-    #   dig[0..7]   dig[0..7]   dig[0..7]   dig[0..7]   dig[0..7]   dig[0..7]
-    #
-    # ------------------------------------------------------------------------- 
-    #
-    # later performance check: xmm1, xmm2, xmm3 aren't needed anymore
-
-    # execute dn * 10 + d(n+1)
-
-    movdqa  mul_10_1(%rip), %xmm15          # read multiplier 10
-
-    pmaddwd %xmm15, %xmm4    ; xmm0 = 4 dwords: (d0*10+d1), (d2*10+d3), ...
-    pmaddwd %xmm15, %xmm5    ; xmm2 = same for upper digits
-    pmaddwd %xmm15, %xmm6    ; xmm0 = 4 dwords: (d0*10+d1), (d2*10+d3), ...
-    pmaddwd %xmm15, %xmm7    ; xmm2 = same for upper digits
-    pmaddwd %xmm15, %xmm8    ; xmm0 = 4 dwords: (d0*10+d1), (d2*10+d3), ...
-    pmaddwd %xmm15, %xmm9    ; xmm2 = same for upper digits
-
-    # execute ddn * 100 + dd(n+1)
-
-    movdqa  mul_100_1_d(%rip), %xmm15        # read multiplier 100
-    
-    pmuldq  %xmm15, %xmm4   ; xmm4 = [p0*100, p2*100]
-    pmuldq  %xmm15, %xmm6   ; xmm6 = [p0*100, p2*100]
-    pmuldq  %xmm15, %xmm8   ; xmm8 = [p0*100, p2*100]
-
-    psrldq  $4, %xmm4    ; shifts p1 into low position
-    psrldq  $4, %xmm6
-    psrldq  $4, %xmm8
-
-    paddq   %xmm4, %xmm5
-    paddq   %xmm6, %xmm7
-    paddq   %xmm8, %xmm9
-
-    
-
-    
-    popq %rdi    
-    popq %rax
     popq %rbx
     popq %rbp
     ret
