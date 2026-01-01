@@ -1,11 +1,12 @@
-/* name        : arguments.s
- * description : Direct syscalls + Bit-Magic strlen + Assembly-time lengths
-  as --64 -g -I ../include arguments.s -o arguments.o
-  as --64 -g -I ../include ../lib/strlen.s -o strlen.o
-  ld -m elf_x86_64 -o arguments.debug arguments.o strlen.o
- */
-
-.extern strlen
+/* **************************************************************************
+ * name        : arguments.s
+ * description : Print argc/argv using high-performance u64toa and strlen.
+ * * BUILD PROCESS:
+ * 1. as --64 -g ../../../lib/strlen.s -o strlen.o
+ * 2. as --64 -g ../../../lib/u64toa.s -o u64toa.o
+ * 3. as --64 -g -I ../../../include arguments.s -o arguments.o
+ * 4. ld -m elf_x86_64 -o arguments arguments.o strlen.o u64toa.o
+ * ************************************************************************** */
 
 .include "unistd.inc"
 
@@ -16,41 +17,40 @@ buffer: .skip 32
 .section .rodata
 msg_argc: .asciz  "argc        : "
 .equ msg_argc_len, . - msg_argc - 1
-
 msg_prog: .asciz  "Programname : "
 .equ msg_prog_len, . - msg_prog - 1
-
 msg_argv: .asciz  "argv[]      : "
 .equ msg_argv_len, . - msg_argv - 1
-
 char_nl:  .ascii  "\n"
 char_sp:  .ascii  " "
 
 .section .text
 .globl  _start
+.extern strlen
+.extern u64toa
+
 _start:
         popq    %r12            # %r12 = argc
-        
-        # --- 1. Print argc label (Zero runtime scan) ---
+
+        # --- 1. Print argc label ---
         leaq    msg_argc(%rip), %rsi
         movq    $msg_argc_len, %rdx
         movq    $stdout, %rdi
         movq    $write, %rax
         syscall
 
-        # --- Print argc value (Calculated) ---
-        movq    %r12, %rax
-        decq    %rax            
-        call    convert         # returns ptr in %rax
+        # --- Print argc value using u64toa ---
+        movq    %r12, %rdi      # Input value (argc)
+        leaq    buffer(%rip), %rsi
+        movq    $32, %rdx       # Buffer size
+        call    u64toa          # Returns RSI=ptr, RDX=len
 
-        movq    %rax, %rsi       
-        call    strlen          # Bit-magic scan
-        movq    %rax, %rdx      # Length into RDX for write syscall
+        # u64toa already set RSI and RDX for us!
         movq    $stdout, %rdi
         movq    $write, %rax
         syscall
 
-        # --- Newline (Immediate) ---
+        # --- Newline ---
         leaq    char_nl(%rip), %rsi
         movq    $1, %rdx
         movq    $stdout, %rdi
@@ -64,9 +64,11 @@ _start:
         movq    $write, %rax
         syscall
 
-        popq    %rsi            # argv[0]
+        popq    %rdi            # argv[0] pointer
+        pushq   %rdi            # save for write
         call    strlen
-        movq    %rax, %rdx      # Length into RDX for write syscall        
+        movq    %rax, %rdx
+        popq    %rsi            # restore pointer to RSI
         movq    $stdout, %rdi
         movq    $write, %rax
         syscall
@@ -85,58 +87,37 @@ _start:
         syscall
 
         # --- 4. Loop Arguments ---
-        popq    %rsi            
 .arg_loop:
-        testq   %rsi, %rsi      
+        popq    %rdi            # get argv[i]
+        testq   %rdi, %rdi
         jz      .exit
-        
+
+        pushq   %rdi
         call    strlen
-        movq    %rax, %rdx      # Length into RDX for write syscall        
+        movq    %rax, %rdx
+        popq    %rsi
+
         movq    $stdout, %rdi
         movq    $write, %rax
         syscall
-        
-        popq    %rsi            
-        testq   %rsi, %rsi
-        jz      .exit
-        
-        pushq   %rsi            
+
         leaq    char_sp(%rip), %rsi
         movq    $1, %rdx
         movq    $stdout, %rdi
-        movq    $write, %rax        
+        movq    $write, %rax
         syscall
-        popq    %rsi            
+
         jmp     .arg_loop
 
 .exit:
         leaq    char_nl(%rip), %rsi
         movq    $1, %rdx
         movq    $stdout, %rdi
-        movq    $write, %rax        
+        movq    $write, %rax
         syscall
-        
-        xorq    %rdi, %rdi      
+
+        xorq    %rdi, %rdi
         movq    $exit, %rax
         syscall
 
-
-/* -------------------------------------------------
- * convert: Standard division loop
- * ------------------------------------------------- */
-convert:
-        leaq    buffer+30(%rip), %rsi
-        movb    $0, (%rsi)
-        movq    $10, %rcx
-.c_loop:
-        decq    %rsi
-        xorq    %rdx, %rdx
-        divq    %rcx
-        addb    $'0', %dl
-        movb    %dl, (%rsi)
-        testq   %rax, %rax
-        jnz     .c_loop
-        movq    %rsi, %rax
-        ret
-        
 .section .note.GNU-stack,"",@progbits

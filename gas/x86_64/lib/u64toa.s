@@ -11,7 +11,13 @@
 .type u64toa, @function
 
 u64toa:
-leaq    (%rsi, %rdx), %rcx      
+    pushq   %rbp            # Save caller's frame pointer
+    movq    %rsp, %rbp      # Now RSP is 16-byte aligned (8 for RIP + 8 for RBP)
+
+    # 2. Preserve Callee-Saved Registers
+    # Only push these if your function actually changes them
+
+    leaq    (%rsi, %rdx), %rcx
     movq    %rcx, %r9               
     movq    %rdi, %rax              # Original RDI is now safe
     movabsq $0xCCCCCCCCCCCCCCCD, %r8 
@@ -40,9 +46,14 @@ leaq    (%rsi, %rdx), %rcx
     subq    %rcx, %rdx              # RDX = actual length
     movq    %rcx, %rsi              # RSI = start of digits
     xorq    %rax, %rax              # Success
+    popq    %rbp
     ret
+
 .err:
     movq    $1, %rax
+
+    # 4. Epilogue
+    popq    %rbp            # Restore caller's RBP
     ret
     
 .section .note.GNU-stack,"",@progbits

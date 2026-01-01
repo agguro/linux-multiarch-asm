@@ -1,49 +1,63 @@
-/* * name        : strlen.s
- * description : ABI compliant (rdi=ptr, rax=return), Hacker's Delight logic
- * build       : as --64 -g strlen.s -o strlen.o
- */
+/* **************************************************************************
+ * name        : strlen.s
+ * description : Page-boundary safe Bit-Magic strlen (ABI compliant)
+ * ************************************************************************** */
 
 .section .text
 .globl strlen
 .type strlen, @function
 
 strlen:
-    pushq   %rbp
-    movq    %rsp, %rbp
-    pushq   %rbx
-    pushq   %rdi                    # Save start pointer
-    
-    # Standard ABI: Input is in RDI. 
-    # But our loop logic uses RSI/RAX frequently. Let's move it.
-    movq    %rdi, %rax              # Use RAX as the moving pointer
+    pushq   %rbp            # Save caller's frame pointer
+    movq    %rsp, %rbp      # Now RSP is 16-byte aligned (8 for RIP + 8 for RBP)
 
-    # Load masks locally (keeps the function self-contained)
+    # 2. Preserve Callee-Saved Registers
+    # Only push these if your function actually changes them
+    pushq   %rbx
+
+    movq    %rdi, %rax              # Working pointer
+
+    # --- Step 1: Align to 8-byte boundary ---
+    # We must not read 8 bytes if we aren't aligned, or we cross pages.
+.align_check:
+    testq   $7, %rax                # Check if last 3 bits are 0
+    jz      .start_bitmagic
+    cmpb    $0, (%rax)              # Safe 1-byte check
+    je      .done
+    incq    %rax
+    jmp     .align_check
+
+    # --- Step 2: Bit-Magic (Safe now as we can't cross a 4k page boundary) ---
+.start_bitmagic:
     movabsq $0x0101010101010101, %r8
     movabsq $0x8080808080808080, %r9
 
 .loop_8:
-    movq    (%rax), %rdx            # Load 8 bytes into RDX
+    movq    (%rax), %rdx            # LOAD 8 bytes (Page Safe)
     movq    %rdx, %rbx
-    
+
     subq    %r8, %rbx               # (x - 0x01...)
     notq    %rdx                    # ~x
     andq    %rdx, %rbx              # (x - 0x01...) & ~x
     andq    %r9, %rbx               # ... & 0x80...
-    
+
     jnz     .found_null
     addq    $8, %rax
     jmp     .loop_8
 
 .found_null:
-    bsfq    %rbx, %rbx              # Find first 0x80 bit
-    shrq    $3, %rbx                # Bit index to byte offset
-    addq    %rbx, %rax              # RAX now points exactly to the NULL
-    
-    popq    %rdi                    # Restore start pointer
+    # Final check: which byte in the 8-byte word was NULL?
+    bsfq    %rbx, %rbx
+    shrq    $3, %rbx
+    addq    %rbx, %rax
+
+.done:
     subq    %rdi, %rax              # Length = Current - Start
-    
+
     popq    %rbx
-    popq    %rbp
+
+    # 4. Epilogue
+    popq    %rbp            # Restore caller's RBP
     ret
-    
+
 .section .note.GNU-stack,"",@progbits
