@@ -1,59 +1,64 @@
-/* -------------------------------------------------
+/* --------------------------------------------------------------------------
  * name        : u64toa.s
  * input       : RDI = value, RSI = start of buffer, RDX = buffer len
  * output      : RAX = 0 (success) or 1 (overflow)
  * RDI = unchanged
  * RSI = pointer to start of digits
  * RDX = actual length
- * ------------------------------------------------- */
+ * Description : Converts a 64-bit unsigned integer to a decimal string.
+ * Uses numeric local labels (1:, 2:) for internal jumps.
+ * -------------------------------------------------------------------------- */
 .section .text
 .globl u64toa
 .type u64toa, @function
 
 u64toa:
+    # --- Prologue ---
     pushq   %rbp            # Save caller's frame pointer
-    movq    %rsp, %rbp      # Now RSP is 16-byte aligned (8 for RIP + 8 for RBP)
+    movq    %rsp, %rbp      # Establish 16-byte alignment
 
-    # 2. Preserve Callee-Saved Registers
-    # Only push these if your function actually changes them
+    # --- Setup ---
+    leaq    (%rsi, %rdx), %rcx      # %rcx = End of buffer (writing backwards)
+    movq    %rcx, %r9               # Save end address for length calculation
+    movq    %rdi, %rax              # %rax = working copy of the value
+    movabsq $0xCCCCCCCCCCCCCCCD, %r8 # Magic number for division by 10
 
-    leaq    (%rsi, %rdx), %rcx
-    movq    %rcx, %r9               
-    movq    %rdi, %rax              # Original RDI is now safe
-    movabsq $0xCCCCCCCCCCCCCCCD, %r8 
-
-.l2:
+    # --- Conversion Loop ---
+1:
     decq    %rcx
-    cmpq    %rsi, %rcx              # RSI is the start of buffer
-    jl      .err
+    cmpq    %rsi, %rcx              # Buffer overflow check
+    jl      2f                      # If %rcx < start, jump FORWARD to error
+
+    movq    %rax, %r11              # %r11 = temporary copy for modulo math
+    mulq    %r8                     # High 64 bits of result in %rdx
+    shrq    $3, %rdx                # %rdx = quotient (value / 10)
     
-    movq    %rax, %r11              # Use R11 as temporary
-    mulq    %r8
-    shrq    $3, %rdx                # RDX = quotient
+    # Modulo: %r11 = value - (quotient * 10)
+    leaq    (%rdx, %rdx, 4), %r10   # %r10 = quotient * 5
+    shlq    $1, %r10                # %r10 = quotient * 10
+    subq    %r10, %r11              # %r11 = digit (0-9)
     
-    leaq    (%rdx, %rdx, 4), %r10
-    shlq    $1, %r10
-    subq    %r10, %r11              # R11 = digit
-    
+    # Convert to ASCII and store
     addb    $'0', %r11b
     movb    %r11b, (%rcx)
     
-    movq    %rdx, %rax
-    testq   %rax, %rax
-    jnz     .l2
+    movq    %rdx, %rax              # Prepare quotient for next iteration
+    testq   %rax, %rax              # Is quotient zero?
+    jnz     1b                      # If not, jump BACKWARD to '1'
 
+    # --- Success Exit ---
     movq    %r9, %rdx
-    subq    %rcx, %rdx              # RDX = actual length
-    movq    %rcx, %rsi              # RSI = start of digits
-    xorq    %rax, %rax              # Success
-    popq    %rbp
+    subq    %rcx, %rdx              # %rdx = actual length
+    movq    %rcx, %rsi              # %rsi = pointer to the first digit
+    xorq    %rax, %rax              # Return status 0 (Success)
+    
+    popq    %rbp                    # Epilogue
     ret
 
-.err:
-    movq    $1, %rax
-
-    # 4. Epilogue
-    popq    %rbp            # Restore caller's RBP
+    # --- Error Path ---
+2:
+    movq    $1, %rax                # Return status 1 (Overflow/Error)
+    popq    %rbp                    # Epilogue
     ret
     
 .section .note.GNU-stack,"",@progbits

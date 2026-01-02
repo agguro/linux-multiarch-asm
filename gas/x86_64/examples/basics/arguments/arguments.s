@@ -1,14 +1,6 @@
-/* **************************************************************************
- * name        : arguments.s
- * description : Print argc/argv using high-performance u64toa and strlen.
- * * BUILD PROCESS:
- * 1. as --64 -g ../../../lib/strlen.s -o strlen.o
- * 2. as --64 -g ../../../lib/u64toa.s -o u64toa.o
- * 3. as --64 -g -I ../../../include arguments.s -o arguments.o
- * 4. ld -m elf_x86_64 -o arguments arguments.o strlen.o u64toa.o
- * ************************************************************************** */
-
-.include "unistd.inc"
+.nolist
+    .include "unistd.inc"
+.list
 
 .section .bss
         .align 8
@@ -87,10 +79,10 @@ _start:
         syscall
 
         # --- 4. Loop Arguments ---
-.arg_loop:
+1: 
         popq    %rdi            # get argv[i]
         testq   %rdi, %rdi
-        jz      .exit
+        jz      2f              # Jump FORWARD to local label 2:
 
         pushq   %rdi
         call    strlen
@@ -107,9 +99,9 @@ _start:
         movq    $write, %rax
         syscall
 
-        jmp     .arg_loop
+        jmp     1b              # Jump BACKWARD to local label 1:
 
-.exit:
+2: # EXIT
         leaq    char_nl(%rip), %rsi
         movq    $1, %rdx
         movq    $stdout, %rdi
@@ -117,7 +109,7 @@ _start:
         syscall
 
         xorq    %rdi, %rdi
-        movq    $exit, %rax
+        movq    $exit, %rax     # Refers to constant 60 from unistd.inc
         syscall
 
 .section .note.GNU-stack,"",@progbits

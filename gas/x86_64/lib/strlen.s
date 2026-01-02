@@ -1,6 +1,7 @@
 /* **************************************************************************
- * name        : strlen.s
- * description : Page-boundary safe Bit-Magic strlen (ABI compliant)
+ * Name        : strlen.s
+ * Description : Page-boundary safe Bit-Magic strlen (ABI compliant).
+ * Uses numeric local labels for internal branching.
  * ************************************************************************** */
 
 .section .text
@@ -8,56 +9,60 @@
 .type strlen, @function
 
 strlen:
+    # --- Prologue ---
     pushq   %rbp            # Save caller's frame pointer
-    movq    %rsp, %rbp      # Now RSP is 16-byte aligned (8 for RIP + 8 for RBP)
+    movq    %rsp, %rbp      # Establish 16-byte alignment
 
-    # 2. Preserve Callee-Saved Registers
-    # Only push these if your function actually changes them
+    # Preserve RBX as it is a callee-saved register
     pushq   %rbx
 
-    movq    %rdi, %rax              # Working pointer
+    movq    %rdi, %rax      # Working pointer
 
     # --- Step 1: Align to 8-byte boundary ---
-    # We must not read 8 bytes if we aren't aligned, or we cross pages.
-.align_check:
-    testq   $7, %rax                # Check if last 3 bits are 0
-    jz      .start_bitmagic
-    cmpb    $0, (%rax)              # Safe 1-byte check
-    je      .done
-    incq    %rax
-    jmp     .align_check
+    # We check each byte until the pointer is aligned to prevent 
+    # crossing a 4k page boundary during a quadword load.
+1:
+    testq   $7, %rax        # Is the pointer 8-byte aligned?
+    jz      2f              # If yes, jump FORWARD to bit-magic
+    cmpb    $0, (%rax)      # Is it a null terminator?
+    je      3f              # If yes, jump FORWARD to done
+    incq    %rax            # Move to next byte
+    jmp     1b              # Jump BACKWARD to check again
 
-    # --- Step 2: Bit-Magic (Safe now as we can't cross a 4k page boundary) ---
-.start_bitmagic:
-    movabsq $0x0101010101010101, %r8
-    movabsq $0x8080808080808080, %r9
+    # --- Step 2: Bit-Magic Initialization ---
+2:
+    movabsq $0x0101010101010101, %r8  # Mask for least significant bits
+    movabsq $0x8080808080808080, %r9  # Mask for most significant bits
 
-.loop_8:
-    movq    (%rax), %rdx            # LOAD 8 bytes (Page Safe)
+    # --- Step 3: Main Loop (Processing 8 bytes at a time) ---
+4:
+    movq    (%rax), %rdx    # LOAD 8 bytes
     movq    %rdx, %rbx
 
-    subq    %r8, %rbx               # (x - 0x01...)
-    notq    %rdx                    # ~x
-    andq    %rdx, %rbx              # (x - 0x01...) & ~x
-    andq    %r9, %rbx               # ... & 0x80...
+    subq    %r8, %rbx       # (x - 0x01...)
+    notq    %rdx            # ~x
+    andq    %rdx, %rbx      # (x - 0x01...) & ~x
+    andq    %r9, %rbx       # ... & 0x80...
 
-    jnz     .found_null
-    addq    $8, %rax
-    jmp     .loop_8
+    jnz     5f              # If non-zero, a NULL was found; jump FORWARD
+    addq    $8, %rax        # Move to next quadword
+    jmp     4b              # Jump BACKWARD to loop
 
-.found_null:
-    # Final check: which byte in the 8-byte word was NULL?
-    bsfq    %rbx, %rbx
-    shrq    $3, %rbx
-    addq    %rbx, %rax
+    # --- Step 4: Identify NULL position ---
+5:
+    bsfq    %rbx, %rbx      # Bit Scan Forward to find the first '1'
+    shrq    $3, %rbx        # Divide by 8 to get byte offset
+    addq    %rbx, %rax      # Add offset to current pointer
 
-.done:
-    subq    %rdi, %rax              # Length = Current - Start
+    # --- Step 5: Final Calculation and Exit ---
+3:
+    subq    %rdi, %rax      # Result = Current Pointer - Start Pointer
 
-    popq    %rbx
+    # Restore callee-saved registers
+    popq    %rbx            # Restore RBX
 
-    # 4. Epilogue
+    # --- Epilogue ---
     popq    %rbp            # Restore caller's RBP
-    ret
+    ret                     # Return length in RAX
 
 .section .note.GNU-stack,"",@progbits

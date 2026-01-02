@@ -1,66 +1,65 @@
-/* -------------------------------------------------
+/* --------------------------------------------------------------------------
  * name        : u64tohex.s
  * input       : RDI = value, RSI = start of buffer, RDX = buffer len
  * output      : RAX = 0 (success) or 1 (overflow)
  * RDI = unchanged
- * RSI = pointer to start of hex digits
- * RDX = actual length
- * ------------------------------------------------- */
+ * RSI = pointer to start of hex digits (including 0x)
+ * RDX = actual length (including 0x)
+ * -------------------------------------------------------------------------- */
 .section .text
 .globl u64tohex
 .type u64tohex, @function
 
 u64tohex:
-    # --- Prologue ---
-    pushq   %rbp            # Save caller's RBP
-    movq    %rsp, %rbp      # Establish new frame (RSP is now 16-byte aligned)
+    pushq   %rbp            
+    movq    %rsp, %rbp      
 
-    # Note: We use RDI, RSI, RDX, RAX, RCX, R8, R9.
-    # All these are caller-saved (scratch) registers in System V ABI.
-    # No need to push RBX or R12-R15 unless we use them.
+    leaq    (%rsi, %rdx), %rcx      # End of buffer
+    movq    %rcx, %r9               # Save for length math
+    movq    %rdi, %rax              
 
-    leaq    (%rsi, %rdx), %rcx      # RCX = End of buffer
-    movq    %rcx, %r9               # Save end for length math
-    movq    %rdi, %rax              # Working copy of RDI
-
-.hex_loop:
+    # --- Main Hex Loop ---
+1:
     decq    %rcx
-    cmpq    %rsi, %rcx              # Overflow check
-    jl      .hex_err
+    cmpq    %rsi, %rcx              
+    jl      3f                      
 
-    # --- Get last 4 bits (one hex digit) ---
     movq    %rax, %r8
-    andq    $0xF, %r8               # Mask nibble
+    andq    $0xF, %r8               
 
-    # --- Convert to ASCII ---
     cmpb    $10, %r8b
-    jl      .is_digit
-    addb    $('A' - 10), %r8b       # Convert 10-15 to 'A'-'F'
-    jmp     .store
-.is_digit:
-    addb    $'0', %r8b              # Convert 0-9 to '0'-'9'
+    jl      2f                      
+    addb    $('A' - 10), %r8b       
+    jmp     4f                      
 
-.store:
-    movb    %r8b, (%rcx)
+2:
+    addb    $'0', %r8b              
 
-    # --- Shift right by 4 bits ---
+4:
+    movb    %r8b, (%rcx)            
     shrq    $4, %rax
-    jnz     .hex_loop
+    jnz     1b                      
+
+    # --- Add "0x" Prefix ---
+    # We need 2 more bytes available in the buffer
+    subq    $2, %rcx
+    cmpq    %rsi, %rcx
+    jl      3f                      # If no room for "0x", trigger overflow
+
+    movb    $'0', (%rcx)            # Store '0'
+    movb    $'x', 1(%rcx)           # Store 'x' at next byte
 
     # --- Success Exit ---
     movq    %r9, %rdx
-    subq    %rcx, %rdx              # RDX = actual length
-    movq    %rcx, %rsi              # RSI = pointer to start
-    xorq    %rax, %rax              # Status = 0
-
-    popq    %rbp                    # Restore RBP before ret
+    subq    %rcx, %rdx              # Length now includes 2 bytes for 0x
+    movq    %rcx, %rsi              # RSI now points to '0' of "0x..."
+    xorq    %rax, %rax              
+    popq    %rbp                    
     ret
 
-.hex_err:
-    movq    $1, %rax                # Status = 1
-
-    # --- Epilogue for Error path ---
-    popq    %rbp                    # Restore RBP before ret
+3:
+    movq    $1, %rax                
+    popq    %rbp                    
     ret
 
 .section .note.GNU-stack,"",@progbits

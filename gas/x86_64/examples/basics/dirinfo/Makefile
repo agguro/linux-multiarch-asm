@@ -1,10 +1,11 @@
 # 1. Project Name
-BIN=arguments
+BIN=dirinfo
 
 # 2. Source Files
 SRCS = $(wildcard *.s)
 LIB_SRCS = ../../../lib/strlen.s \
-           ../../../lib/u64toa.s
+		   ../../../lib/u64toa.s \
+		   ../../../lib/u64tohex.s
 
 # 3. Object and Listing Mapping
 OBJS = $(notdir $(SRCS:.s=.o)) $(notdir $(LIB_SRCS:.s=.o))
