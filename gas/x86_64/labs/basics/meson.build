@@ -1,4 +1,4 @@
-# examples/basics/meson.build
+# labs/basics/meson.build
 subdir('hello')
 subdir('printenv')
 subdir('waitforkeypress')
