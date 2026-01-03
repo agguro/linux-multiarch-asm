@@ -1,1 +1,1 @@
-# x86_64/examples/basics/dirinfo/meson.build
+# x86_64/labs/basics/dirinfo/meson.build

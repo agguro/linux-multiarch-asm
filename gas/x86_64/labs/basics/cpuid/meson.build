@@ -1,1 +1,1 @@
-# x86_64/examples/basics/cpuid/meson.build
+# x86_64/labs/basics/cpuid/meson.build

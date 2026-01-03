@@ -1,1 +1,1 @@
-# x86_64/examples/basics/arguments/meson.build
+# x86_64/labs/basics/arguments/meson.build

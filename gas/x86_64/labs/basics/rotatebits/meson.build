@@ -1,1 +1,1 @@
-# x86_64/examples/basics/rotatebits/meson.build
+# x86_64/labs/basics/rotatebits/meson.build
